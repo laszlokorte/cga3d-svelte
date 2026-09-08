@@ -1,8 +1,16 @@
 <script>
     import * as THREE from "three";
     import { T, useThrelte, useTask } from "@threlte/core";
-    import { CameraControls, Sky, TransformControls } from "@threlte/extras";
-    const { renderer } = useThrelte();
+    import {
+        CameraControls,
+        Sky,
+        TransformControls,
+        Gizmo,
+        Environment,
+    } from "@threlte/extras";
+    const { renderer, canvas } = useThrelte();
+
+    const { planes: plns } = $props();
 
     renderer.localClippingEnabled = true;
 
@@ -40,21 +48,33 @@
             group.quaternion.copy(camera.quaternion).invert();
         }
     });
+
+    export function updateViewport(c) {
+        const rect = canvas.getBoundingClientRect();
+        camera.setViewOffset(
+            rect.width,
+            rect.height,
+            (rect.left - c.left) / 2,
+            (rect.top - c.top) / 2,
+            rect.width,
+            rect.height,
+        );
+
+        camera.updateProjectionMatrix();
+    }
 </script>
 
 <T.PerspectiveCamera
     bind:ref={camera}
     makeDefault
-    position={[10, 10, 10]}
+    position={[5, 5, 5]}
     oncreate={(ref) => {
         ref.lookAt(0, 0, 0);
     }}
 >
-    <CameraControls
-        draggingSmoothTime={0.01}
-        maxDistance={16}
-        minDistance={6}
-    />
+    <CameraControls draggingSmoothTime={0.01} maxDistance={16} minDistance={3}>
+        <Gizmo placement="top-right" />
+    </CameraControls>
     <T.Group bind:ref={group}>
         <T.Mesh renderOrder={-1} rotation={[Math.PI / 2, 0, 0]}>
             <T.TorusGeometry args={[1, 0.001, 32, 64]} />
@@ -96,8 +116,7 @@
         {/each}
     </T.Group>
 </T.PerspectiveCamera>
-<T.DirectionalLight position={[2, 1, 3]} />
-<Sky renderOrder={-2} elevation={90} rayleigh={0.1} turbidity={2} />
+<Sky renderOrder={-2} elevation={90} rayleigh={0.2} turbidity={2} />
 <T.Mesh>
     <T.BoxGeometry args={[4, 2, 4]} />
     <T.MeshStandardMaterial
@@ -107,42 +126,40 @@
     />
 </T.Mesh>
 
-<TransformControls mode="translate">
+<TransformControls
+    onchange={(evt) => {
+        const object = evt.target.object;
+        if (object) {
+            object.position.x = THREE.MathUtils.clamp(object.position.x, -2, 2);
+            object.position.y = THREE.MathUtils.clamp(object.position.y, -1, 1);
+            object.position.z = THREE.MathUtils.clamp(object.position.z, -2, 2);
+        }
+    }}
+    mode="translate"
+>
     <T.Mesh>
         <T.BoxGeometry args={[1, 1, 1]} />
-        <T.MeshStandardMaterial
-            clippingPlanes={planes}
-            toneMapped={false}
-            color="red"
-        />
+        <T.MeshStandardMaterial toneMapped={false} color="red" />
     </T.Mesh>
 </TransformControls>
+<T.DirectionalLight position={[3, 10, 5]} intensity={2} />
 
-<T.Mesh>
-    <T.PlaneGeometry args={[4, 2, 1]} />
-    <T.MeshStandardMaterial
-        clippingPlanes={planes}
-        toneMapped={false}
-        color="teal"
-        side={THREE.DoubleSide}
-    />
-</T.Mesh>
-<T.Mesh rotation={[0, Math.PI / 2, 0]}>
-    <T.PlaneGeometry args={[4, 2, 1]} />
-    <T.MeshStandardMaterial
-        clippingPlanes={planes}
-        toneMapped={false}
-        color="tomato"
-        side={THREE.DoubleSide}
-    />
-</T.Mesh>
-
-<T.Mesh rotation={[Math.PI / 2, 0, 0]}>
-    <T.PlaneGeometry args={[4, 4, 1]} />
-    <T.MeshStandardMaterial
-        clippingPlanes={planes}
-        toneMapped={false}
-        color="orange"
-        side={THREE.DoubleSide}
-    />
-</T.Mesh>
+{#each plns as p}
+    {@const rot = new THREE.Quaternion().setFromUnitVectors(
+        new THREE.Vector3(0, 0, 1),
+        new THREE.Vector3(p.x, p.y, p.z).normalize(),
+    )}
+    <T.Group quaternion={rot.toArray()}>
+        <T.Mesh position={[0, 0, p.d]}>
+            <T.PlaneGeometry args={[16, 16]} />
+            <T.MeshStandardMaterial
+                opacity={0.7}
+                transparent={true}
+                clippingPlanes={planes}
+                color={p.color}
+                toneMapped={false}
+                side={THREE.DoubleSide}
+            />
+        </T.Mesh>
+    </T.Group>
+{/each}

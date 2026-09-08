@@ -21,6 +21,7 @@
     "vite": "^8.0.16"
   },
   "dependencies": {
+    "@sveltejs/adapter-static": "^3.0.10",
     "@threlte/core": "^8.6.0",
     "@threlte/extras": "^9.21.1",
     "@types/three": "^0.185.4",
