@@ -10,9 +10,46 @@
         MeshLineGeometry,
         MeshLineMaterial,
     } from "@threlte/extras";
+
     const { renderer, canvas } = useThrelte();
 
-    const gltf = useGltf("/nike.glb");
+    const gltf = useGltf("/nike.glb").then((m) => {
+        m.scene.traverse((node) => {
+            if (node.isMesh) {
+                const material = node.material;
+
+                material.onBeforeCompile = (shader) => {
+                    // Add custom uniforms if needed
+                    shader.uniforms.uTime = { value: 0 };
+
+                    // Keep a reference to uniforms if you need to update them in requestAnimationFrame
+                    node.userData.shader = shader;
+
+                    // Replace a chunk in the vertex shader
+                    shader.vertexShader = shader.vertexShader
+                        .replace(
+                            "#include <begin_vertex>",
+                            `
+              #include <begin_vertex>
+              // Modify transformed vertex position (e.g., wave effect)
+              transformed.y += sin(position.x*40.0 + uTime * 3.0) * 0.01 + cos(position.z*15.0 + uTime * 3.0) * 0.02;
+              `,
+                        )
+                        .replace(
+                            "#include <common>",
+                            `
+                      #include <common>
+
+                      uniform float uTime;
+                    `,
+                        );
+                };
+            }
+        });
+
+        return m;
+    });
+
     const { planes: plns } = $props();
 
     renderer.localClippingEnabled = true;
@@ -217,7 +254,7 @@
 {#await gltf then model}
     <TransformControls
         scale={5}
-        position={[1, 0, 0]}
+        position={[-1, 0, 0]}
         size={0.4}
         onchange={(evt) => {
             const object = evt.target.object;
@@ -241,7 +278,25 @@
         }}
         mode="translate"
     >
-        <T is={model.nodes["root"]} />
+        <T
+            is={model.nodes["root"]}
+            oncreate={(scene) => {
+                const clock = new THREE.Clock();
+                function animate() {
+                    requestAnimationFrame(animate);
+
+                    const elapsedTime = clock.getElapsedTime();
+
+                    scene.traverse((node) => {
+                        if (node.isMesh && node.userData.shader) {
+                            node.userData.shader.uniforms.uTime.value =
+                                elapsedTime;
+                        }
+                    });
+                }
+                animate();
+            }}
+        />
     </TransformControls>
     <TransformControls
         size={0.4}
