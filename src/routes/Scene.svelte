@@ -126,7 +126,7 @@
 >
     <T.Mesh>
         <T.BoxGeometry args={[1, 1, 1]} />
-        <T.MeshStandardMaterial toneMapped={false} color="tomato" />
+        <T.MeshStandardMaterial toneMapped={false} color="gold" />
     </T.Mesh>
 </TransformControls>
 
@@ -138,26 +138,74 @@
         new THREE.Vector3(p.x, p.y, p.z).normalize(),
     )}
     <T.Group quaternion={rot.toArray()}>
-        <T.Mesh position={[0, 0, p.d]} renderOrder={100 + pi}>
-            <T.PlaneGeometry args={[16, 16]} />
-            <T.MeshStandardMaterial
-                opacity={0.6}
-                depthWrite={false}
-                transparent={true}
-                premultipliedAlpha={true}
-                clippingPlanes={planes}
-                color={p.color}
-                toneMapped={false}
-                side={THREE.DoubleSide}
-            />
-        </T.Mesh>
+        <T.Group position={[0, 0, p.d]}>
+            {#each { length: 4 } as _, r}
+                {#each { length: 12 } as _, a}
+                    <T.Mesh
+                        position={[
+                            (r / 2 + 0.5) * Math.sin(((Math.PI * 2) / 12) * a),
+                            (r / 2 + 0.5) * Math.cos(((Math.PI * 2) / 12) * a),
+                            0.05 / 2,
+                        ]}
+                        rotation={[Math.PI / 2, 0, 0]}
+                    >
+                        <T.ConeGeometry args={[0.02, 0.05, 32]} />
+                        <T.MeshStandardMaterial
+                            depthWrite={false}
+                            transparent={true}
+                            premultipliedAlpha={true}
+                            color={p.color}
+                            clippingPlanes={planes}
+                        />
+                    </T.Mesh>
+                {/each}
+            {/each}
+            <T.Mesh renderOrder={100 + pi}>
+                <T.PlaneGeometry args={[16, 16]} />
+                <T.MeshStandardMaterial
+                    opacity={0.6}
+                    depthWrite={false}
+                    transparent={true}
+                    premultipliedAlpha={true}
+                    clippingPlanes={planes}
+                    color={p.color}
+                    toneMapped={false}
+                    side={THREE.DoubleSide}
+                />
+            </T.Mesh>
+        </T.Group>
     </T.Group>
 {/each}
 
 {#await gltf then model}
-    <T.Group scale={5} position={[1, 0, 0]}>
+    <TransformControls
+        scale={5}
+        position={[1, 0, 0]}
+        size={0.4}
+        onchange={(evt) => {
+            const object = evt.target.object;
+            if (object) {
+                object.position.x = THREE.MathUtils.clamp(
+                    object.position.x,
+                    -2,
+                    2,
+                );
+                object.position.y = THREE.MathUtils.clamp(
+                    object.position.y,
+                    -1,
+                    1,
+                );
+                object.position.z = THREE.MathUtils.clamp(
+                    object.position.z,
+                    -2,
+                    2,
+                );
+            }
+        }}
+        mode="translate"
+    >
         <T is={model.nodes["root"]} />
-    </T.Group>
+    </TransformControls>
     <TransformControls
         size={0.4}
         axis={"X"}
@@ -191,8 +239,8 @@
         mode="translate"
     >
         <T.Mesh>
-            <T.SphereGeometry args={[0.5, 16, 32]} />
-            <T.MeshStandardMaterial toneMapped={false} color="teal" />
+            <T.SphereGeometry args={[0.5, 32, 16]} />
+            <T.MeshStandardMaterial toneMapped={false} color="rebeccapurple" />
         </T.Mesh>
     </TransformControls>
 {/await}
