@@ -7,6 +7,8 @@
         TransformControls,
         Gizmo,
         useGltf,
+        MeshLineGeometry,
+        MeshLineMaterial,
     } from "@threlte/extras";
     const { renderer, canvas } = useThrelte();
 
@@ -63,6 +65,31 @@
 
         camera.updateProjectionMatrix();
     }
+    const points = [
+        new THREE.Vector3(-2, 1, -2),
+        new THREE.Vector3(2, 1, -2),
+        new THREE.Vector3(2, 1, -2),
+        new THREE.Vector3(2, 1, 2),
+        new THREE.Vector3(2, 1, 2),
+        new THREE.Vector3(-2, 1, 2),
+        new THREE.Vector3(-2, 1, 2),
+        new THREE.Vector3(-2, 1, -2),
+        new THREE.Vector3(-2, -1, -2),
+        new THREE.Vector3(-2, -1, -2),
+        new THREE.Vector3(2, -1, -2),
+        new THREE.Vector3(2, 1, -2),
+        new THREE.Vector3(2, -1, -2),
+        new THREE.Vector3(2, -1, -2),
+        new THREE.Vector3(2, -1, 2),
+        new THREE.Vector3(2, 1, 2),
+        new THREE.Vector3(2, -1, 2),
+        new THREE.Vector3(2, -1, 2),
+        new THREE.Vector3(-2, -1, 2),
+        new THREE.Vector3(-2, -1, 2),
+        new THREE.Vector3(-2, 1, 2),
+        new THREE.Vector3(-2, -1, 2),
+        new THREE.Vector3(-2, -1, -2),
+    ];
 </script>
 
 <T.PerspectiveCamera
@@ -109,6 +136,16 @@
         toneMapped={true}
         color="#111"
         side={THREE.BackSide}
+    />
+</T.Mesh>
+<T.Mesh renderOrder={1000}>
+    <MeshLineGeometry {points} />
+    <MeshLineMaterial
+        width={2}
+        attenuate={false}
+        color="black"
+        opacity={0.1}
+        transparent
     />
 </T.Mesh>
 
