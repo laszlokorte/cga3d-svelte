@@ -6,10 +6,11 @@
         Sky,
         TransformControls,
         Gizmo,
-        Environment,
+        useGltf,
     } from "@threlte/extras";
     const { renderer, canvas } = useThrelte();
 
+    const gltf = useGltf("/nike.glb");
     const { planes: plns } = $props();
 
     renderer.localClippingEnabled = true;
@@ -72,45 +73,30 @@
         ref.lookAt(0, 0, 0);
     }}
 >
-    <CameraControls draggingSmoothTime={0.01} maxDistance={16} minDistance={3}>
+    <CameraControls draggingSmoothTime={0.01} maxDistance={16} minDistance={2}>
         <Gizmo placement="top-right" />
     </CameraControls>
     <T.Group bind:ref={group}>
-        <T.Mesh renderOrder={-1} rotation={[Math.PI / 2, 0, 0]}>
-            <T.TorusGeometry args={[1, 0.001, 32, 64]} />
-            <T.MeshBasicMaterial
-                toneMapped={false}
-                depthTest={false}
-                depthWrite={false}
-                color="orange"
-            />
-        </T.Mesh>
-        <T.Mesh renderOrder={-1} rotation={[0, Math.PI / 2, 0]}>
-            <T.TorusGeometry args={[1, 0.001, 32, 64]} />
-            <T.MeshBasicMaterial
-                toneMapped={false}
-                depthTest={false}
-                depthWrite={false}
-                color="red"
-            />
-        </T.Mesh>
-        <T.Mesh renderOrder={-1} rotation={[0, 0, 0]}>
-            <T.TorusGeometry args={[1, 0.001, 32, 64]} />
-            <T.MeshBasicMaterial
-                toneMapped={false}
-                depthTest={false}
-                depthWrite={false}
-                color="green"
-            />
-        </T.Mesh>
-        {#each [[0, -10, 0], [0, 10, 0], [10, 0, 0], [-10, 0, 0], [0, 0, 10], [0, 0, -10]] as [x, y, z]}
+        {#each [{ rot: [Math.PI / 2, 0, 0], color: "magenta" }, { rot: [0, Math.PI / 2, 0], color: "cyan" }, { rot: [0, 0, 0], color: "yellow" }] as t}
+            <T.Mesh renderOrder={-1} rotation={t.rot}>
+                <T.TorusGeometry args={[1, 0.001, 32, 64]} />
+                <T.MeshBasicMaterial
+                    toneMapped={false}
+                    depthTest={false}
+                    depthWrite={false}
+                    color={t.color}
+                />
+            </T.Mesh>
+        {/each}
+
+        {#each [{ pos: [0, -10, 0], color: "green" }, { pos: [0, 10, 0], color: "green" }, { pos: [10, 0, 0], color: "red" }, { pos: [-10, 0, 0], color: "red" }, { pos: [0, 0, 10], color: "blue" }, { pos: [0, 0, -10], color: "blue" }] as { color, pos: [x, y, z] }}
             <T.Mesh renderOrder={-1} rotation={[0, 0, 0]} position={[x, y, z]}>
                 <T.SphereGeometry args={[0.08, 32, 16]} />
                 <T.MeshBasicMaterial
                     toneMapped={false}
                     depthTest={false}
                     depthWrite={false}
-                    color="magenta"
+                    {color}
                 />
             </T.Mesh>
         {/each}
@@ -121,12 +107,13 @@
     <T.BoxGeometry args={[4, 2, 4]} />
     <T.MeshStandardMaterial
         toneMapped={true}
-        color="#fff"
+        color="#111"
         side={THREE.BackSide}
     />
 </T.Mesh>
 
 <TransformControls
+    size={0.4}
     onchange={(evt) => {
         const object = evt.target.object;
         if (object) {
@@ -139,22 +126,25 @@
 >
     <T.Mesh>
         <T.BoxGeometry args={[1, 1, 1]} />
-        <T.MeshStandardMaterial toneMapped={false} color="red" />
+        <T.MeshStandardMaterial toneMapped={false} color="tomato" />
     </T.Mesh>
 </TransformControls>
+
 <T.DirectionalLight position={[3, 10, 5]} intensity={2} />
 
-{#each plns as p}
+{#each plns as p, pi}
     {@const rot = new THREE.Quaternion().setFromUnitVectors(
         new THREE.Vector3(0, 0, 1),
         new THREE.Vector3(p.x, p.y, p.z).normalize(),
     )}
     <T.Group quaternion={rot.toArray()}>
-        <T.Mesh position={[0, 0, p.d]}>
+        <T.Mesh position={[0, 0, p.d]} renderOrder={100 + pi}>
             <T.PlaneGeometry args={[16, 16]} />
             <T.MeshStandardMaterial
-                opacity={0.7}
+                opacity={0.6}
+                depthWrite={false}
                 transparent={true}
+                premultipliedAlpha={true}
                 clippingPlanes={planes}
                 color={p.color}
                 toneMapped={false}
@@ -163,3 +153,46 @@
         </T.Mesh>
     </T.Group>
 {/each}
+
+{#await gltf then model}
+    <T.Group scale={5} position={[1, 0, 0]}>
+        <T is={model.nodes["root"]} />
+    </T.Group>
+    <TransformControls
+        size={0.4}
+        axis={"X"}
+        maxX={2}
+        maxY={2}
+        maxZ={2}
+        minX={-2}
+        minY={-2}
+        minZ={-2}
+        position={[2, 0, 0]}
+        onchange={(evt) => {
+            const object = evt.target.object;
+            if (object) {
+                object.position.x = THREE.MathUtils.clamp(
+                    object.position.x,
+                    -2,
+                    2,
+                );
+                object.position.y = THREE.MathUtils.clamp(
+                    object.position.y,
+                    -1,
+                    1,
+                );
+                object.position.z = THREE.MathUtils.clamp(
+                    object.position.z,
+                    -2,
+                    2,
+                );
+            }
+        }}
+        mode="translate"
+    >
+        <T.Mesh>
+            <T.SphereGeometry args={[0.5, 16, 32]} />
+            <T.MeshStandardMaterial toneMapped={false} color="teal" />
+        </T.Mesh>
+    </TransformControls>
+{/await}
