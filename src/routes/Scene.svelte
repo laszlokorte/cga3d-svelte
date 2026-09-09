@@ -10,6 +10,7 @@
         MeshLineGeometry,
         MeshLineMaterial,
     } from "@threlte/extras";
+    import * as cga from "./cga3";
 
     const { renderer, canvas } = useThrelte();
 
@@ -71,7 +72,7 @@
         return { a, b };
     });
 
-    const { planes: plns } = $props();
+    const { elements } = $props();
 
     renderer.localClippingEnabled = true;
 
@@ -209,51 +210,6 @@
 
 <T.DirectionalLight position={[3, 10, 5]} intensity={2} />
 
-{#each plns as p, pi}
-    {@const rot = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 0, 1),
-        new THREE.Vector3(p.x, p.y, p.z).normalize(),
-    )}
-    <T.Group quaternion={rot.toArray()}>
-        <T.Group position={[0, 0, p.d]}>
-            {#each { length: 4 } as _, r}
-                {#each { length: 12 } as _, a}
-                    <T.Mesh
-                        position={[
-                            (r / 2 + 0.5) * Math.sin(((Math.PI * 2) / 12) * a),
-                            (r / 2 + 0.5) * Math.cos(((Math.PI * 2) / 12) * a),
-                            0.05 / 2,
-                        ]}
-                        rotation={[Math.PI / 2, 0, 0]}
-                    >
-                        <T.ConeGeometry args={[0.02, 0.05, 32]} />
-                        <T.MeshStandardMaterial
-                            depthWrite={false}
-                            transparent={true}
-                            premultipliedAlpha={true}
-                            color={p.color}
-                            clippingPlanes={planes}
-                        />
-                    </T.Mesh>
-                {/each}
-            {/each}
-            <T.Mesh renderOrder={100 + pi}>
-                <T.PlaneGeometry args={[16, 16]} />
-                <T.MeshStandardMaterial
-                    opacity={0.6}
-                    depthWrite={false}
-                    transparent={true}
-                    premultipliedAlpha={true}
-                    clippingPlanes={planes}
-                    color={p.color}
-                    toneMapped={false}
-                    side={THREE.DoubleSide}
-                />
-            </T.Mesh>
-        </T.Group>
-    </T.Group>
-{/each}
-
 {#await gltf then { a, b }}
     <TransformControls
         scale={5}
@@ -302,42 +258,120 @@
         />
         <T is={b} />
     </TransformControls>
-
-    <TransformControls
-        size={0.4}
-        axis={"X"}
-        maxX={2}
-        maxY={2}
-        maxZ={2}
-        minX={-2}
-        minY={-2}
-        minZ={-2}
-        position={[2, 0, 0]}
-        onchange={(evt) => {
-            const object = evt.target.object;
-            if (object) {
-                object.position.x = THREE.MathUtils.clamp(
-                    object.position.x,
-                    -2,
-                    2,
-                );
-                object.position.y = THREE.MathUtils.clamp(
-                    object.position.y,
-                    -1,
-                    1,
-                );
-                object.position.z = THREE.MathUtils.clamp(
-                    object.position.z,
-                    -2,
-                    2,
-                );
-            }
-        }}
-        mode="translate"
-    >
-        <T.Mesh>
-            <T.SphereGeometry args={[0.5, 32, 16]} />
-            <T.MeshStandardMaterial toneMapped={false} color="rebeccapurple" />
-        </T.Mesh>
-    </TransformControls>
 {/await}
+
+{#each elements as { el, color }, eli}
+    {#if cga.isSphere(el)}
+        {@const sphCoords = cga.sphereParameters(el)}
+        <TransformControls
+            size={0.4}
+            axis={"X"}
+            maxX={2}
+            maxY={2}
+            maxZ={2}
+            minX={-2}
+            minY={-2}
+            minZ={-2}
+            position={sphCoords.center}
+            onchange={(evt) => {
+                const object = evt.target.object;
+                if (object) {
+                    object.position.x = THREE.MathUtils.clamp(
+                        object.position.x,
+                        -2,
+                        2,
+                    );
+                    object.position.y = THREE.MathUtils.clamp(
+                        object.position.y,
+                        -1,
+                        1,
+                    );
+                    object.position.z = THREE.MathUtils.clamp(
+                        object.position.z,
+                        -2,
+                        2,
+                    );
+                }
+            }}
+            mode="translate"
+        >
+            <T.Mesh renderOrder={40000 + eli * 100}>
+                <T.SphereGeometry args={[sphCoords.radius, 32, 16]} />
+                <T.MeshStandardMaterial
+                    toneMapped={false}
+                    side={THREE.DoubleSide}
+                    opacity={0.6}
+                    depthWrite={false}
+                    transparent={true}
+                    premultipliedAlpha={true}
+                    clippingPlanes={planes}
+                    {color}
+                />
+            </T.Mesh>
+        </TransformControls>
+    {:else if cga.isPlane(el)}
+        {@const plnParams = cga.planeParameters(el)}
+        {@const rot = new THREE.Quaternion().setFromUnitVectors(
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(
+                plnParams?.normal[0],
+                plnParams?.normal[1],
+                plnParams?.normal[2],
+            ).normalize(),
+        )}
+        <T.Group quaternion={rot.toArray()}>
+            <T.Group position={[0, 0, plnParams?.distance]}>
+                <T.Mesh
+                    rotation={[Math.PI / 2, 0, 0]}
+                    renderOrder={20000 + eli * 100}
+                >
+                    <T.ConeGeometry args={[0.02, 0.05, 32]} />
+                    <T.MeshStandardMaterial
+                        depthWrite={false}
+                        transparent={true}
+                        premultipliedAlpha={true}
+                        {color}
+                        clippingPlanes={planes}
+                    />
+                </T.Mesh>
+                {#each { length: 4 } as _, r}
+                    {#each { length: 12 } as _, a}
+                        <T.Mesh
+                            renderOrder={20000 + eli * 100 + r * 12 + a}
+                            position={[
+                                (r / 2 + 0.5) *
+                                    Math.sin(((Math.PI * 2) / 12) * a),
+                                (r / 2 + 0.5) *
+                                    Math.cos(((Math.PI * 2) / 12) * a),
+                                0.05 / 2,
+                            ]}
+                            rotation={[Math.PI / 2, 0, 0]}
+                        >
+                            <T.ConeGeometry args={[0.02, 0.05, 32]} />
+                            <T.MeshStandardMaterial
+                                depthWrite={false}
+                                transparent={true}
+                                premultipliedAlpha={true}
+                                {color}
+                                clippingPlanes={planes}
+                            />
+                        </T.Mesh>
+                    {/each}
+                {/each}
+                <T.Mesh renderOrder={20000 + eli * 100 + 4 * 12 + 1}>
+                    <T.PlaneGeometry args={[16, 16]} />
+                    <T.MeshStandardMaterial
+                        toneMapped={false}
+                        side={THREE.DoubleSide}
+                        opacity={0.6}
+                        depthWrite={false}
+                        transparent={true}
+                        premultipliedAlpha={true}
+                        clippingPlanes={planes}
+                        {color}
+                    />
+                </T.Mesh>
+            </T.Group>
+        </T.Group>
+    {/if}
+{/each}

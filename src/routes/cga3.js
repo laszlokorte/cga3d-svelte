@@ -32,12 +32,16 @@ export const e3 = basis(2);
 export const ep = basis(3);
 export const em = basis(4);
 
-export const e0 = sub(scale(em, 0.5), scale(ep, 0.5));
+export const e0 = sub(scale(0.5, em), scale(0.5, ep));
 export const einf = add(em, ep);
 
 function add(a, b) {
-  const r = ZERO();
-  for (let i = 0; i < SIZE; i++) r[i] = a[i] + b[i];
+  const r = new Float64Array(32);
+
+  for (let i = 0; i < 32; i++) {
+    r[i] = a[i] + b[i];
+  }
+
   return r;
 }
 
@@ -48,8 +52,12 @@ function sub(a, b) {
 }
 
 function scale(s, a) {
-  const r = ZERO();
-  for (let i = 0; i < SIZE; i++) r[i] = s * a[i];
+  const r = new Float64Array(32);
+
+  for (let i = 0; i < 32; i++) {
+    r[i] = a[i] * s;
+  }
+
   return r;
 }
 
@@ -162,6 +170,9 @@ export function point(x, y, z) {
 export function pointPair(a, b) {
   return wedge(a, b);
 }
+export function sphere(x, y, z, radius) {
+  return sub(point(x, y, z), scale(0.5 * radius * radius, einf));
+}
 
 // Line through two points
 export function line(a, b) {
@@ -170,9 +181,20 @@ export function line(a, b) {
 }
 
 // Plane through three points
-export function plane(a, b, c) {
-  // OPNS plane
-  return wedge(wedge(wedge(a, b), c), einf);
+export function plane(normal, distance) {
+  const [x, y, z] = normal;
+  const len = Math.hypot(x, y, z);
+
+  if (len < 1e-10) throw new Error("plane normal must not be zero");
+
+  const nx = x / len;
+  const ny = y / len;
+  const nz = z / len;
+
+  return add(
+    add(add(scale(nx, e1), scale(ny, e2)), scale(nz, e3)),
+    scale(-distance, einf),
+  );
 }
 
 // Circle through three points
@@ -344,6 +366,47 @@ export function circleParameters(C) {
   return {
     center: [cx, cy, cz],
     radius: Math.sqrt(Math.abs(r2)),
+  };
+}
+export function sphereParameters(s) {
+  const w = s[16] - s[8];
+
+  const x = s[1] / w;
+  const y = s[2] / w;
+  const z = s[4] / w;
+
+  const k = (s[8] + s[16]) / (2 * w);
+
+  const radius2 = x * x + y * y + z * z - 2 * k;
+
+  return {
+    center: [x, y, z],
+    radius: Math.sqrt(Math.max(0, radius2)),
+  };
+}
+export function spinorNorm2(a) {
+  return gp(a, reverse(a))[0];
+}
+export function isSphere(s, eps = 1e-10) {
+  const w = s[16] - s[8];
+
+  return Math.abs(w) > eps;
+}
+export function isPlane(a, eps = 1e-10) {
+  return Math.abs(a[16] - a[8]) < eps;
+}
+export function planeParameters(p) {
+  const nx = p[1];
+  const ny = p[2];
+  const nz = p[4];
+
+  const len = Math.hypot(nx, ny, nz);
+
+  if (len < 1e-10) return null;
+
+  return {
+    normal: [nx / len, ny / len, nz / len],
+    distance: -(p[8] + p[16]) / (2 * len),
   };
 }
 
