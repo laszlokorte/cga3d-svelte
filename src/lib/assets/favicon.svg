@@ -1,6 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="107"
-    height="128"
-    viewBox="0 0 107 128"
-/>
+   width="63.999996"
+   height="63.999996"
+   viewBox="0 0 16.933332 16.933332"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <radialGradient
+       id="ball-6"
+       cx="6.2759161"
+       cy="5.4239578"
+       fx="6.2759161"
+       fy="5.4239578"
+       r="6.0854168"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.26458333,0,0,0.26458333,93.133333,153.45833)">
+      <stop
+         offset="0"
+         stop-color="#eeeeee"
+         id="stop1-2" />
+      <stop
+         offset=".45"
+         stop-color="#b8b8b8"
+         id="stop2-9" />
+      <stop
+         offset=".78"
+         stop-color="#777777"
+         id="stop3-1" />
+      <stop
+         offset="1"
+         stop-color="#444444"
+         id="stop4-2" />
+    </radialGradient>
+    <clipPath
+       id="sphere-7">
+      <circle
+         cx="32"
+         cy="32"
+         r="23"
+         id="circle4-0" />
+    </clipPath>
+  </defs>
+  <g
+     id="layer1">
+    <!-- mirror sphere -->
+    <!-- highlight, also filled -->
+    <!-- small comic sparkle -->
+    <g
+       id="g2"
+       transform="matrix(1.3755804,0,0,1.3755804,-131.2923,-214.27419)">
+      <circle
+         cx="101.6"
+         cy="161.925"
+         r="6.0854168"
+         fill="url(#ball)"
+         id="circle5"
+         style="fill:url(#ball-6);stroke-width:0.264583" />
+      <g
+         clip-path="url(#sphere-7)"
+         id="g15"
+         transform="matrix(0.26458333,0,0,0.26458333,93.133333,153.45833)">
+        <!-- reflected sky -->
+        <!-- reflected distant landscape -->
+        <!-- house roof -->
+        <!-- house -->
+        <!-- roof shadow -->
+        <!-- door -->
+        <!-- left window -->
+        <!-- right window -->
+        <!-- reflected ground -->
+        <!-- curved bright reflection -->
+        <!-- dark curved edge reflection -->
+        <g
+           id="g1">
+          <path
+             d="M 4,7 Q 18,17 32,15 46,13 60,7 V 30 Q 47,24 32,26 17,28 4,22 Z"
+             fill="#bfc5c8"
+             id="path5" />
+          <path
+             d="m 3,31 q 10,-6 18,-1 7,5 14,-1 8,-6 26,2 V 43 Q 45,37 32,42 17,47 3,40 Z"
+             fill="#707775"
+             id="path6" />
+          <path
+             d="m 18,31 c 4.666667,-2 9.333333,-3 14,-3 5.333333,0 10,1 14,3 1.626842,4.666667 -0.07302,9.333333 -1,14 -8.666667,2.666667 -17.333333,2.666667 -26,0 -0.971337,-4.560333 -2.810937,-8.975955 -1,-14 z"
+             fill="#969b99"
+             id="path8" />
+          <path
+             d="m 28,46 c 3.056163,0.336977 5.683803,0.102815 8,0 -0.16533,-3.959058 -0.0035,-7.92029 -1,-12 -2,-1.333333 -4,-1.333333 -6,0 -0.858304,3.868757 -1.128032,7.884659 -1,12 z"
+             fill="#505554"
+             id="path10" />
+          <path
+             d="m 21,35 c 2.012956,-1.415047 4.949496,-2.252377 6.953725,-0.918515 -0.314661,1.082787 -0.749757,3.267443 -0.694118,4.96479 C 24.592941,38.379608 23,38.333333 21,39 20.597048,37.545781 20.531424,36.19276 21,35 Z"
+             fill="#d9dddd"
+             id="path11" />
+          <path
+             d="M 36.169384,34.122146 C 38.169385,32.788812 42.126337,33.200194 44,35 c 0.691265,1.333333 0.250074,2.666667 0,4 -2.666667,-0.666667 -5,-0.666667 -7,0 -0.01004,-1.402279 -0.221247,-3.595448 -0.830616,-4.877854 z"
+             fill="#d9dddd"
+             id="path12" />
+          <path
+             d="m 3,44 c 8,-2.666667 15.333333,-2.666667 22,0 5.942787,2.503061 8.423268,2.339457 15,0 6.666667,-2.666667 13.666667,-2.333333 21,1 V 61 H 3 Z"
+             fill="#555a58"
+             id="path13" />
+          <path
+             d="M 7,17 Q 18,10 30,11 43,12 54,19 43,17 32,17 19,16 7,22 Z"
+             fill="#f4f4f4"
+             opacity="0.65"
+             id="path14" />
+          <path
+             d="m 5,51 q 13,-6 26,-1 13,5 28,-2 l 3,13 H 3 Z"
+             fill="#383c3b"
+             opacity="0.65"
+             id="path15" />
+          <path
+             d="m 13.748572,34.439744 q 6,-11 18,-14 12,3 18,14 -8,-5 -18,-6 -10,1 -18,6 z"
+             fill="#555a59"
+             id="path7" />
+        </g>
+      </g>
+      <path
+         d="m 100.31409,157.34205 c -0.842154,2.70774 -2.970768,2.72932 -3.537181,2.04444 -0.474362,-0.57361 4.424771,-4.76048 3.537181,-2.04444 z"
+         fill="#ffffff"
+         id="path16"
+         style="stroke-width:0.732697" />
+    </g>
+  </g>
+</svg>

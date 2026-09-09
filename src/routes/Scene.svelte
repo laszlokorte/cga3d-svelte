@@ -14,9 +14,14 @@
     const { renderer, canvas } = useThrelte();
 
     const gltf = useGltf("/nike.glb").then((m) => {
-        m.scene.traverse((node) => {
+        const a = m.nodes["root"].clone(true);
+        const b = m.nodes["root"].clone(true);
+        a.traverse((node) => {
+            node.frustumCulled = false;
             if (node.isMesh) {
+                node.material = node.material.clone(true);
                 const material = node.material;
+                material.side = THREE.DoubleSide;
 
                 material.onBeforeCompile = (shader) => {
                     // Add custom uniforms if needed
@@ -36,6 +41,22 @@
               `,
                         )
                         .replace(
+                            "#include <project_vertex>",
+                            `
+                            vec4 worldPos = modelMatrix * vec4(transformed, 1.0);
+
+                            // Reflect in world space
+                            worldPos.x *= -1.0;
+
+                            vec3 worldNormal = normalize(mat3(modelMatrix) * objectNormal);
+                            worldNormal.x *= -1.0;
+                            vec4 mvPosition = viewMatrix * worldPos;
+                            gl_Position = projectionMatrix *
+                                          viewMatrix *
+                                          worldPos;
+                            `,
+                        )
+                        .replace(
                             "#include <common>",
                             `
                       #include <common>
@@ -47,7 +68,7 @@
             }
         });
 
-        return m;
+        return { a, b };
     });
 
     const { planes: plns } = $props();
@@ -186,24 +207,6 @@
     />
 </T.Mesh>
 
-<TransformControls
-    size={0.4}
-    onchange={(evt) => {
-        const object = evt.target.object;
-        if (object) {
-            object.position.x = THREE.MathUtils.clamp(object.position.x, -2, 2);
-            object.position.y = THREE.MathUtils.clamp(object.position.y, -1, 1);
-            object.position.z = THREE.MathUtils.clamp(object.position.z, -2, 2);
-        }
-    }}
-    mode="translate"
->
-    <T.Mesh>
-        <T.BoxGeometry args={[1, 1, 1]} />
-        <T.MeshStandardMaterial toneMapped={false} color="gold" />
-    </T.Mesh>
-</TransformControls>
-
 <T.DirectionalLight position={[3, 10, 5]} intensity={2} />
 
 {#each plns as p, pi}
@@ -251,7 +254,7 @@
     </T.Group>
 {/each}
 
-{#await gltf then model}
+{#await gltf then { a, b }}
     <TransformControls
         scale={5}
         position={[-1, 0, 0]}
@@ -279,7 +282,7 @@
         mode="translate"
     >
         <T
-            is={model.nodes["root"]}
+            is={a}
             oncreate={(scene) => {
                 const clock = new THREE.Clock();
                 function animate() {
@@ -297,7 +300,9 @@
                 animate();
             }}
         />
+        <T is={b} />
     </TransformControls>
+
     <TransformControls
         size={0.4}
         axis={"X"}
