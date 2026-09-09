@@ -2,6 +2,8 @@
 
 This might end up as an educational experiment of reverse engineering the [tool presented in this video](https://www.youtube.com/watch?v=q3as9SGmDdw).
 
+![Preview Screenshot](./preview.png)
+
 ## Developing
 
 Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:

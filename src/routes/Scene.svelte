@@ -11,22 +11,39 @@
         MeshLineMaterial,
     } from "@threlte/extras";
     import * as cga from "./cga3";
+    import { generateGP } from "./cga_glsl";
 
     const { renderer, canvas } = useThrelte();
 
+    let transformMode = $state("scale");
     const gltf = useGltf("/nike.glb").then((m) => {
         const a = m.nodes["root"].clone(true);
         const b = m.nodes["root"].clone(true);
+        a.renderOrder = 10000000;
+        a.depthWrite = false;
+        a.transparent = true;
+        a.opacity = 1;
+        b.traverse((node) => {
+            node.frustumCulled = false;
+            if (node.isMesh) {
+                node.renderOrder = 200000;
+                const material = node.material;
+                material.transparent = true;
+            }
+        });
         a.traverse((node) => {
             node.frustumCulled = false;
             if (node.isMesh) {
                 node.material = node.material.clone(true);
+                node.renderOrder = 200000;
                 const material = node.material;
+                material.transparent = true;
                 material.side = THREE.DoubleSide;
 
                 material.onBeforeCompile = (shader) => {
                     // Add custom uniforms if needed
                     shader.uniforms.uTime = { value: 0 };
+                    shader.uniforms.uMotor = { value: cga.scalar(1) };
 
                     // Keep a reference to uniforms if you need to update them in requestAnimationFrame
                     node.userData.shader = shader;
@@ -44,13 +61,22 @@
                         .replace(
                             "#include <project_vertex>",
                             `
+                            MV motor;
+
+                            for (int i = 0; i < 32; i++)
+                                motor.c[i] = uMotor[i];
+
                             vec4 worldPos = modelMatrix * vec4(transformed, 1.0);
 
-                            // Reflect in world space
-                            worldPos.x *= -1.0;
+                            MV p = point(worldPos.xyz);
+
+                            MV motorResult = sandwich(p, motor);
+
+                            vec3 reflectedPos = pointCoords(motorResult);
+
+                            worldPos = vec4(reflectedPos, 1.0);
 
                             vec3 worldNormal = normalize(mat3(modelMatrix) * objectNormal);
-                            worldNormal.x *= -1.0;
                             vec4 mvPosition = viewMatrix * worldPos;
                             gl_Position = projectionMatrix *
                                           viewMatrix *
@@ -63,6 +89,112 @@
                       #include <common>
 
                       uniform float uTime;
+                      uniform float uMotor[32];
+                      const int MV_SIZE = 32;
+
+                      struct MV {
+                          float c[MV_SIZE];
+                      };
+                      MV plane(vec3 normal, float distance) {
+                          MV r;
+
+                          for (int i = 0; i < 32; i++)
+                              r.c[i] = 0.0;
+
+                          vec3 n = normalize(normal);
+
+                          r.c[1] = n.x;
+                          r.c[2] = n.y;
+                          r.c[4] = n.z;
+
+                          // -distance * einf
+                          // einf = ep + em
+                          r.c[8]  = -distance;
+                          r.c[16] = -distance;
+
+                          return r;
+                      }
+
+                      int popcount(int x) {
+                          int n = 0;
+
+                          for (int i = 0; i < 5; i++) {
+                              if ((x & (1 << i)) != 0)
+                                  n++;
+                          }
+
+                          return n;
+                      }
+                      vec3 pointCoords(MV p) {
+                          // e0 coefficient
+                          float w = p.c[16] - p.c[8];
+
+                          return vec3(
+                              p.c[1] / w,
+                              p.c[2] / w,
+                              p.c[4] / w
+                          );
+                      }
+                      MV point(vec3 p) {
+                          MV r;
+
+                          for (int i = 0; i < 32; i++)
+                              r.c[i] = 0.0;
+
+                          float r2 = dot(p, p);
+
+                          // e0 = (em - ep) / 2
+                          r.c[8]  = -0.5;
+                          r.c[16] =  0.5;
+
+                          // Euclidean coordinates
+                          r.c[1] = p.x;
+                          r.c[2] = p.y;
+                          r.c[4] = p.z;
+
+                          // 1/2 |p|² einf
+                          r.c[8]  += 0.5 * r2;
+                          r.c[16] += 0.5 * r2;
+
+                          return r;
+                      }
+
+
+                      // Returns the sign and resulting blade index for
+                      //
+                      //     blade(a) * blade(b)
+                      //
+                      // Basis order:
+                      //     e1 e2 e3 ep em
+                      //
+                      // Metric:
+                      //     + + + + -
+
+                      ${generateGP()}
+
+
+
+                      MV reverse(MV a) {
+                          MV r;
+
+                          for (int i = 0; i < MV_SIZE; i++) {
+                              int grade = popcount(i);
+
+                              // (-1)^(grade * (grade - 1) / 2)
+                              int parity = (grade * (grade - 1) / 2) & 1;
+
+                              r.c[i] = parity != 0
+                                  ? -a.c[i]
+                                  : a.c[i];
+                          }
+
+                          return r;
+                      }
+
+
+                      MV sandwich(MV x, MV motor) {
+                          return gp(gp(motor, x), reverse(motor));
+                      }
                     `,
                         );
                 };
@@ -72,7 +204,7 @@
         return { a, b };
     });
 
-    const { elements } = $props();
+    const { elements, motor = cga.scalar(0) } = $props();
 
     renderer.localClippingEnabled = true;
 
@@ -197,7 +329,7 @@
         side={THREE.BackSide}
     />
 </T.Mesh>
-<T.Mesh renderOrder={1000}>
+<T.Mesh renderOrder={50000}>
     <MeshLineGeometry {points} />
     <MeshLineMaterial
         width={2}
@@ -215,7 +347,7 @@
         scale={5}
         position={[-1, 0, 0]}
         size={0.4}
-        onchange={(evt) => {
+        onobjectChange={(evt) => {
             const object = evt.target.object;
             if (object) {
                 object.position.x = THREE.MathUtils.clamp(
@@ -250,6 +382,7 @@
                         if (node.isMesh && node.userData.shader) {
                             node.userData.shader.uniforms.uTime.value =
                                 elapsedTime;
+                            node.userData.shader.uniforms.uMotor.value = motor;
                         }
                     });
                 }
@@ -260,22 +393,29 @@
     </TransformControls>
 {/await}
 
-{#each elements as { el, color }, eli}
+{#each elements as { el, color, active }, eli}
     {#if cga.isSphere(el)}
         {@const sphCoords = cga.sphereParameters(el)}
+
         <TransformControls
-            size={0.4}
-            axis={"X"}
+            size={0.6}
             maxX={2}
             maxY={2}
             maxZ={2}
             minX={-2}
             minY={-2}
             minZ={-2}
-            position={sphCoords.center}
-            onchange={(evt) => {
+            scale={sphCoords.radius}
+            position={[
+                sphCoords.center[0],
+                sphCoords.center[1],
+                sphCoords.center[2],
+            ]}
+            onobjectChange={(evt) => {
                 const object = evt.target.object;
                 if (object) {
+                    const activeAxis = evt.target.axis;
+
                     object.position.x = THREE.MathUtils.clamp(
                         object.position.x,
                         -2,
@@ -291,28 +431,34 @@
                         -2,
                         2,
                     );
+                    elements[eli].el = cga.sphere(
+                        1 * object.position.x,
+                        1 * object.position.y,
+                        1 * object.position.z,
+                        1 * sphCoords.radius,
+                    );
                 }
             }}
-            mode="translate"
+            mode={"translate"}
         >
             <T.Mesh renderOrder={40000 + eli * 100}>
-                <T.SphereGeometry args={[sphCoords.radius, 32, 16]} />
+                <T.SphereGeometry args={[1, 32, 16]} />
                 <T.MeshStandardMaterial
                     toneMapped={false}
                     side={THREE.DoubleSide}
-                    opacity={0.6}
+                    opacity={active ? 0.6 : 0.1}
                     depthWrite={false}
                     transparent={true}
                     premultipliedAlpha={true}
                     clippingPlanes={planes}
-                    {color}
+                    color={active ? color : "gray"}
                 />
             </T.Mesh>
         </TransformControls>
     {:else if cga.isPlane(el)}
         {@const plnParams = cga.planeParameters(el)}
         {@const rot = new THREE.Quaternion().setFromUnitVectors(
-            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(0, 0, 1),
             new THREE.Vector3(
                 plnParams?.normal[0],
                 plnParams?.normal[1],
@@ -322,6 +468,7 @@
         <T.Group quaternion={rot.toArray()}>
             <T.Group position={[0, 0, plnParams?.distance]}>
                 <T.Mesh
+                    position={[0, 0, 0.05 / 2]}
                     rotation={[Math.PI / 2, 0, 0]}
                     renderOrder={20000 + eli * 100}
                 >
@@ -330,7 +477,7 @@
                         depthWrite={false}
                         transparent={true}
                         premultipliedAlpha={true}
-                        {color}
+                        color={active ? color : "gray"}
                         clippingPlanes={planes}
                     />
                 </T.Mesh>
@@ -352,7 +499,7 @@
                                 depthWrite={false}
                                 transparent={true}
                                 premultipliedAlpha={true}
-                                {color}
+                                color={active ? color : "gray"}
                                 clippingPlanes={planes}
                             />
                         </T.Mesh>
@@ -363,12 +510,12 @@
                     <T.MeshStandardMaterial
                         toneMapped={false}
                         side={THREE.DoubleSide}
-                        opacity={0.6}
+                        opacity={active ? 0.6 : 0.1}
                         depthWrite={false}
                         transparent={true}
                         premultipliedAlpha={true}
                         clippingPlanes={planes}
-                        {color}
+                        color={active ? color : "gray"}
                     />
                 </T.Mesh>
             </T.Group>

@@ -193,7 +193,7 @@ export function plane(normal, distance) {
 
   return add(
     add(add(scale(nx, e1), scale(ny, e2)), scale(nz, e3)),
-    scale(-distance, einf),
+    scale(distance, einf),
   );
 }
 
@@ -406,7 +406,7 @@ export function planeParameters(p) {
 
   return {
     normal: [nx / len, ny / len, nz / len],
-    distance: -(p[8] + p[16]) / (2 * len),
+    distance: (p[8] + p[16]) / (2 * len),
   };
 }
 

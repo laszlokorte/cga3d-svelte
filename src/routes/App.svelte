@@ -24,11 +24,24 @@
     });
 
     let elements = $state([
-        { el: cga.sphere(0.5, 0.2, 0.3, 0.5), color: "teal" },
-        { el: cga.sphere(-0.5, -0.5, 0.3, 0.3), color: "tomato" },
-        { el: cga.plane([0, 1, 1], 0.5), color: "rebeccapurple" },
-        { el: cga.plane([0, 1, 0], -0.5), color: "limegreen" },
+        { active: false, el: cga.sphere(0.5, 0.2, 0.3, 0.5), color: "teal" },
+        {
+            active: false,
+            el: cga.sphere(-0.5, -0.5, 0.3, 0.3),
+            color: "tomato",
+        },
+        {
+            active: false,
+            el: cga.plane([0, 1, 1], 0.5),
+            color: "rebeccapurple",
+        },
+        { active: false, el: cga.plane([0, 1, 0], -0.5), color: "limegreen" },
     ]);
+    const combinedMotor = $derived(
+        elements
+            .filter((e) => e.active)
+            .reduce((a, b) => cga.gp(a, b.el), cga.scalar(1)),
+    );
 </script>
 
 <svelte:head>
@@ -38,7 +51,7 @@
 <div class="app">
     <div class="screen">
         <Canvas dpr={Math.max(window ? window.devicePixelRatio : 1, 2)}>
-            <Scene {elements} bind:this={scene} />
+            <Scene bind:elements motor={combinedMotor} bind:this={scene} />
         </Canvas>
     </div>
     <div bind:this={viewport} class="viewport"></div>
@@ -47,142 +60,168 @@
 
         <fieldset>
             <legend>Elements</legend>
-            {#each elements as { el, color }, eli}
-                <label class="form-row">
-                    Color:
-                    <input type="color" bind:value={elements[eli].color} />
-                </label>
-                {#if cga.isSphere(el)}
-                    <strong style:color>Sphere</strong>
-                    {@const sphCoords = cga.sphereParameters(el)}
-                    <form
-                        style:accent-color={color}
-                        oninput={(evt) => {
-                            const fd = Object.fromEntries(
-                                new FormData(evt.currentTarget),
-                            );
+            <button
+                onclick={(evt) => {
+                    elements.push({
+                        color: "red",
+                        active: false,
+                        el: cga.plane([1, 0, 0], 0),
+                    });
+                }}>Add</button
+            >
+            <div class="block-list">
+                {#each elements as { el, color }, eli}
+                    <div class="element" style:--color={color}>
+                        <div class="element-head">
+                            <label class="form-row">
+                                <input
+                                    type="color"
+                                    bind:value={elements[eli].color}
+                                />
+                                <input
+                                    style:width="8em"
+                                    type="text"
+                                    bind:value={elements[eli].color}
+                                />
+                            </label>
+                            <label class="form-checkbox">
+                                <input
+                                    type="checkbox"
+                                    bind:checked={elements[eli].active}
+                                />
+                                Active
+                            </label>
+                        </div>
+                        {#if cga.isSphere(el)}
+                            <strong>Sphere</strong>
+                            {@const sphCoords = cga.sphereParameters(el)}
+                            <form
+                                oninput={(evt) => {
+                                    const fd = Object.fromEntries(
+                                        new FormData(evt.currentTarget),
+                                    );
 
-                            elements[eli].el = cga.sphere(
-                                1 * fd.x,
-                                1 * fd.y,
-                                1 * fd.z,
-                                1 * fd.radius,
-                            );
-                        }}
-                    >
-                        <label class="form-row">
-                            X:
-                            <input
-                                type="range"
-                                name="x"
-                                value={sphCoords.center[0]}
-                                min="-4"
-                                max="4"
-                                step="0.01"
-                            />
-                        </label>
-                        <label class="form-row">
-                            Y:
-                            <input
-                                type="range"
-                                name="y"
-                                value={sphCoords.center[1]}
-                                min="-4"
-                                max="4"
-                                step="0.01"
-                            />
-                        </label>
-                        <label class="form-row">
-                            Z:
-                            <input
-                                type="range"
-                                name="z"
-                                value={sphCoords.center[2]}
-                                min="-4"
-                                max="4"
-                                step="0.01"
-                            />
-                        </label>
+                                    elements[eli].el = cga.sphere(
+                                        1 * fd.x,
+                                        1 * fd.y,
+                                        1 * fd.z,
+                                        1 * fd.radius,
+                                    );
+                                }}
+                            >
+                                <label class="form-row">
+                                    X:
+                                    <input
+                                        type="range"
+                                        name="x"
+                                        value={sphCoords.center[0]}
+                                        min="-2"
+                                        max="2"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <label class="form-row">
+                                    Y:
+                                    <input
+                                        type="range"
+                                        name="y"
+                                        value={sphCoords.center[1]}
+                                        min="-2"
+                                        max="2"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <label class="form-row">
+                                    Z:
+                                    <input
+                                        type="range"
+                                        name="z"
+                                        value={sphCoords.center[2]}
+                                        min="-2"
+                                        max="2"
+                                        step="0.01"
+                                    />
+                                </label>
 
-                        <label class="form-row">
-                            Radius:
-                            <input
-                                type="range"
-                                name="radius"
-                                value={sphCoords.radius}
-                                min="0"
-                                max="4"
-                                step="0.01"
-                            />
-                        </label>
-                    </form>
-                {:else if cga.isPlane(el)}
-                    <strong style:color>Plane</strong>
-                    {@const plnParams = cga.planeParameters(el)}
-                    <form
-                        style:accent-color={color}
-                        oninput={(evt) => {
-                            const fd = Object.fromEntries(
-                                new FormData(evt.currentTarget),
-                            );
+                                <label class="form-row">
+                                    Radius:
+                                    <input
+                                        type="range"
+                                        name="radius"
+                                        value={sphCoords.radius}
+                                        min="0"
+                                        max="4"
+                                        step="0.01"
+                                    />
+                                </label>
+                            </form>
+                        {:else if cga.isPlane(el)}
+                            <strong>Plane</strong>
+                            {@const plnParams = cga.planeParameters(el)}
+                            <form
+                                oninput={(evt) => {
+                                    const fd = Object.fromEntries(
+                                        new FormData(evt.currentTarget),
+                                    );
 
-                            elements[eli].el = cga.plane(
-                                [1 * fd.x, 1 * fd.y, 1 * fd.z],
-                                1 * fd.distance,
-                            );
-                        }}
-                    >
-                        <label class="form-row">
-                            X:
-                            <input
-                                type="range"
-                                name="x"
-                                value={plnParams.normal[0]}
-                                min="-1"
-                                max="1"
-                                step="0.01"
-                            />
-                        </label>
-                        <label class="form-row">
-                            Y:
-                            <input
-                                type="range"
-                                name="y"
-                                value={plnParams.normal[1]}
-                                min="-1"
-                                max="1"
-                                step="0.01"
-                            />
-                        </label>
-                        <label class="form-row">
-                            Z:
-                            <input
-                                type="range"
-                                name="z"
-                                value={plnParams.normal[2]}
-                                min="-1"
-                                max="1"
-                                step="0.01"
-                            />
-                        </label>
+                                    elements[eli].el = cga.plane(
+                                        [1 * fd.x, 1 * fd.y, 1 * fd.z],
+                                        1 * fd.distance,
+                                    );
+                                }}
+                            >
+                                <label class="form-row">
+                                    X:
+                                    <input
+                                        type="range"
+                                        name="x"
+                                        value={plnParams.normal[0]}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <label class="form-row">
+                                    Y:
+                                    <input
+                                        type="range"
+                                        name="y"
+                                        value={plnParams.normal[1]}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <label class="form-row">
+                                    Z:
+                                    <input
+                                        type="range"
+                                        name="z"
+                                        value={plnParams.normal[2]}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
 
-                        <label class="form-row">
-                            Distance:
-                            <input
-                                type="range"
-                                name="distance"
-                                value={plnParams.distance}
-                                min="-2"
-                                max="2"
-                                step="0.01"
-                            />
-                        </label>
-                    </form>
-                {:else}
-                    <strong style:color>Uknown</strong>
-                    <div>unknown</div>
-                {/if}
-            {/each}
+                                <label class="form-row">
+                                    Distance:
+                                    <input
+                                        type="range"
+                                        name="distance"
+                                        value={plnParams.distance}
+                                        min="-2"
+                                        max="2"
+                                        step="0.01"
+                                    />
+                                </label>
+                            </form>
+                        {:else}
+                            <strong>Uknown</strong>
+                        {/if}
+                    </div>
+                {/each}
+            </div>
         </fieldset>
     </div>
 </div>
@@ -209,6 +248,41 @@
     h1 {
         margin: 0;
         font-size: 1.2em;
+    }
+    .block-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1ex;
+        max-height: 80%;
+        overflow: auto;
+    }
+    .element {
+        display: flex;
+        flex-direction: column;
+        accent-color: var(--color);
+        border: 1px solid var(--color);
+        background: rgb(from var(--color) r g b / 10%);
+        padding: 1ex;
+    }
+
+    .element-head {
+        display: flex;
+        gap: 1ex;
+    }
+    .form-checkbox {
+        display: flex;
+        align-items: center;
+        font-size: smaller;
+    }
+    input[type="color"] {
+        padding: 0;
+        width: 3.5ex;
+        height: 3.5ex;
+        margin: 0;
+        border: none;
+    }
+    input {
+        font-family: monospace, monospace;
     }
     .viewport {
         background-color: #a000;
