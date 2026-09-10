@@ -55,7 +55,7 @@
                             `
               #include <begin_vertex>
               // Modify transformed vertex position (e.g., wave effect)
-              transformed.y += sin(position.x*40.0 + uTime * 3.0) * 0.01 + cos(position.z*15.0 + uTime * 3.0) * 0.02;
+              transformed.y += sin(position.x*40.0 + uTime * 3.0) * 0.005 + cos(position.z*15.0 + uTime * 3.0) * 0.005;
               `,
                         )
                         .replace(
@@ -343,7 +343,7 @@
 <T.DirectionalLight position={[3, 10, 5]} intensity={2} />
 <TransformControls
     scale={5}
-    position={[-1, 0, 0]}
+    position={[1, 0, 0]}
     size={0.4}
     onobjectChange={(evt) => {
         const object = evt.target.object;

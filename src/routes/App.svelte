@@ -5,6 +5,13 @@
     import * as cga from "./cga3";
     let viewport = $state();
     let scene = $state();
+    let freeColors = $state([
+        "gold",
+        "tomato",
+        "teal",
+        "limegreen",
+        "royalblue",
+    ]);
 
     function updateCamera() {
         const rect = viewport.getBoundingClientRect();
@@ -22,7 +29,8 @@
 
         return () => observer.disconnect();
     });
-
+    let dragging = $state(null);
+    let over = $state(null);
     let elements = $state([]);
     const combinedMotor = $derived(
         elements
@@ -43,327 +51,384 @@
     </div>
     <div bind:this={viewport} class="viewport"></div>
     <div class="menu">
-        <h1>3D Conformal Transformations (WIP)</h1>
-        <p>
-            inspired by<br />
-            <a
-                href="https://www.youtube.com/watch?v=q3as9SGmDdw"
-                target="_blank">Hamish Todd's Funhouse Mirror</a
+        <header>
+            <h1>3D Conformal Transformations (WIP)</h1>
+            <p>
+                inspired by<br />
+                <a
+                    href="https://www.youtube.com/watch?v=q3as9SGmDdw"
+                    target="_blank">Hamish Todd's Funhouse Mirror</a
+                >
+            </p>
+            <p>
+                <a href="https://tools.laszlokorte.de/" target="_blank"
+                    >More Educational Tool</a
+                >
+            </p>
+        </header>
+        <div class="button-row">
+            <button
+                disabled={freeColors.length < 1}
+                onclick={(evt) => {
+                    elements.push({
+                        color: freeColors.pop(),
+                        active: true,
+                        el: cga.plane([1, 0, 0], 0),
+                    });
+                }}>Add Plane</button
             >
-        </p>
-        <p>
-            <a href="https://tools.laszlokorte.de/" target="_blank"
-                >More Educational Tool</a
+            <button
+                disabled={freeColors.length < 1}
+                onclick={(evt) => {
+                    elements.push({
+                        color: freeColors.pop(),
+                        active: true,
+                        el: cga.sphere(0.1, 0, 0, 1),
+                    });
+                }}>Add Sphere</button
             >
-        </p>
+            <button
+                disabled={freeColors.length < 1}
+                onclick={(evt) => {
+                    elements.push({
+                        color: freeColors.pop(),
+                        active: true,
+                        el: cga.pointPair(
+                            cga.point(0.3, -0.7, 0.0),
+                            cga.point(0.3, 0.7, 0.0),
+                        ),
+                    });
+                }}>Add Point Pair</button
+            >
+        </div>
+        <div class="block-list">
+            {#each elements as { el, color }, eli}
+                <div
+                    class={{
+                        element: true,
+                        dragging: dragging == eli,
+                        hover: over == eli,
+                    }}
+                    role="button"
+                    tabindex="-1"
+                    ondrop={(evt) => {
+                        const from = Number(
+                            evt.dataTransfer.getData("text/plain"),
+                        );
+                        const to = eli;
 
-        <fieldset>
-            <legend>Elements</legend>
-            <div class="button-row">
-                <button
-                    onclick={(evt) => {
-                        elements.push({
-                            color: "red",
-                            active: true,
-                            el: cga.plane([1, 0, 0], 0),
-                        });
-                    }}>Add Plane</button
+                        if (from === to) return;
+
+                        const item = elements[from];
+                        const rest = [
+                            ...elements.slice(0, from),
+                            ...elements.slice(from + 1),
+                        ];
+
+                        elements = [
+                            ...rest.slice(0, to),
+                            item,
+                            ...rest.slice(to),
+                        ];
+                        dragging = null;
+                        over = null;
+                    }}
+                    ondragover={(evt) => {
+                        const from = Number(
+                            evt.dataTransfer.getData("text/plain"),
+                        );
+                        const to = eli;
+                        if (to !== from) {
+                            evt.preventDefault();
+
+                            over = eli;
+                        }
+                    }}
+                    style:--color={color}
                 >
-                <button
-                    onclick={(evt) => {
-                        elements.push({
-                            color: "purple",
-                            active: true,
-                            el: cga.sphere(0.1, 0, 0, 1),
-                        });
-                    }}>Add Sphere</button
-                >
-                <button
-                    onclick={(evt) => {
-                        elements.push({
-                            color: "gold",
-                            active: true,
-                            el: cga.pointPair(
-                                cga.point(0.3, -0.7, 0.0),
-                                cga.point(0.3, 0.7, 0.0),
-                            ),
-                        });
-                    }}>Add Point Pair</button
-                >
-            </div>
-            <div class="block-list">
-                {#each elements as { el, color }, eli}
-                    <div class="element" style:--color={color}>
-                        <div class="element-head">
-                            <button
-                                onclick={(evt) => {
-                                    elements = elements.filter(
-                                        (_, i) => i !== eli,
-                                    );
-                                }}
-                            >
-                                &cross;
-                            </button>
-                            <label class="form-row">
-                                <input
-                                    type="color"
-                                    bind:value={elements[eli].color}
-                                />
-                                <input
-                                    style:width="8em"
-                                    type="text"
-                                    bind:value={elements[eli].color}
-                                />
-                            </label>
-                            <label class="form-checkbox">
-                                <input
-                                    type="checkbox"
-                                    bind:checked={elements[eli].active}
-                                />
-                                Active
-                            </label>
+                    <div class="element-head">
+                        <div
+                            role="button"
+                            tabindex="-1"
+                            draggable="true"
+                            ondragstart={(evt) => {
+                                evt.dataTransfer.setData("text/plain", eli);
+                                dragging = eli;
+                            }}
+                            ondragend={(evt) => {
+                                dragging = null;
+                                over = null;
+                            }}
+                        >
+                            ☰
                         </div>
-                        {#if cga.isSphere(el)}
-                            <strong>Sphere</strong>
-                            {@const sphCoords = cga.sphereParameters(el)}
-                            <form
-                                oninput={(evt) => {
-                                    const fd = Object.fromEntries(
-                                        new FormData(evt.currentTarget),
-                                    );
-
-                                    elements[eli].el = cga.sphere(
-                                        1 * fd.x,
-                                        1 * fd.y,
-                                        1 * fd.z,
-                                        1 * fd.radius,
-                                    );
-                                }}
-                            >
-                                <label class="form-row">
-                                    X:
-                                    <input
-                                        type="range"
-                                        name="x"
-                                        value={sphCoords.center[0]}
-                                        min="-2"
-                                        max="2"
-                                        step="0.01"
-                                    />
-                                </label>
-                                <label class="form-row">
-                                    Y:
-                                    <input
-                                        type="range"
-                                        name="y"
-                                        value={sphCoords.center[1]}
-                                        min="-2"
-                                        max="2"
-                                        step="0.01"
-                                    />
-                                </label>
-                                <label class="form-row">
-                                    Z:
-                                    <input
-                                        type="range"
-                                        name="z"
-                                        value={sphCoords.center[2]}
-                                        min="-2"
-                                        max="2"
-                                        step="0.01"
-                                    />
-                                </label>
-
-                                <label class="form-row">
-                                    Radius:
-                                    <input
-                                        type="range"
-                                        name="radius"
-                                        value={sphCoords.radius}
-                                        min="0"
-                                        max="4"
-                                        step="0.01"
-                                    />
-                                </label>
-                            </form>
-                        {:else if cga.isPlane(el)}
-                            <strong>Plane</strong>
-                            {@const plnParams = cga.planeParameters(el)}
-                            <form
-                                oninput={(evt) => {
-                                    const fd = Object.fromEntries(
-                                        new FormData(evt.currentTarget),
-                                    );
-
-                                    elements[eli].el = cga.plane(
-                                        [1 * fd.x, 1 * fd.y, 1 * fd.z],
-                                        1 * fd.distance,
-                                    );
-                                }}
-                            >
-                                <label class="form-row">
-                                    X:
-                                    <input
-                                        type="range"
-                                        name="x"
-                                        value={plnParams.normal[0]}
-                                        min="-1"
-                                        max="1"
-                                        step="0.01"
-                                    />
-                                </label>
-                                <label class="form-row">
-                                    Y:
-                                    <input
-                                        type="range"
-                                        name="y"
-                                        value={plnParams.normal[1]}
-                                        min="-1"
-                                        max="1"
-                                        step="0.01"
-                                    />
-                                </label>
-                                <label class="form-row">
-                                    Z:
-                                    <input
-                                        type="range"
-                                        name="z"
-                                        value={plnParams.normal[2]}
-                                        min="-1"
-                                        max="1"
-                                        step="0.01"
-                                    />
-                                </label>
-
-                                <label class="form-row">
-                                    Distance:
-                                    <input
-                                        type="range"
-                                        name="distance"
-                                        value={plnParams.distance}
-                                        min="-2"
-                                        max="2"
-                                        step="0.01"
-                                    />
-                                </label>
-                            </form>
-                        {:else if cga.isPointPair(el)}
-                            <strong>Point Pair</strong>
-                            {@const [a, b] = cga.pointPairCoords(el)}
-                            <div
-                                style="display: grid; grid-template-columns: 1fr 1fr"
-                            >
-                                <form
-                                    oninput={(evt) => {
-                                        const fd = Object.fromEntries(
-                                            new FormData(evt.currentTarget),
-                                        );
-
-                                        const npp = cga.pointPair(
-                                            cga.point(fd.x, fd.y, fd.z),
-                                            cga.point(b.x, b.y, b.z),
-                                        );
-                                        if (cga.isPointPair(npp))
-                                            elements[eli].el = npp;
-                                    }}
-                                >
-                                    <label class="form-row">
-                                        X:
-                                        <input
-                                            type="range"
-                                            name="x"
-                                            value={a.x}
-                                            min="-1"
-                                            max="1"
-                                            step="0.01"
-                                        />
-                                    </label>
-                                    <label class="form-row">
-                                        Y:
-                                        <input
-                                            type="range"
-                                            name="y"
-                                            value={a.y}
-                                            min="-1"
-                                            max="1"
-                                            step="0.01"
-                                        />
-                                    </label>
-                                    <label class="form-row">
-                                        Z:
-                                        <input
-                                            type="range"
-                                            name="z"
-                                            value={a.z}
-                                            min="-1"
-                                            max="1"
-                                            step="0.01"
-                                        />
-                                    </label>
-                                </form>
-                                <form
-                                    oninput={(evt) => {
-                                        const fd = Object.fromEntries(
-                                            new FormData(evt.currentTarget),
-                                        );
-
-                                        const npp = cga.pointPair(
-                                            cga.point(a.x, a.y, a.z),
-                                            cga.point(fd.x, fd.y, fd.z),
-                                        );
-                                        if (cga.isPointPair(npp))
-                                            elements[eli].el = npp;
-                                    }}
-                                >
-                                    <label class="form-row">
-                                        X:
-                                        <input
-                                            type="range"
-                                            name="x"
-                                            value={b.x}
-                                            min="-1"
-                                            max="1"
-                                            step="0.01"
-                                        />
-                                    </label>
-                                    <label class="form-row">
-                                        Y:
-                                        <input
-                                            type="range"
-                                            name="y"
-                                            value={b.y}
-                                            min="-1"
-                                            max="1"
-                                            step="0.01"
-                                        />
-                                    </label>
-                                    <label class="form-row">
-                                        Z:
-                                        <input
-                                            type="range"
-                                            name="z"
-                                            value={b.z}
-                                            min="-1"
-                                            max="1"
-                                            step="0.01"
-                                        />
-                                    </label>
-                                </form>
-                            </div>
-                        {:else}
-                            <strong>Unknown</strong>
-                        {/if}
+                        <button
+                            onclick={(evt) => {
+                                freeColors.push(color);
+                                elements = elements.filter((_, i) => i !== eli);
+                            }}
+                        >
+                            &cross;
+                        </button>
+                        <label class="form-row">
+                            <input
+                                type="color"
+                                bind:value={elements[eli].color}
+                            />
+                            <input
+                                style:width="8em"
+                                type="text"
+                                bind:value={elements[eli].color}
+                            />
+                        </label>
+                        <label class="form-checkbox">
+                            <input
+                                type="checkbox"
+                                bind:checked={elements[eli].active}
+                            />
+                            Active
+                        </label>
                     </div>
-                {/each}
-            </div>
-        </fieldset>
+                    {#if cga.isSphere(el)}
+                        <strong>Sphere</strong>
+                        {@const sphCoords = cga.sphereParameters(el)}
+                        <form
+                            oninput={(evt) => {
+                                const fd = Object.fromEntries(
+                                    new FormData(evt.currentTarget),
+                                );
+
+                                elements[eli].el = cga.sphere(
+                                    1 * fd.x,
+                                    1 * fd.y,
+                                    1 * fd.z,
+                                    1 * fd.radius,
+                                );
+                            }}
+                        >
+                            <label class="form-row">
+                                X:
+                                <input
+                                    type="range"
+                                    name="x"
+                                    value={sphCoords.center[0]}
+                                    min="-2"
+                                    max="2"
+                                    step="0.01"
+                                />
+                            </label>
+                            <label class="form-row">
+                                Y:
+                                <input
+                                    type="range"
+                                    name="y"
+                                    value={sphCoords.center[1]}
+                                    min="-2"
+                                    max="2"
+                                    step="0.01"
+                                />
+                            </label>
+                            <label class="form-row">
+                                Z:
+                                <input
+                                    type="range"
+                                    name="z"
+                                    value={sphCoords.center[2]}
+                                    min="-2"
+                                    max="2"
+                                    step="0.01"
+                                />
+                            </label>
+
+                            <label class="form-row">
+                                Radius:
+                                <input
+                                    type="range"
+                                    name="radius"
+                                    value={sphCoords.radius}
+                                    min="0"
+                                    max="4"
+                                    step="0.01"
+                                />
+                            </label>
+                        </form>
+                    {:else if cga.isPlane(el)}
+                        <strong>Plane</strong>
+                        {@const plnParams = cga.planeParameters(el)}
+                        <form
+                            oninput={(evt) => {
+                                const fd = Object.fromEntries(
+                                    new FormData(evt.currentTarget),
+                                );
+
+                                elements[eli].el = cga.plane(
+                                    [1 * fd.x, 1 * fd.y, 1 * fd.z],
+                                    1 * fd.distance,
+                                );
+                            }}
+                        >
+                            <label class="form-row">
+                                X:
+                                <input
+                                    type="range"
+                                    name="x"
+                                    value={plnParams.normal[0]}
+                                    min="-1"
+                                    max="1"
+                                    step="0.01"
+                                />
+                            </label>
+                            <label class="form-row">
+                                Y:
+                                <input
+                                    type="range"
+                                    name="y"
+                                    value={plnParams.normal[1]}
+                                    min="-1"
+                                    max="1"
+                                    step="0.01"
+                                />
+                            </label>
+                            <label class="form-row">
+                                Z:
+                                <input
+                                    type="range"
+                                    name="z"
+                                    value={plnParams.normal[2]}
+                                    min="-1"
+                                    max="1"
+                                    step="0.01"
+                                />
+                            </label>
+
+                            <label class="form-row">
+                                Distance:
+                                <input
+                                    type="range"
+                                    name="distance"
+                                    value={plnParams.distance}
+                                    min="-2"
+                                    max="2"
+                                    step="0.01"
+                                />
+                            </label>
+                        </form>
+                    {:else if cga.isPointPair(el)}
+                        <strong>Point Pair</strong>
+                        {@const [a, b] = cga.pointPairCoords(el)}
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr"
+                        >
+                            <form
+                                oninput={(evt) => {
+                                    const fd = Object.fromEntries(
+                                        new FormData(evt.currentTarget),
+                                    );
+
+                                    const npp = cga.pointPair(
+                                        cga.point(fd.x, fd.y, fd.z),
+                                        cga.point(b.x, b.y, b.z),
+                                    );
+                                    if (cga.isPointPair(npp))
+                                        elements[eli].el = npp;
+                                }}
+                            >
+                                <label class="form-row">
+                                    X:
+                                    <input
+                                        type="range"
+                                        name="x"
+                                        value={a.x}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <label class="form-row">
+                                    Y:
+                                    <input
+                                        type="range"
+                                        name="y"
+                                        value={a.y}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <label class="form-row">
+                                    Z:
+                                    <input
+                                        type="range"
+                                        name="z"
+                                        value={a.z}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+                            </form>
+                            <form
+                                oninput={(evt) => {
+                                    const fd = Object.fromEntries(
+                                        new FormData(evt.currentTarget),
+                                    );
+
+                                    const npp = cga.pointPair(
+                                        cga.point(a.x, a.y, a.z),
+                                        cga.point(fd.x, fd.y, fd.z),
+                                    );
+                                    if (cga.isPointPair(npp))
+                                        elements[eli].el = npp;
+                                }}
+                            >
+                                <label class="form-row">
+                                    X:
+                                    <input
+                                        type="range"
+                                        name="x"
+                                        value={b.x}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <label class="form-row">
+                                    Y:
+                                    <input
+                                        type="range"
+                                        name="y"
+                                        value={b.y}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <label class="form-row">
+                                    Z:
+                                    <input
+                                        type="range"
+                                        name="z"
+                                        value={b.z}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+                            </form>
+                        </div>
+                    {:else}
+                        <strong>Unknown</strong>
+                    {/if}
+                </div>
+            {/each}
+        </div>
     </div>
 </div>
 
 <style>
     .app {
         display: grid;
-        grid-template-columns: 0 [menu-start] 1fr [menu-end viewport-start] 2fr 2fr [viewport-end] 0;
+        grid-template-columns: 0 [menu-start] 1.5fr [menu-end viewport-start] 2fr 2fr [viewport-end] 0;
         grid-template-rows: 0 [menu-start viewport-start] 1fr 1fr 1fr [menu-end viewport-end] 0;
         width: 100%;
         height: 100%;
@@ -376,8 +441,14 @@
         color: #fff;
         z-index: 1;
         max-height: 100%;
-        overflow: auto;
-        padding: 1em;
+        overflow: hidden;
+        box-sizing: border-box;
+        display: grid;
+        grid-template-rows: auto auto;
+        grid-auto-rows: 1fr;
+    }
+    header {
+        padding: 1ex;
     }
     input[type="range"] {
         width: 100%;
@@ -388,11 +459,20 @@
         font-size: 1.2em;
     }
     .block-list {
+        align-self: start;
         display: flex;
         flex-direction: column;
         gap: 1ex;
-        max-height: 80%;
+        max-height: 100%;
         overflow: auto;
+        box-sizing: border-box;
+        padding: 1ex;
+        margin-bottom: 1ex;
+    }
+    .block-list::after {
+        content: " ";
+        display: block;
+        height: 2em;
     }
     .element {
         user-select: none;
@@ -482,5 +562,23 @@
     }
     .menu a {
         color: inherit;
+    }
+    [draggable] {
+        cursor: hand;
+        background-color: #222;
+        color: #fff;
+        align-items: center;
+        padding: 1ex;
+        display: flex;
+    }
+    .dragging {
+        opacity: 0.2;
+    }
+    .hover {
+        outline: 3px solid gold;
+    }
+    button:disabled {
+        cursor: default;
+        opacity: 0.3;
     }
 </style>
