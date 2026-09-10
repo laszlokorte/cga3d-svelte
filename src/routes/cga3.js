@@ -393,7 +393,150 @@ export function isSphere(s, eps = 1e-10) {
   return Math.abs(w) > eps;
 }
 export function isPlane(a, eps = 1e-10) {
-  return Math.abs(a[16] - a[8]) < eps;
+  // Plane has only grade-1 components
+  return isGrade(a, 1, eps) && Math.abs(a[16] - a[8]) < eps;
+}
+export function isPointPair(a, eps = 1e-10) {
+  // Point pair has only grade-2 components
+  return isGrade(a, 2, eps);
+}
+export function pointPairCoords(b, eps = 1e-10) {
+  const result = splitPointPair(b, eps);
+
+  if (result === null) {
+    return null;
+  }
+
+  if (result.tangent) {
+    return [pointCoords(result.point), pointCoords(result.point)];
+  }
+
+  return [pointCoords(result.p2), pointCoords(result.p1)];
+}
+export function splitPointPair(b, eps = 1e-10) {
+  let bb = scalarProduct(b, b);
+
+  if (Math.abs(bb) < eps) {
+    const w = wedge(b, einf);
+    const inv = inverse(w, eps);
+
+    if (inv === null) {
+      return null;
+    }
+
+    const pos = gp(b, inv);
+    const weight = scalarProduct(pos, sub(einf, scalar(1)));
+
+    return {
+      tangent: true,
+      point: scale(pos, 1 / weight),
+    };
+  }
+
+  if (bb < 0) {
+    b = gp(b, pseudoscalar());
+    bb = scalarProduct(b, b);
+  }
+
+  const bBar = scale(1 / Math.sqrt(bb), b);
+
+  const p = add(scalar(1), bBar);
+  const pTilde = sub(scalar(1), bBar);
+
+  const v = inner(b, em);
+
+  const p1 = gp(p, v);
+  const p2 = gp(pTilde, v);
+
+  return { p1, p2 };
+}
+export function pseudoscalar() {
+  const p = new Float64Array(SIZE);
+  p[SIZE - 1] = 1; // e123pm
+  return p;
+}
+export function scalarProduct(a, b) {
+  return gp(a, b)[0];
+}
+function inner(a, b) {
+  return dot(a, b);
+}
+export function inverse(a, eps) {
+  const r = reverse(a);
+  const s = scalarProduct(gp(a, r), scalar(1));
+
+  if (Math.abs(s) < eps) return null;
+
+  return scale(1 / s, r);
+}
+export function dot(a, b) {
+  const result = new Array(32).fill(0);
+
+  for (let i = 0; i < 32; i++) {
+    if (a[i] === 0) continue;
+
+    const ga = gradeOf(i);
+
+    for (let j = 0; j < 32; j++) {
+      if (b[j] === 0) continue;
+
+      const gb = gradeOf(j);
+
+      if (ga < gb) continue;
+
+      const k = i ^ j;
+
+      if (gradeOf(k) === ga - gb) {
+        result[k] += a[i] * b[j] * gpBlade(i, j);
+      }
+    }
+  }
+
+  return result;
+}
+
+export function isGrade(a, grade, eps = 1e-10) {
+  if (a.every((x) => Math.abs(x) < eps)) return false;
+  for (let i = 0; i < 32; i++) {
+    if (popcount(i) === grade) {
+      continue;
+    }
+
+    if (Math.abs(a[i]) >= eps) {
+      return false;
+    }
+  }
+
+  return true;
+}
+function gpBlade(a, b) {
+  let sign = 1;
+
+  for (let i = 0; i < 5; i++) {
+    if (a & (1 << i)) {
+      for (let j = 0; j < i; j++) {
+        if (b & (1 << j)) {
+          sign = -sign;
+        }
+      }
+    }
+  }
+
+  if (a & b & 16) {
+    sign = -sign;
+  }
+
+  return sign;
+}
+function gradeOf(index) {
+  let grade = 0;
+
+  while (index !== 0) {
+    grade += index & 1;
+    index >>= 1;
+  }
+
+  return grade;
 }
 export function planeParameters(p) {
   const nx = p[1];

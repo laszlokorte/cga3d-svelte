@@ -1,5 +1,7 @@
 node_modules
 
+publish.sh
+
 # Output
 .output
 .vercel

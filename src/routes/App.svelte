@@ -23,24 +23,11 @@
         return () => observer.disconnect();
     });
 
-    let elements = $state([
-        { active: false, el: cga.sphere(0.5, 0.2, 0.3, 0.5), color: "teal" },
-        {
-            active: false,
-            el: cga.sphere(-0.5, -0.5, 0.3, 0.3),
-            color: "tomato",
-        },
-        {
-            active: false,
-            el: cga.plane([0, 1, 1], 0.5),
-            color: "rebeccapurple",
-        },
-        { active: false, el: cga.plane([0, 1, 0], -0.5), color: "limegreen" },
-    ]);
+    let elements = $state([]);
     const combinedMotor = $derived(
         elements
             .filter((e) => e.active)
-            .reduce((a, b) => cga.gp(a, b.el), cga.scalar(1)),
+            .reduce((a, b) => cga.gp(b.el, a), cga.scalar(1)),
     );
 </script>
 
@@ -56,23 +43,67 @@
     </div>
     <div bind:this={viewport} class="viewport"></div>
     <div class="menu">
-        <h1>3D Conformal Transformations</h1>
+        <h1>3D Conformal Transformations (WIP)</h1>
+        <p>
+            inspired by<br />
+            <a
+                href="https://www.youtube.com/watch?v=q3as9SGmDdw"
+                target="_blank">Hamish Todd's Funhouse Mirror</a
+            >
+        </p>
+        <p>
+            <a href="https://tools.laszlokorte.de/" target="_blank"
+                >More Educational Tool</a
+            >
+        </p>
 
         <fieldset>
             <legend>Elements</legend>
-            <button
-                onclick={(evt) => {
-                    elements.push({
-                        color: "red",
-                        active: false,
-                        el: cga.plane([1, 0, 0], 0),
-                    });
-                }}>Add</button
-            >
+            <div class="button-row">
+                <button
+                    onclick={(evt) => {
+                        elements.push({
+                            color: "red",
+                            active: true,
+                            el: cga.plane([1, 0, 0], 0),
+                        });
+                    }}>Add Plane</button
+                >
+                <button
+                    onclick={(evt) => {
+                        elements.push({
+                            color: "purple",
+                            active: true,
+                            el: cga.sphere(0.1, 0, 0, 1),
+                        });
+                    }}>Add Sphere</button
+                >
+                <button
+                    onclick={(evt) => {
+                        elements.push({
+                            color: "gold",
+                            active: true,
+                            el: cga.pointPair(
+                                cga.point(0.3, -0.7, 0.0),
+                                cga.point(0.3, 0.7, 0.0),
+                            ),
+                        });
+                    }}>Add Point Pair</button
+                >
+            </div>
             <div class="block-list">
                 {#each elements as { el, color }, eli}
                     <div class="element" style:--color={color}>
                         <div class="element-head">
+                            <button
+                                onclick={(evt) => {
+                                    elements = elements.filter(
+                                        (_, i) => i !== eli,
+                                    );
+                                }}
+                            >
+                                &cross;
+                            </button>
                             <label class="form-row">
                                 <input
                                     type="color"
@@ -216,8 +247,111 @@
                                     />
                                 </label>
                             </form>
+                        {:else if cga.isPointPair(el)}
+                            <strong>Point Pair</strong>
+                            {@const [a, b] = cga.pointPairCoords(el)}
+                            <div
+                                style="display: grid; grid-template-columns: 1fr 1fr"
+                            >
+                                <form
+                                    oninput={(evt) => {
+                                        const fd = Object.fromEntries(
+                                            new FormData(evt.currentTarget),
+                                        );
+
+                                        const npp = cga.pointPair(
+                                            cga.point(fd.x, fd.y, fd.z),
+                                            cga.point(b.x, b.y, b.z),
+                                        );
+                                        if (cga.isPointPair(npp))
+                                            elements[eli].el = npp;
+                                    }}
+                                >
+                                    <label class="form-row">
+                                        X:
+                                        <input
+                                            type="range"
+                                            name="x"
+                                            value={a.x}
+                                            min="-1"
+                                            max="1"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                    <label class="form-row">
+                                        Y:
+                                        <input
+                                            type="range"
+                                            name="y"
+                                            value={a.y}
+                                            min="-1"
+                                            max="1"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                    <label class="form-row">
+                                        Z:
+                                        <input
+                                            type="range"
+                                            name="z"
+                                            value={a.z}
+                                            min="-1"
+                                            max="1"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                </form>
+                                <form
+                                    oninput={(evt) => {
+                                        const fd = Object.fromEntries(
+                                            new FormData(evt.currentTarget),
+                                        );
+
+                                        const npp = cga.pointPair(
+                                            cga.point(a.x, a.y, a.z),
+                                            cga.point(fd.x, fd.y, fd.z),
+                                        );
+                                        if (cga.isPointPair(npp))
+                                            elements[eli].el = npp;
+                                    }}
+                                >
+                                    <label class="form-row">
+                                        X:
+                                        <input
+                                            type="range"
+                                            name="x"
+                                            value={b.x}
+                                            min="-1"
+                                            max="1"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                    <label class="form-row">
+                                        Y:
+                                        <input
+                                            type="range"
+                                            name="y"
+                                            value={b.y}
+                                            min="-1"
+                                            max="1"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                    <label class="form-row">
+                                        Z:
+                                        <input
+                                            type="range"
+                                            name="z"
+                                            value={b.z}
+                                            min="-1"
+                                            max="1"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                </form>
+                            </div>
                         {:else}
-                            <strong>Uknown</strong>
+                            <strong>Unknown</strong>
                         {/if}
                     </div>
                 {/each}
@@ -245,6 +379,10 @@
         overflow: auto;
         padding: 1em;
     }
+    input[type="range"] {
+        width: 100%;
+        flex-grow: 1;
+    }
     h1 {
         margin: 0;
         font-size: 1.2em;
@@ -257,6 +395,7 @@
         overflow: auto;
     }
     .element {
+        user-select: none;
         display: flex;
         flex-direction: column;
         accent-color: var(--color);
@@ -324,5 +463,24 @@
     }
     input[type="range"] {
         flex-grow: 1;
+    }
+    .button-row {
+        display: flex;
+        gap: 1ex;
+        padding: 1ex;
+    }
+
+    button {
+        border: none;
+        background-color: #222;
+        border-radius: 0;
+        color: #fff;
+        padding: 0.5ex 1ex;
+        display: block;
+        cursor: pointer;
+        font: inherit;
+    }
+    .menu a {
+        color: inherit;
     }
 </style>
