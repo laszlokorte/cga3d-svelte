@@ -112,33 +112,64 @@
                     role="button"
                     tabindex="-1"
                     ondrop={(evt) => {
-                        const from = Number(
+                        const from = JSON.parse(
                             evt.dataTransfer.getData("text/plain"),
                         );
                         const to = eli;
+                        const fromIndex = Number(from.index);
 
-                        if (from === to) return;
+                        if (fromIndex === to) return;
+                        if (from.type == "cga-reorder") {
+                            const item = elements[fromIndex];
+                            const rest = [
+                                ...elements.slice(0, fromIndex),
+                                ...elements.slice(fromIndex + 1),
+                            ];
 
-                        const item = elements[from];
-                        const rest = [
-                            ...elements.slice(0, from),
-                            ...elements.slice(from + 1),
-                        ];
+                            elements = [
+                                ...rest.slice(0, to),
+                                item,
+                                ...rest.slice(to),
+                            ];
+                        } else if (
+                            from.type == "cga-sum" &&
+                            freeColors.length
+                        ) {
+                            console.log(
+                                elements[to].el,
+                                elements[fromIndex].el,
+                            );
+                            elements.push({
+                                el: cga.add(
+                                    elements[to].el,
+                                    elements[fromIndex].el,
+                                ),
+                                color: freeColors.pop(),
+                                active: false,
+                            });
+                        } else if (
+                            from.type == "cga-wedge" &&
+                            freeColors.length
+                        ) {
+                            elements.push({
+                                el: cga.meet(
+                                    elements[to].el,
+                                    elements[fromIndex].el,
+                                ),
+                                color: freeColors.pop(),
+                                active: false,
+                            });
+                        }
 
-                        elements = [
-                            ...rest.slice(0, to),
-                            item,
-                            ...rest.slice(to),
-                        ];
                         dragging = null;
                         over = null;
                     }}
                     ondragover={(evt) => {
-                        const from = Number(
+                        const from = JSON.parse(
                             evt.dataTransfer.getData("text/plain"),
                         );
                         const to = eli;
-                        if (to !== from) {
+                        if (to !== Number(from.index)) {
                             evt.preventDefault();
 
                             over = eli;
@@ -152,7 +183,13 @@
                             tabindex="-1"
                             draggable="true"
                             ondragstart={(evt) => {
-                                evt.dataTransfer.setData("text/plain", eli);
+                                evt.dataTransfer.setData(
+                                    "text/plain",
+                                    JSON.stringify({
+                                        type: "cga-reorder",
+                                        index: eli,
+                                    }),
+                                );
                                 dragging = eli;
                             }}
                             ondragend={(evt) => {
@@ -162,6 +199,48 @@
                         >
                             ☰
                         </div>
+                        <div
+                            role="button"
+                            tabindex="-1"
+                            draggable="true"
+                            ondragstart={(evt) => {
+                                evt.dataTransfer.setData(
+                                    "text/plain",
+                                    JSON.stringify({
+                                        type: "cga-sum",
+                                        index: eli,
+                                    }),
+                                );
+                                dragging = eli;
+                            }}
+                            ondragend={(evt) => {
+                                dragging = null;
+                                over = null;
+                            }}
+                        >
+                            +
+                        </div>
+                        <div
+                            role="button"
+                            tabindex="-1"
+                            draggable="true"
+                            ondragstart={(evt) => {
+                                evt.dataTransfer.setData(
+                                    "text/plain",
+                                    JSON.stringify({
+                                        type: "cga-wedge",
+                                        index: eli,
+                                    }),
+                                );
+                                dragging = eli;
+                            }}
+                            ondragend={(evt) => {
+                                dragging = null;
+                                over = null;
+                            }}
+                        >
+                            &wedge;
+                        </div>
                         <button
                             onclick={(evt) => {
                                 freeColors.push(color);
@@ -170,6 +249,8 @@
                         >
                             &cross;
                         </button>
+                    </div>
+                    <div class="element-head">
                         <label class="form-row">
                             <input
                                 type="color"
@@ -416,9 +497,114 @@
                                 </label>
                             </form>
                         </div>
+                    {:else if cga.isCircle(el)}
+                        <strong>Circle</strong>
+                        {@const cirParams = cga.circleParameters(el)}
+                        {console.log(cirParams)}
+                        <form
+                            oninput={(evt) => {
+                                const fd = Object.fromEntries(
+                                    new FormData(evt.currentTarget),
+                                );
+                            }}
+                        >
+                            <div
+                                style="display: grid; gap: 1ex; grid-template-columns: 1fr 1fr;"
+                            >
+                                <label
+                                    class="form-row"
+                                    style:grid-column="1 / -1"
+                                >
+                                    Radius:
+                                    <input
+                                        type="range"
+                                        name="radius"
+                                        value={cirParams.radius}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <div>
+                                    <label class="form-row">
+                                        X:
+                                        <input
+                                            type="range"
+                                            name="x"
+                                            value={cirParams.center[0]}
+                                            min="-1"
+                                            max="1"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                    <label class="form-row">
+                                        Y:
+                                        <input
+                                            type="range"
+                                            name="y"
+                                            value={cirParams.center[1]}
+                                            min="-1"
+                                            max="1"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                    <label class="form-row">
+                                        Z:
+                                        <input
+                                            type="range"
+                                            name="z"
+                                            value={cirParams.center[2]}
+                                            min="-1"
+                                            max="1"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                </div>
+                                <div>
+                                    <label class="form-row">
+                                        NX:
+                                        <input
+                                            type="range"
+                                            name="x"
+                                            value={cirParams.center[0]}
+                                            min="-1"
+                                            max="1"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                    <label class="form-row">
+                                        NY:
+                                        <input
+                                            type="range"
+                                            name="y"
+                                            value={cirParams.center[1]}
+                                            min="-1"
+                                            max="1"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                    <label class="form-row">
+                                        NZ:
+                                        <input
+                                            type="range"
+                                            name="z"
+                                            value={cirParams.center[2]}
+                                            min="-1"
+                                            max="1"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                        </form>
                     {:else}
                         <strong>Unknown</strong>
                     {/if}
+                    <textarea
+                        style:resize="none"
+                        readonly
+                        style:user-select="all">{cga.toString(el)}</textarea
+                    >
                 </div>
             {/each}
         </div>
@@ -528,13 +714,7 @@
     label {
         display: flex;
     }
-    fieldset {
-        border: 1px solid #fff8;
-    }
-    legend {
-        padding: 1ex;
-        color: #fff8;
-    }
+
     .form-row {
         display: flex;
         align-items: center;

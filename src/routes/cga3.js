@@ -305,38 +305,20 @@ function dual(a) {
 
   return gp(a, scale(-1, I));
 }
+export function undual(a) {
+  // I = e1 e2 e3 ep em
+  const I = gp(gp(gp(gp(e1, e2), e3), ep), em);
+
+  return gp(a, I);
+}
 
 export function circleParameters(C) {
-  // Center formula is particularly convenient in CGA:
-  //
-  // center = C einf C
-  //
-  // followed by normalization as a point.
-
   const center = gp(gp(C, einf), C);
   const p = pointCoords(center);
 
-  // C's squared radius can be obtained from the
-  // normalized circle and its center.
-  //
-  // We use a point on the circle recovered from the
-  // circle algebraically below.
-  //
-  // For the common case of circles constructed as
-  // P ^ Q ^ R, the following invariant works after
-  // normalization.
-
-  const n = Math.sqrt(Math.abs(norm2(C)));
-
-  // A more useful implementation for visualization is
-  // to obtain the radius from the dual circle.
-
   const D = dual(C);
 
-  // D = alpha * (center - 1/2 r² einf)
-  //
-  // Normalize so the e0 coefficient is 1.
-  const w = D[16] - D[8];
+  const w = D[17] - D[9];
 
   if (Math.abs(w) < 1e-12) {
     return {
@@ -345,21 +327,11 @@ export function circleParameters(C) {
     };
   }
 
-  // In the point convention used here, the Euclidean
-  // vector part of D gives the center.
   const cx = D[1] / w;
   const cy = D[2] / w;
   const cz = D[4] / w;
 
-  // einf coefficient:
-  //
-  // D / w = center + .5(center²-r²)einf + e0
-  //
-  // therefore
-  //
-  // r² = center² - 2 * einfCoeff
-
-  const einfCoeff = (D[8] + D[16]) / w;
+  const einfCoeff = (D[9] + D[17]) / w;
 
   const r2 = cx * cx + cy * cy + cz * cz - 2 * einfCoeff;
 
@@ -396,9 +368,30 @@ export function isPlane(a, eps = 1e-10) {
   // Plane has only grade-1 components
   return isGrade(a, 1, eps) && Math.abs(a[16] - a[8]) < eps;
 }
+export function spinorNorm(a, eps = 1e-10) {
+  const n = gp(a, reverse(a));
+
+  // Must be scalar
+  for (let i = 1; i < 32; i++) {
+    if (Math.abs(n[i]) >= eps) return null;
+  }
+
+  return n[0];
+}
 export function isPointPair(a, eps = 1e-10) {
-  // Point pair has only grade-2 components
-  return isGrade(a, 2, eps);
+  if (!isGrade(a, 2, eps)) return false;
+
+  const n = spinorNorm(a, eps);
+
+  return n !== null && n > eps;
+}
+
+export function isCircle(a, eps = 1e-10) {
+  if (!isGrade(a, 3, eps)) return false;
+
+  const n = spinorNorm(a, eps);
+
+  return n !== null && n < -eps;
 }
 export function pointPairCoords(b, eps = 1e-10) {
   const result = splitPointPair(b, eps);
@@ -551,6 +544,70 @@ export function planeParameters(p) {
     normal: [nx / len, ny / len, nz / len],
     distance: (p[8] + p[16]) / (2 * len),
   };
+}
+export function meet(a, b) {
+  return dual(wedge(a, b));
+}
+export function toString(a, eps = 1e-10) {
+  const names = [
+    "1",
+    "e1",
+    "e2",
+    "e3",
+    "eo",
+    "e∞",
+
+    "e12",
+    "e13",
+    "e1o",
+    "e1∞",
+    "e23",
+    "e2o",
+    "e2∞",
+    "e3o",
+    "e3∞",
+    "eo∞",
+
+    "e123",
+    "e12o",
+    "e12∞",
+    "e13o",
+    "e13∞",
+    "e1o∞",
+    "e23o",
+    "e23∞",
+    "e2o∞",
+    "e3o∞",
+
+    "e123o",
+    "e123∞",
+    "e12o∞",
+    "e13o∞",
+    "e23o∞",
+
+    "e123o∞",
+  ];
+
+  const terms = [];
+
+  for (let i = 0; i < a.length; i++) {
+    const x = a[i];
+
+    if (Math.abs(x) < eps) continue;
+
+    const name = names[i];
+
+    if (terms.length === 0) {
+      terms.push(name === "1" ? `${x}` : `${x}${name}`);
+    } else {
+      const sign = x < 0 ? " - " : " + ";
+      const value = Math.abs(x);
+
+      terms.push(name === "1" ? `${sign}${value}` : `${sign}${value}${name}`);
+    }
+  }
+
+  return terms.length ? terms.join("") : "0";
 }
 
 // Useful exports
