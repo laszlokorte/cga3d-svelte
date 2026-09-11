@@ -525,6 +525,55 @@
                 </T.Mesh>
             </T.Group>
         </T.Group>
+    {:else if cga.isEuclideanPoint(el)}
+        {@const p = cga.pointParameters(el)}
+        <TransformControls
+            position={[p.x, p.y, p.z]}
+            size={0.4}
+            onobjectChange={(evt) => {
+                const object = evt.target.object;
+                if (object) {
+                    object.position.x = THREE.MathUtils.clamp(
+                        object.position.x,
+                        -2,
+                        2,
+                    );
+                    object.position.y = THREE.MathUtils.clamp(
+                        object.position.y,
+                        -1,
+                        1,
+                    );
+                    object.position.z = THREE.MathUtils.clamp(
+                        object.position.z,
+                        -2,
+                        2,
+                    );
+                    const np = cga.pointReflection(
+                        object.position.x,
+                        object.position.y,
+                        object.position.z,
+                    );
+                    elements[eli].el = np;
+                }
+            }}
+            mode="translate"
+        >
+            <T.Mesh
+                renderOrder={20000 + eli * 100 + 4 * 12 + 1}
+                rotation={[0, 0, 0]}
+            >
+                <T.SphereGeometry args={[0.08, 32, 16]} />
+                <T.MeshBasicMaterial
+                    toneMapped={false}
+                    side={THREE.DoubleSide}
+                    opacity={active ? 0.6 : 0.1}
+                    transparent={true}
+                    premultipliedAlpha={true}
+                    clippingPlanes={planes}
+                    color={active ? color : "gray"}
+                />
+            </T.Mesh>
+        </TransformControls>
     {:else if cga.isPointPair(el)}
         {@const [a, b] = cga.pointPairCoords(el)}
         <TransformControls
@@ -549,13 +598,13 @@
                         2,
                     );
                     const npp = cga.pointPair(
-                        cga.point(
+                        cga.zeroSphere(
                             object.position.x,
                             object.position.y,
                             object.position.z,
                         ),
 
-                        cga.point(b.x, b.y, b.z),
+                        cga.zeroSphere(b.x, b.y, b.z),
                     );
                     if (cga.isPointPair(npp)) elements[eli].el = npp;
                 }
@@ -600,8 +649,8 @@
                         2,
                     );
                     const npp = cga.pointPair(
-                        cga.point(a.x, a.y, a.z),
-                        cga.point(
+                        cga.zeroSphere(a.x, a.y, a.z),
+                        cga.zeroSphere(
                             object.position.x,
                             object.position.y,
                             object.position.z,

@@ -32,6 +32,14 @@ export const e3 = basis(2);
 export const ep = basis(3);
 export const em = basis(4);
 
+export const e12 = wedge(e1, e2);
+export const e13 = wedge(e1, e3);
+export const e23 = wedge(e2, e3);
+export const e21 = wedge(e2, e1);
+export const e31 = wedge(e3, e1);
+export const e32 = wedge(e3, e2);
+export const e123 = wedge(wedge(e1, e2), e3);
+
 export const e0 = sub(scale(0.5, em), scale(0.5, ep));
 export const einf = add(em, ep);
 
@@ -157,12 +165,21 @@ function norm2(a) {
 // CGA geometry
 // ------------------------------------------------------------
 
-export function point(x, y, z) {
+export function zeroSphere(x, y, z) {
   const r2 = x * x + y * y + z * z;
 
   return add(
     add(add(e0, scale(x, e1)), scale(y, e2)),
     add(scale(z, e3), scale(0.5 * r2, einf)),
+  );
+}
+export function point(x, y, z) {
+  return add(add(add(e123, scale(x, e23)), scale(y, e31)), scale(z, e12));
+}
+export function pointReflection(x, y, z) {
+  return wedge(
+    wedge(plane([1, 0, 0], x), plane([0, 1, 0], y)),
+    plane([0, 0, 1], z),
   );
 }
 
@@ -171,7 +188,7 @@ export function pointPair(a, b) {
   return wedge(a, b);
 }
 export function sphere(x, y, z, radius) {
-  return sub(point(x, y, z), scale(0.5 * radius * radius, einf));
+  return sub(zeroSphere(x, y, z), scale(0.5 * radius * radius, einf));
 }
 
 // Line through two points
@@ -378,12 +395,28 @@ export function spinorNorm(a, eps = 1e-10) {
 
   return n[0];
 }
+export function isEuclideanPoint(a, eps = 1e-10) {
+  const allowed = new Set([
+    /* e12o  */ 11, /* e12∞  */ 19, /* e23o  */ 14, /* e23∞  */ 22,
+    /* e31o  */ 13, /* e31∞  */ 21, /* e123  */ 7,
+  ]);
+
+  if (Math.abs(a[7]) < eps) return false;
+
+  for (let i = 0; i < a.length; i++) {
+    if (!allowed.has(i) && Math.abs(a[i]) >= eps) {
+      return false;
+    }
+  }
+
+  return true;
+}
 export function isPointPair(a, eps = 1e-10) {
   if (!isGrade(a, 2, eps)) return false;
 
   const n = spinorNorm(a, eps);
 
-  return n !== null && n > eps;
+  return n !== null && Math.abs(n) > eps;
 }
 
 export function isCircle(a, eps = 1e-10) {
@@ -405,6 +438,19 @@ export function pointPairCoords(b, eps = 1e-10) {
   }
 
   return [pointCoords(result.p2), pointCoords(result.p1)];
+}
+export function pointParameters(P, eps = 1e-10) {
+  const w = P[7]; // e123
+
+  if (Math.abs(w) < eps) {
+    return null;
+  }
+
+  return {
+    x: (P[14] + P[22]) / (2 * w), // e23o + e23∞
+    y: -(P[13] + P[21]) / (2 * w), // e31o + e31∞
+    z: (P[11] + P[19]) / (2 * w), // e12o + e12∞
+  };
 }
 export function splitPointPair(b, eps = 1e-10) {
   let bb = scalarProduct(b, b);
@@ -550,42 +596,38 @@ export function meet(a, b) {
 }
 export function toString(a, eps = 1e-10) {
   const names = [
-    "1",
-    "e1",
-    "e2",
-    "e3",
-    "eo",
-    "e∞",
-
-    "e12",
-    "e13",
-    "e1o",
-    "e1∞",
-    "e23",
-    "e2o",
-    "e2∞",
-    "e3o",
-    "e3∞",
-    "eo∞",
-
-    "e123",
-    "e12o",
-    "e12∞",
-    "e13o",
-    "e13∞",
-    "e1o∞",
-    "e23o",
-    "e23∞",
-    "e2o∞",
-    "e3o∞",
-
-    "e123o",
-    "e123∞",
-    "e12o∞",
-    "e13o∞",
-    "e23o∞",
-
-    "e123o∞",
+    "1", // 00000
+    "e1", // 00001
+    "e2", // 00010
+    "e12", // 00011
+    "e3", // 00100
+    "e13", // 00101
+    "e23", // 00110
+    "e123", // 00111
+    "eo", // 01000
+    "e1o", // 01001
+    "e2o", // 01010
+    "e12o", // 01011
+    "e3o", // 01100
+    "e13o", // 01101
+    "e23o", // 01110
+    "e123o", // 01111
+    "e∞", // 10000
+    "e1∞", // 10001
+    "e2∞", // 10010
+    "e12∞", // 10011
+    "e3∞", // 10100
+    "e13∞", // 10101
+    "e23∞", // 10110
+    "e123∞", // 10111
+    "eo∞", // 11000
+    "e1o∞", // 11001
+    "e2o∞", // 11010
+    "e12o∞", // 11011
+    "e3o∞", // 11100
+    "e13o∞", // 11101
+    "e23o∞", // 11110
+    "e123o∞", // 11111
   ];
 
   const terms = [];

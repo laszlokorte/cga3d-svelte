@@ -12,6 +12,7 @@
         "limegreen",
         "royalblue",
     ]);
+    console.log(cga.toString(cga.plane([1, 0, 0], 1)));
 
     function updateCamera() {
         const rect = viewport.getBoundingClientRect();
@@ -67,15 +68,50 @@
             </p>
         </header>
         <div class="button-row">
+            <fieldset class="fieldset-mini">
+                <legend>Add Plane</legend>
+                <div class="button-row">
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.plane([1, 0, 0], 0),
+                            });
+                        }}>e1</button
+                    >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.plane([0, 1, 0], 0),
+                            });
+                        }}>e2</button
+                    >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.plane([0, 0, 1], 0),
+                            });
+                        }}>e3</button
+                    >
+                </div>
+            </fieldset>
             <button
                 disabled={freeColors.length < 1}
                 onclick={(evt) => {
                     elements.push({
                         color: freeColors.pop(),
                         active: true,
-                        el: cga.plane([1, 0, 0], 0),
+                        el: cga.pointReflection(0, 0.5, 0.5),
                     });
-                }}>Add Plane</button
+                }}>Add Point</button
             >
             <button
                 disabled={freeColors.length < 1}
@@ -94,8 +130,8 @@
                         color: freeColors.pop(),
                         active: true,
                         el: cga.pointPair(
-                            cga.point(0.3, -0.7, 0.0),
-                            cga.point(0.3, 0.7, 0.0),
+                            cga.zeroSphere(0.3, -0.7, 0.0),
+                            cga.zeroSphere(0.3, 0.7, 0.0),
                         ),
                     });
                 }}>Add Point Pair</button
@@ -135,12 +171,20 @@
                             from.type == "cga-sum" &&
                             freeColors.length
                         ) {
-                            console.log(
-                                elements[to].el,
-                                elements[fromIndex].el,
-                            );
                             elements.push({
                                 el: cga.add(
+                                    elements[to].el,
+                                    elements[fromIndex].el,
+                                ),
+                                color: freeColors.pop(),
+                                active: false,
+                            });
+                        } else if (
+                            from.type == "cga-sub" &&
+                            freeColors.length
+                        ) {
+                            elements.push({
+                                el: cga.sub(
                                     elements[to].el,
                                     elements[fromIndex].el,
                                 ),
@@ -219,6 +263,27 @@
                             }}
                         >
                             +
+                        </div>
+                        <div
+                            role="button"
+                            tabindex="-1"
+                            draggable="true"
+                            ondragstart={(evt) => {
+                                evt.dataTransfer.setData(
+                                    "text/plain",
+                                    JSON.stringify({
+                                        type: "cga-sub",
+                                        index: eli,
+                                    }),
+                                );
+                                dragging = eli;
+                            }}
+                            ondragend={(evt) => {
+                                dragging = null;
+                                over = null;
+                            }}
+                        >
+                            -
                         </div>
                         <div
                             role="button"
@@ -500,7 +565,6 @@
                     {:else if cga.isCircle(el)}
                         <strong>Circle</strong>
                         {@const cirParams = cga.circleParameters(el)}
-                        {console.log(cirParams)}
                         <form
                             oninput={(evt) => {
                                 const fd = Object.fromEntries(
@@ -596,6 +660,55 @@
                                     </label>
                                 </div>
                             </div>
+                        </form>
+                    {:else if cga.isEuclideanPoint(el)}
+                        {@const p = cga.pointParameters(el)}
+                        <strong>Point</strong>
+                        <form
+                            oninput={(evt) => {
+                                const fd = Object.fromEntries(
+                                    new FormData(evt.currentTarget),
+                                );
+                                elements[eli].el = cga.pointReflection(
+                                    fd.x,
+                                    fd.y,
+                                    fd.z,
+                                );
+                            }}
+                        >
+                            <label class="form-row">
+                                X:
+                                <input
+                                    type="range"
+                                    name="x"
+                                    value={p.x}
+                                    min="-1"
+                                    max="1"
+                                    step="0.01"
+                                />
+                            </label>
+                            <label class="form-row">
+                                Y:
+                                <input
+                                    type="range"
+                                    name="y"
+                                    value={p.y}
+                                    min="-1"
+                                    max="1"
+                                    step="0.01"
+                                />
+                            </label>
+                            <label class="form-row">
+                                Z:
+                                <input
+                                    type="range"
+                                    name="z"
+                                    value={p.z}
+                                    min="-1"
+                                    max="1"
+                                    step="0.01"
+                                />
+                            </label>
                         </form>
                     {:else}
                         <strong>Unknown</strong>
@@ -760,5 +873,8 @@
     button:disabled {
         cursor: default;
         opacity: 0.3;
+    }
+    .fieldset-mini {
+        padding: 0;
     }
 </style>
