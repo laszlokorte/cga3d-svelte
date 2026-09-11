@@ -2,7 +2,7 @@
     import * as THREE from "three";
     import { T, useThrelte, useTask } from "@threlte/core";
     import {
-        CameraControls,
+        OrbitControls,
         Sky,
         TransformControls,
         Gizmo,
@@ -291,9 +291,16 @@
         ref.lookAt(0, 0, 0);
     }}
 >
-    <CameraControls draggingSmoothTime={0.01} maxDistance={16} minDistance={2}>
+    <OrbitControls
+        zoomSpeed={2}
+        enablePan={false}
+        dragToOffset={false}
+        draggingSmoothTime={0.01}
+        maxDistance={16}
+        minDistance={2}
+    >
         <Gizmo placement="top-right" />
-    </CameraControls>
+    </OrbitControls>
     <T.Group bind:ref={group}>
         {#each [{ rot: [Math.PI / 2, 0, 0], color: "magenta" }, { rot: [0, Math.PI / 2, 0], color: "cyan" }, { rot: [0, 0, 0], color: "yellow" }] as t}
             <T.Mesh renderOrder={-1} rotation={t.rot}>
