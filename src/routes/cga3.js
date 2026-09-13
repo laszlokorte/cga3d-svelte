@@ -410,12 +410,23 @@ export function spinorNorm(a, eps = 1e-10) {
   return n[0];
 }
 export function isEuclideanPoint(a, eps = 1e-10) {
+  if (isCircle(a, eps)) {
+    return false;
+  }
+
   const allowed = new Set([
-    /* e12o  */ 11, /* e12∞  */ 19, /* e23o  */ 14, /* e23∞  */ 22,
-    /* e31o  */ 13, /* e31∞  */ 21, /* e123  */ 7,
+    11, // e12o
+    19, // e12∞
+    14, // e23o
+    22, // e23∞
+    13, // e13o
+    21, // e13∞
+    7, // e123
   ]);
 
-  if (Math.abs(a[7]) < eps) return false;
+  if (Math.abs(a[7]) < eps) {
+    return false;
+  }
 
   for (let i = 0; i < a.length; i++) {
     if (!allowed.has(i) && Math.abs(a[i]) >= eps) {

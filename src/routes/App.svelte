@@ -771,6 +771,7 @@
         gap: 1em;
     }
     .menu {
+        user-select: none;
         grid-area: menu;
         background-color: #0008;
         color: #fff;
@@ -820,6 +821,7 @@
     }
 
     .element-head {
+        user-select: none;
         display: flex;
         gap: 1ex;
     }
