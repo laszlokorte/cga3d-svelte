@@ -12,7 +12,6 @@
         "limegreen",
         "royalblue",
     ]);
-    console.log(cga.toString(cga.plane([1, 0, 0], 1)));
 
     function updateCamera() {
         const rect = viewport.getBoundingClientRect();
@@ -135,6 +134,16 @@
                         ),
                     });
                 }}>Add Point Pair</button
+            >
+            <button
+                disabled={freeColors.length < 1}
+                onclick={(evt) => {
+                    elements.push({
+                        color: freeColors.pop(),
+                        active: true,
+                        el: cga.circle([0, 0, 0], 1, [0, 1, 0]),
+                    });
+                }}>Add Circle</button
             >
         </div>
         <div class="block-list">
@@ -570,6 +579,17 @@
                                 const fd = Object.fromEntries(
                                     new FormData(evt.currentTarget),
                                 );
+                                if (Math.hypot(fd.nx, fd.ny, fd.nz) > 0) {
+                                    const nc = cga.circle(
+                                        [1 * fd.x, 1 * fd.y, 1 * fd.z],
+                                        1 * fd.radius,
+                                        [1 * fd.nx, 1 * fd.ny, 1 * fd.nz],
+                                    );
+
+                                    if (cga.isCircle(nc)) {
+                                        elements[eli].el = nc;
+                                    }
+                                }
                             }}
                         >
                             <div
@@ -629,8 +649,8 @@
                                         NX:
                                         <input
                                             type="range"
-                                            name="x"
-                                            value={cirParams.center[0]}
+                                            name="nx"
+                                            value={cirParams.normal[0]}
                                             min="-1"
                                             max="1"
                                             step="0.01"
@@ -640,8 +660,8 @@
                                         NY:
                                         <input
                                             type="range"
-                                            name="y"
-                                            value={cirParams.center[1]}
+                                            name="ny"
+                                            value={cirParams.normal[1]}
                                             min="-1"
                                             max="1"
                                             step="0.01"
@@ -651,8 +671,8 @@
                                         NZ:
                                         <input
                                             type="range"
-                                            name="z"
-                                            value={cirParams.center[2]}
+                                            name="nz"
+                                            value={cirParams.normal[2]}
                                             min="-1"
                                             max="1"
                                             step="0.01"

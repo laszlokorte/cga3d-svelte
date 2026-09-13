@@ -215,8 +215,16 @@ export function plane(normal, distance) {
 }
 
 // Circle through three points
-export function circle(a, b, c) {
+export function circleFromPoints(a, b, c) {
   return wedge(wedge(a, b), c);
+}
+// Circle with center, radius, and plane
+export function circle(center, radius, normal) {
+  const [x, y, z] = center;
+
+  const distance = -(normal[0] * x + normal[1] * y + normal[2] * z);
+
+  return meet(sphere(x, y, z, radius), plane(normal, distance));
 }
 
 // ------------------------------------------------------------
@@ -329,32 +337,38 @@ export function undual(a) {
   return gp(a, I);
 }
 
-export function circleParameters(C) {
-  const center = gp(gp(C, einf), C);
-  const p = pointCoords(center);
+export function circleParameters(C, eps = 1e-10) {
+  const q = gp(gp(C, einf), C);
+
+  const w = q[16] - q[8];
+
+  if (Math.abs(w) < eps) {
+    return null;
+  }
+
+  const center = [q[1] / w, q[2] / w, q[4] / w];
+
+  const n2 = norm2(C);
+  const radius2 = (-2 * n2) / w;
+
+  if (radius2 < -eps) {
+    return null;
+  }
 
   const D = dual(C);
 
-  const w = D[17] - D[9];
+  const normal = [D[17] - D[9], D[18] - D[10], D[20] - D[12]];
 
-  if (Math.abs(w) < 1e-12) {
-    return {
-      center: [p.x, p.y, p.z],
-      radius: Infinity,
-    };
+  const len = Math.hypot(...normal);
+
+  if (len < eps) {
+    return null;
   }
 
-  const cx = D[1] / w;
-  const cy = D[2] / w;
-  const cz = D[4] / w;
-
-  const einfCoeff = (D[9] + D[17]) / w;
-
-  const r2 = cx * cx + cy * cy + cz * cz - 2 * einfCoeff;
-
   return {
-    center: [cx, cy, cz],
-    radius: Math.sqrt(Math.abs(r2)),
+    center,
+    radius: Math.sqrt(Math.max(0, radius2)),
+    normal: normal.map((x) => x / len),
   };
 }
 export function sphereParameters(s) {
@@ -373,9 +387,7 @@ export function sphereParameters(s) {
     radius: Math.sqrt(Math.max(0, radius2)),
   };
 }
-export function spinorNorm2(a) {
-  return gp(a, reverse(a))[0];
-}
+
 export function isSphere(s, eps = 1e-10) {
   const w = s[16] - s[8];
 

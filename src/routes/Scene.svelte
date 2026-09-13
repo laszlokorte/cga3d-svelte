@@ -574,6 +574,25 @@
                 />
             </T.Mesh>
         </TransformControls>
+    {:else if cga.isCircle(el)}
+        {@const cirParams = cga.circleParameters(el)}
+        {@const rot = new THREE.Quaternion().setFromUnitVectors(
+            new THREE.Vector3(0, 0, 1),
+            new THREE.Vector3(
+                cirParams?.normal[0],
+                cirParams?.normal[1],
+                cirParams?.normal[2],
+            ).normalize(),
+        )}
+        <T.Mesh position={cirParams?.center} quaternion={rot.toArray()}>
+            <T.TorusGeometry args={[cirParams?.radius, 0.01, 32, 64]} />
+            <T.MeshBasicMaterial
+                toneMapped={false}
+                depthTest={false}
+                depthWrite={false}
+                {color}
+            />
+        </T.Mesh>
     {:else if cga.isPointPair(el)}
         {@const [a, b] = cga.pointPairCoords(el)}
         <TransformControls
