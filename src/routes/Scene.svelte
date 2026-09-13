@@ -588,9 +588,12 @@
             <T.TorusGeometry args={[cirParams?.radius, 0.01, 32, 64]} />
             <T.MeshBasicMaterial
                 toneMapped={false}
-                depthTest={false}
-                depthWrite={false}
-                {color}
+                side={THREE.DoubleSide}
+                opacity={active ? 0.6 : 0.1}
+                transparent={true}
+                premultipliedAlpha={true}
+                clippingPlanes={planes}
+                color={active ? color : "gray"}
             />
         </T.Mesh>
     {:else if cga.isPointPair(el)}

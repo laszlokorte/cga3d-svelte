@@ -221,10 +221,12 @@ export function circleFromPoints(a, b, c) {
 // Circle with center, radius, and plane
 export function circle(center, radius, normal) {
   const [x, y, z] = center;
+  const nl = Math.hypot(...normal);
+  const n = normal.map((x) => x / nl);
 
-  const distance = -(normal[0] * x + normal[1] * y + normal[2] * z);
+  const distance = n[0] * x + n[1] * y + n[2] * z;
 
-  return meet(sphere(x, y, z, radius), plane(normal, distance));
+  return meet(sphere(x, y, z, radius), plane(n, distance));
 }
 
 // ------------------------------------------------------------

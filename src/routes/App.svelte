@@ -37,6 +37,19 @@
             .filter((e) => e.active)
             .reduce((a, b) => cga.gp(b.el, a), cga.scalar(1)),
     );
+
+    const C = cga.circle([1, 2, 3], 4, [0, 0, 1]);
+    const q = cga.gp(cga.gp(C, cga.einf), C);
+    console.log(cga.circleParameters(C));
+
+    console.log({
+        q1: q[1],
+        q2: q[2],
+        q4: q[4],
+        q8: q[8],
+        q16: q[16],
+        w: q[16] - q[8],
+    });
 </script>
 
 <svelte:head>
@@ -118,7 +131,7 @@
                     elements.push({
                         color: freeColors.pop(),
                         active: true,
-                        el: cga.sphere(0.1, 0, 0, 1),
+                        el: cga.sphere(0, 0, 0, 1),
                     });
                 }}>Add Sphere</button
             >
@@ -210,7 +223,7 @@
                                     elements[fromIndex].el,
                                 ),
                                 color: freeColors.pop(),
-                                active: false,
+                                active: true,
                             });
                         }
 
@@ -579,7 +592,10 @@
                                 const fd = Object.fromEntries(
                                     new FormData(evt.currentTarget),
                                 );
-                                if (Math.hypot(fd.nx, fd.ny, fd.nz) > 0) {
+                                if (
+                                    Math.hypot(fd.nx, fd.ny, fd.nz) > 0 &&
+                                    fd.radius > 0
+                                ) {
                                     const nc = cga.circle(
                                         [1 * fd.x, 1 * fd.y, 1 * fd.z],
                                         1 * fd.radius,
@@ -604,9 +620,9 @@
                                         type="range"
                                         name="radius"
                                         value={cirParams.radius}
-                                        min="-1"
+                                        min="0.0001"
                                         max="1"
-                                        step="0.01"
+                                        step="0.001"
                                     />
                                 </label>
                                 <div>
