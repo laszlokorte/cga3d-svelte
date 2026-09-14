@@ -279,32 +279,6 @@ export function pointCoords(p) {
 //
 // up to signs depending on basis convention.
 
-export function lineParameters(L) {
-  // With our basis, extract by converting the CGA line
-  // into its six useful components.
-
-  //
-  // The easiest robust route is to use the dual line:
-  //
-  // But for lines constructed with line(A,B), the
-  // e_i ^ e0 coefficients give the direction.
-  //
-
-  // e0 = (em - ep)/2
-  //
-  // coefficient(ei ^ em) - coefficient(ei ^ ep)
-  // gives the e_i ^ e0 component.
-
-  const d = [L[1 | 16] - L[1 | 8], L[2 | 16] - L[2 | 8], L[4 | 16] - L[4 | 8]];
-
-  // e_i ^ einf = e_i ^ ep + e_i ^ em
-  //
-  // These are the moment coordinates.
-  const m = [L[1 | 8] + L[1 | 16], L[2 | 8] + L[2 | 16], L[4 | 8] + L[4 | 16]];
-
-  return { direction: d, moment: m };
-}
-
 // ------------------------------------------------------------
 // Circle parameters
 // ------------------------------------------------------------
@@ -439,6 +413,9 @@ export function isEuclideanPoint(a, eps = 1e-10) {
 export function isPointPair(a, eps = 1e-10) {
   if (!isGrade(a, 2, eps)) return false;
 
+  if (isEuclideanPoint(dual(a), eps)) return false;
+  if (isCircle(dual(a), eps)) return false;
+
   const n = spinorNorm(a, eps);
 
   return n !== null && Math.abs(n) > eps;
@@ -448,8 +425,59 @@ export function isCircle(a, eps = 1e-10) {
   if (!isGrade(a, 3, eps)) return false;
 
   const n = spinorNorm(a, eps);
+  if (n === null || n >= -eps) return false;
 
-  return n !== null && n < -eps;
+  const q = gp(gp(a, einf), a);
+  const w = q[16] - q[8];
+
+  return Math.abs(w) >= eps;
+}
+export function isLine(a, eps = 1e-10) {
+  if (!isGrade(a, 3, eps)) return false;
+
+  const n = spinorNorm(a, eps);
+  if (n === null || n >= -eps) return false;
+
+  const q = gp(gp(a, einf), a);
+  const w = q[16] - q[8];
+
+  return Math.abs(w) < eps;
+}
+export function lineParameters(L, eps = 1e-10) {
+  if (!isLine(L, eps)) return null;
+
+  const direction = [
+    L[25], // e1o∞
+    L[26], // e2o∞
+    L[28], // e3o∞
+  ];
+
+  const len2 = direction[0] ** 2 + direction[1] ** 2 + direction[2] ** 2;
+
+  if (len2 < eps * eps) return null;
+
+  const len = Math.sqrt(len2);
+  const d = direction.map((x) => x / len);
+
+  // Plücker moment
+  const m = [
+    L[14], // e23o
+    -L[13], // -e13o
+    L[11], // e12o
+  ];
+
+  // Point on line closest to origin:
+  // p = m × d / |d|²
+  const point = [
+    (m[1] * d[2] - m[2] * d[1]) / len,
+    (m[2] * d[0] - m[0] * d[2]) / len,
+    (m[0] * d[1] - m[1] * d[0]) / len,
+  ];
+
+  return {
+    point,
+    direction: d,
+  };
 }
 export function pointPairCoords(b, eps = 1e-10) {
   const result = splitPointPair(b, eps);

@@ -90,111 +90,9 @@
 
                       uniform float uTime;
                       uniform float uMotor[32];
-                      const int MV_SIZE = 32;
-
-                      struct MV {
-                          float c[MV_SIZE];
-                      };
-                      MV plane(vec3 normal, float distance) {
-                          MV r;
-
-                          for (int i = 0; i < 32; i++)
-                              r.c[i] = 0.0;
-
-                          vec3 n = normalize(normal);
-
-                          r.c[1] = n.x;
-                          r.c[2] = n.y;
-                          r.c[4] = n.z;
-
-                          // -distance * einf
-                          // einf = ep + em
-                          r.c[8]  = -distance;
-                          r.c[16] = -distance;
-
-                          return r;
-                      }
-
-                      int popcount(int x) {
-                          int n = 0;
-
-                          for (int i = 0; i < 5; i++) {
-                              if ((x & (1 << i)) != 0)
-                                  n++;
-                          }
-
-                          return n;
-                      }
-                      vec3 pointCoords(MV p) {
-                          // e0 coefficient
-                          float w = p.c[16] - p.c[8];
-
-                          return vec3(
-                              p.c[1] / w,
-                              p.c[2] / w,
-                              p.c[4] / w
-                          );
-                      }
-                      MV point(vec3 p) {
-                          MV r;
-
-                          for (int i = 0; i < 32; i++)
-                              r.c[i] = 0.0;
-
-                          float r2 = dot(p, p);
-
-                          // e0 = (em - ep) / 2
-                          r.c[8]  = -0.5;
-                          r.c[16] =  0.5;
-
-                          // Euclidean coordinates
-                          r.c[1] = p.x;
-                          r.c[2] = p.y;
-                          r.c[4] = p.z;
-
-                          // 1/2 |p|² einf
-                          r.c[8]  += 0.5 * r2;
-                          r.c[16] += 0.5 * r2;
-
-                          return r;
-                      }
-
-
-                      // Returns the sign and resulting blade index for
-                      //
-                      //     blade(a) * blade(b)
-                      //
-                      // Basis order:
-                      //     e1 e2 e3 ep em
-                      //
-                      // Metric:
-                      //     + + + + -
 
                       ${generateGP()}
 
-
-
-                      MV reverse(MV a) {
-                          MV r;
-
-                          for (int i = 0; i < MV_SIZE; i++) {
-                              int grade = popcount(i);
-
-                              // (-1)^(grade * (grade - 1) / 2)
-                              int parity = (grade * (grade - 1) / 2) & 1;
-
-                              r.c[i] = parity != 0
-                                  ? -a.c[i]
-                                  : a.c[i];
-                          }
-
-                          return r;
-                      }
-
-
-                      MV sandwich(MV x, MV motor) {
-                          return gp(gp(motor, x), reverse(motor));
-                      }
                     `,
                         );
                 };
@@ -281,7 +179,79 @@
         new THREE.Vector3(-2, -1, 2),
         new THREE.Vector3(-2, -1, -2),
     ];
+    const vfcount = 16 * 16 * 16;
+
+    const vfgeometry = new THREE.SphereGeometry(0.02, 12, 12);
+    const vfmaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            uTime: { value: 0 },
+            uMotor: { value: cga.scalar(1) },
+        },
+
+        vertexShader: /* glsl */ `
+            #include <clipping_planes_pars_vertex>
+               uniform float uTime;
+
+               attribute vec3 aPosition;
+
+               uniform float uMotor[32];
+
+               ${generateGP()}
+
+               void main() {
+                   MV motor;
+
+                    for (int i = 0; i < 32; i++)
+                        motor.c[i] = uMotor[i];
+
+                    MV p = point(aPosition.xyz);
+                    MV motorResult = sandwich(p, motor);
+
+                    vec4 worldPos = modelMatrix * vec4(position + pointCoords(motorResult), 1.0);
+                    vec4 mvPosition = modelViewMatrix *
+                       worldPos ;
+                            #include <clipping_planes_vertex>
+
+                   gl_Position = projectionMatrix * mvPosition;
+               }
+           `,
+
+        fragmentShader: /* glsl */ `
+               #include <clipping_planes_pars_fragment>
+
+               void main() {
+                   #include <clipping_planes_fragment>
+
+                   gl_FragColor = vec4(1.0,0.8,0.1,1.0);
+               }
+           `,
+    });
+
+    const vfmesh = new THREE.InstancedMesh(vfgeometry, vfmaterial, vfcount);
+
+    const positions = new Float32Array(vfcount * 3);
+
+    for (let i = 0; i < vfcount; i++) {
+        const x = THREE.MathUtils.randFloat(-8, 8);
+        const y = THREE.MathUtils.randFloat(-8, 8);
+        const z = THREE.MathUtils.randFloat(-8, 8);
+
+        positions[i * 3 + 0] = x;
+        positions[i * 3 + 1] = y;
+        positions[i * 3 + 2] = z;
+    }
+
+    vfgeometry.setAttribute(
+        "aPosition",
+        new THREE.InstancedBufferAttribute(positions, 3),
+    );
+
+    vfmesh.instanceMatrix.needsUpdate = true;
+    vfmaterial.clippingPlanes = planes;
+    vfmaterial.clipping = true;
 </script>
+
+<T is={vfmesh} />
 
 <T.PerspectiveCamera
     bind:ref={camera}
@@ -389,6 +359,8 @@
                             node.userData.shader.uniforms.uMotor.value = motor;
                         }
                     });
+
+                    vfmaterial.uniforms.uMotor = { value: motor };
                 }
                 animate();
             }}
@@ -410,7 +382,7 @@
             minX={-2}
             minY={-2}
             minZ={-2}
-            scale={sphCoords.radius}
+            scale={Math.max(sphCoords.radius, 0.1)}
             position={[
                 sphCoords.center[0],
                 sphCoords.center[1],
@@ -593,6 +565,28 @@
                 transparent={true}
                 premultipliedAlpha={true}
                 clippingPlanes={planes}
+                color={active ? color : "gray"}
+            />
+        </T.Mesh>
+    {:else if cga.isLine(el)}
+        {@const lineParams = cga.lineParameters(el)}
+        {@const rot = new THREE.Quaternion().setFromUnitVectors(
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(
+                lineParams?.direction[0],
+                lineParams?.direction[1],
+                lineParams?.direction[2],
+            ).normalize(),
+        )}
+        <T.Mesh position={lineParams?.point} quaternion={rot.toArray()}>
+            <T.CylinderGeometry args={[0.015, 0.015, 4, 32]} />
+            <T.MeshBasicMaterial
+                toneMapped={false}
+                side={THREE.DoubleSide}
+                opacity={active ? 0.6 : 0.1}
+                transparent={true}
+                clippingPlanes={planes}
+                premultipliedAlpha={true}
                 color={active ? color : "gray"}
             />
         </T.Mesh>

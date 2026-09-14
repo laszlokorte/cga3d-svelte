@@ -37,19 +37,6 @@
             .filter((e) => e.active)
             .reduce((a, b) => cga.gp(b.el, a), cga.scalar(1)),
     );
-
-    const C = cga.circle([1, 2, 3], 4, [0, 0, 1]);
-    const q = cga.gp(cga.gp(C, cga.einf), C);
-    console.log(cga.circleParameters(C));
-
-    console.log({
-        q1: q[1],
-        q2: q[2],
-        q4: q[4],
-        q8: q[8],
-        q16: q[16],
-        w: q[16] - q[8],
-    });
 </script>
 
 <svelte:head>
@@ -66,16 +53,16 @@
     <div class="menu">
         <header>
             <h1>3D Conformal Transformations (WIP)</h1>
-            <p>
+            <p style:font-size="smaller">
                 inspired by<br />
                 <a
                     href="https://www.youtube.com/watch?v=q3as9SGmDdw"
                     target="_blank">Hamish Todd's Funhouse Mirror</a
                 >
             </p>
-            <p>
+            <p style:font-size="smaller">
                 <a href="https://tools.laszlokorte.de/" target="_blank"
-                    >More Educational Tool</a
+                    >More Educational Tools</a
                 >
             </p>
         </header>
@@ -115,49 +102,125 @@
                     >
                 </div>
             </fieldset>
-            <button
-                disabled={freeColors.length < 1}
-                onclick={(evt) => {
-                    elements.push({
-                        color: freeColors.pop(),
-                        active: true,
-                        el: cga.pointReflection(0, 0.5, 0.5),
-                    });
-                }}>Add Point</button
-            >
-            <button
-                disabled={freeColors.length < 1}
-                onclick={(evt) => {
-                    elements.push({
-                        color: freeColors.pop(),
-                        active: true,
-                        el: cga.sphere(0, 0, 0, 1),
-                    });
-                }}>Add Sphere</button
-            >
-            <button
-                disabled={freeColors.length < 1}
-                onclick={(evt) => {
-                    elements.push({
-                        color: freeColors.pop(),
-                        active: true,
-                        el: cga.pointPair(
-                            cga.zeroSphere(0.3, -0.7, 0.0),
-                            cga.zeroSphere(0.3, 0.7, 0.0),
-                        ),
-                    });
-                }}>Add Point Pair</button
-            >
-            <button
-                disabled={freeColors.length < 1}
-                onclick={(evt) => {
-                    elements.push({
-                        color: freeColors.pop(),
-                        active: true,
-                        el: cga.circle([0, 0, 0], 1, [0, 1, 0]),
-                    });
-                }}>Add Circle</button
-            >
+            <fieldset class="fieldset-mini">
+                <legend>Add Point</legend>
+                <div class="button-row">
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.pointReflection(0, 0.0, 0.0),
+                            });
+                        }}>Add Point</button
+                    >
+                </div>
+            </fieldset>
+            <fieldset class="fieldset-mini">
+                <legend>Add Sphere</legend>
+                <div class="button-row">
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.sphere(0, 0, 0, 1),
+                            });
+                        }}>r1</button
+                    >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.sphere(0, 0, 0, 0),
+                            });
+                        }}>r0</button
+                    >
+                </div>
+            </fieldset>
+            <fieldset class="fieldset-mini">
+                <legend>Add Point Pair</legend>
+                <div class="button-row">
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.pointPair(
+                                    cga.zeroSphere(-0.5, 0.0, 0.0),
+                                    cga.zeroSphere(0.5, 0.0, 0.0),
+                                ),
+                            });
+                        }}>e1</button
+                    >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.pointPair(
+                                    cga.zeroSphere(0.0, -0.5, 0.0),
+                                    cga.zeroSphere(0.0, 0.5, 0.0),
+                                ),
+                            });
+                        }}>e2</button
+                    >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.pointPair(
+                                    cga.zeroSphere(0.0, 0.0, -0.5),
+                                    cga.zeroSphere(0.0, 0.0, 0.5),
+                                ),
+                            });
+                        }}>e3</button
+                    >
+                </div>
+            </fieldset>
+            <fieldset class="fieldset-mini">
+                <legend>Add Circle</legend>
+                <div class="button-row">
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.circle([0, 0, 0], 1, [1, 0, 0]),
+                            });
+                        }}>e1</button
+                    >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.circle([0, 0, 0], 1, [0, 1, 0]),
+                            });
+                        }}>e2</button
+                    >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.circle([0, 0, 0], 1, [0, 0, 1]),
+                            });
+                        }}>e3</button
+                    >
+                </div>
+            </fieldset>
         </div>
         <div class="block-list">
             {#each elements as { el, color }, eli}
@@ -213,14 +276,13 @@
                                 color: freeColors.pop(),
                                 active: false,
                             });
-                        } else if (
-                            from.type == "cga-wedge" &&
-                            freeColors.length
-                        ) {
+                        } else if (from.type == "cga-gp" && freeColors.length) {
                             elements.push({
-                                el: cga.meet(
-                                    elements[to].el,
-                                    elements[fromIndex].el,
+                                el: cga.dual(
+                                    cga.gp(
+                                        elements[to].el,
+                                        elements[fromIndex].el,
+                                    ),
                                 ),
                                 color: freeColors.pop(),
                                 active: true,
@@ -243,8 +305,45 @@
                     }}
                     style:--color={color}
                 >
-                    <div class="element-head">
+                    <div class="element-side">
+                        <button
+                            class="element-button"
+                            onclick={(evt) => {
+                                freeColors.push(color);
+                                elements = elements.filter((_, i) => i !== eli);
+                            }}
+                        >
+                            &cross;
+                        </button>
+                        <button
+                            class="element-button"
+                            onclick={(evt) => {
+                                elements[eli].el = cga.dual(elements[eli].el);
+                            }}
+                        >
+                            Dual
+                        </button>
+                        <button
+                            class="element-button"
+                            onclick={(evt) => {
+                                elements[eli].el = cga.undual(elements[eli].el);
+                            }}
+                        >
+                            Undual
+                        </button>
+                        <button
+                            class="element-button"
+                            onclick={(evt) => {
+                                elements[eli].el = cga.scale(
+                                    -1,
+                                    elements[eli].el,
+                                );
+                            }}
+                        >
+                            Negate
+                        </button>
                         <div
+                            class="element-button"
                             role="button"
                             tabindex="-1"
                             draggable="true"
@@ -266,6 +365,7 @@
                             ☰
                         </div>
                         <div
+                            class="element-button"
                             role="button"
                             tabindex="-1"
                             draggable="true"
@@ -287,6 +387,7 @@
                             +
                         </div>
                         <div
+                            class="element-button"
                             role="button"
                             tabindex="-1"
                             draggable="true"
@@ -308,6 +409,7 @@
                             -
                         </div>
                         <div
+                            class="element-button"
                             role="button"
                             tabindex="-1"
                             draggable="true"
@@ -315,7 +417,7 @@
                                 evt.dataTransfer.setData(
                                     "text/plain",
                                     JSON.stringify({
-                                        type: "cga-wedge",
+                                        type: "cga-gp",
                                         index: eli,
                                     }),
                                 );
@@ -326,16 +428,8 @@
                                 over = null;
                             }}
                         >
-                            &wedge;
+                            gp
                         </div>
-                        <button
-                            onclick={(evt) => {
-                                freeColors.push(color);
-                                elements = elements.filter((_, i) => i !== eli);
-                            }}
-                        >
-                            &cross;
-                        </button>
                     </div>
                     <div class="element-head">
                         <label class="form-row">
@@ -357,281 +451,157 @@
                             Active
                         </label>
                     </div>
-                    {#if cga.isSphere(el)}
-                        <strong>Sphere</strong>
-                        {@const sphCoords = cga.sphereParameters(el)}
-                        <form
-                            oninput={(evt) => {
-                                const fd = Object.fromEntries(
-                                    new FormData(evt.currentTarget),
-                                );
-
-                                elements[eli].el = cga.sphere(
-                                    1 * fd.x,
-                                    1 * fd.y,
-                                    1 * fd.z,
-                                    1 * fd.radius,
-                                );
-                            }}
-                        >
-                            <label class="form-row">
-                                X:
-                                <input
-                                    type="range"
-                                    name="x"
-                                    value={sphCoords.center[0]}
-                                    min="-2"
-                                    max="2"
-                                    step="0.01"
-                                />
-                            </label>
-                            <label class="form-row">
-                                Y:
-                                <input
-                                    type="range"
-                                    name="y"
-                                    value={sphCoords.center[1]}
-                                    min="-2"
-                                    max="2"
-                                    step="0.01"
-                                />
-                            </label>
-                            <label class="form-row">
-                                Z:
-                                <input
-                                    type="range"
-                                    name="z"
-                                    value={sphCoords.center[2]}
-                                    min="-2"
-                                    max="2"
-                                    step="0.01"
-                                />
-                            </label>
-
-                            <label class="form-row">
-                                Radius:
-                                <input
-                                    type="range"
-                                    name="radius"
-                                    value={sphCoords.radius}
-                                    min="0"
-                                    max="4"
-                                    step="0.01"
-                                />
-                            </label>
-                        </form>
-                    {:else if cga.isPlane(el)}
-                        <strong>Plane</strong>
-                        {@const plnParams = cga.planeParameters(el)}
-                        <form
-                            oninput={(evt) => {
-                                const fd = Object.fromEntries(
-                                    new FormData(evt.currentTarget),
-                                );
-
-                                elements[eli].el = cga.plane(
-                                    [1 * fd.x, 1 * fd.y, 1 * fd.z],
-                                    1 * fd.distance,
-                                );
-                            }}
-                        >
-                            <label class="form-row">
-                                X:
-                                <input
-                                    type="range"
-                                    name="x"
-                                    value={plnParams.normal[0]}
-                                    min="-1"
-                                    max="1"
-                                    step="0.01"
-                                />
-                            </label>
-                            <label class="form-row">
-                                Y:
-                                <input
-                                    type="range"
-                                    name="y"
-                                    value={plnParams.normal[1]}
-                                    min="-1"
-                                    max="1"
-                                    step="0.01"
-                                />
-                            </label>
-                            <label class="form-row">
-                                Z:
-                                <input
-                                    type="range"
-                                    name="z"
-                                    value={plnParams.normal[2]}
-                                    min="-1"
-                                    max="1"
-                                    step="0.01"
-                                />
-                            </label>
-
-                            <label class="form-row">
-                                Distance:
-                                <input
-                                    type="range"
-                                    name="distance"
-                                    value={plnParams.distance}
-                                    min="-2"
-                                    max="2"
-                                    step="0.01"
-                                />
-                            </label>
-                        </form>
-                    {:else if cga.isPointPair(el)}
-                        <strong>Point Pair</strong>
-                        {@const [a, b] = cga.pointPairCoords(el)}
-                        <div
-                            style="display: grid; grid-template-columns: 1fr 1fr"
-                        >
+                    <div>
+                        {#if cga.isSphere(el)}
+                            <strong>Sphere</strong>
+                            {@const sphCoords = cga.sphereParameters(el)}
                             <form
                                 oninput={(evt) => {
                                     const fd = Object.fromEntries(
                                         new FormData(evt.currentTarget),
                                     );
 
-                                    const npp = cga.pointPair(
-                                        cga.point(fd.x, fd.y, fd.z),
-                                        cga.point(b.x, b.y, b.z),
-                                    );
-                                    if (cga.isPointPair(npp))
-                                        elements[eli].el = npp;
-                                }}
-                            >
-                                <label class="form-row">
-                                    X:
-                                    <input
-                                        type="range"
-                                        name="x"
-                                        value={a.x}
-                                        min="-1"
-                                        max="1"
-                                        step="0.01"
-                                    />
-                                </label>
-                                <label class="form-row">
-                                    Y:
-                                    <input
-                                        type="range"
-                                        name="y"
-                                        value={a.y}
-                                        min="-1"
-                                        max="1"
-                                        step="0.01"
-                                    />
-                                </label>
-                                <label class="form-row">
-                                    Z:
-                                    <input
-                                        type="range"
-                                        name="z"
-                                        value={a.z}
-                                        min="-1"
-                                        max="1"
-                                        step="0.01"
-                                    />
-                                </label>
-                            </form>
-                            <form
-                                oninput={(evt) => {
-                                    const fd = Object.fromEntries(
-                                        new FormData(evt.currentTarget),
-                                    );
-
-                                    const npp = cga.pointPair(
-                                        cga.point(a.x, a.y, a.z),
-                                        cga.point(fd.x, fd.y, fd.z),
-                                    );
-                                    if (cga.isPointPair(npp))
-                                        elements[eli].el = npp;
-                                }}
-                            >
-                                <label class="form-row">
-                                    X:
-                                    <input
-                                        type="range"
-                                        name="x"
-                                        value={b.x}
-                                        min="-1"
-                                        max="1"
-                                        step="0.01"
-                                    />
-                                </label>
-                                <label class="form-row">
-                                    Y:
-                                    <input
-                                        type="range"
-                                        name="y"
-                                        value={b.y}
-                                        min="-1"
-                                        max="1"
-                                        step="0.01"
-                                    />
-                                </label>
-                                <label class="form-row">
-                                    Z:
-                                    <input
-                                        type="range"
-                                        name="z"
-                                        value={b.z}
-                                        min="-1"
-                                        max="1"
-                                        step="0.01"
-                                    />
-                                </label>
-                            </form>
-                        </div>
-                    {:else if cga.isCircle(el)}
-                        <strong>Circle</strong>
-                        {@const cirParams = cga.circleParameters(el)}
-                        <form
-                            oninput={(evt) => {
-                                const fd = Object.fromEntries(
-                                    new FormData(evt.currentTarget),
-                                );
-                                if (
-                                    Math.hypot(fd.nx, fd.ny, fd.nz) > 0 &&
-                                    fd.radius > 0
-                                ) {
-                                    const nc = cga.circle(
-                                        [1 * fd.x, 1 * fd.y, 1 * fd.z],
+                                    elements[eli].el = cga.sphere(
+                                        1 * fd.x,
+                                        1 * fd.y,
+                                        1 * fd.z,
                                         1 * fd.radius,
-                                        [1 * fd.nx, 1 * fd.ny, 1 * fd.nz],
                                     );
-
-                                    if (cga.isCircle(nc)) {
-                                        elements[eli].el = nc;
-                                    }
-                                }
-                            }}
-                        >
-                            <div
-                                style="display: grid; gap: 1ex; grid-template-columns: 1fr 1fr;"
+                                }}
                             >
-                                <label
-                                    class="form-row"
-                                    style:grid-column="1 / -1"
-                                >
+                                <label class="form-row">
+                                    X:
+                                    <input
+                                        type="range"
+                                        name="x"
+                                        value={sphCoords.center[0]}
+                                        min="-2"
+                                        max="2"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <label class="form-row">
+                                    Y:
+                                    <input
+                                        type="range"
+                                        name="y"
+                                        value={sphCoords.center[1]}
+                                        min="-2"
+                                        max="2"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <label class="form-row">
+                                    Z:
+                                    <input
+                                        type="range"
+                                        name="z"
+                                        value={sphCoords.center[2]}
+                                        min="-2"
+                                        max="2"
+                                        step="0.01"
+                                    />
+                                </label>
+
+                                <label class="form-row">
                                     Radius:
                                     <input
                                         type="range"
                                         name="radius"
-                                        value={cirParams.radius}
-                                        min="0.0001"
-                                        max="1"
-                                        step="0.001"
+                                        value={sphCoords.radius}
+                                        min="0"
+                                        max="4"
+                                        step="0.01"
                                     />
                                 </label>
-                                <div>
+                            </form>
+                        {:else if cga.isPlane(el)}
+                            <strong>Plane</strong>
+                            {@const plnParams = cga.planeParameters(el)}
+                            <form
+                                oninput={(evt) => {
+                                    const fd = Object.fromEntries(
+                                        new FormData(evt.currentTarget),
+                                    );
+
+                                    elements[eli].el = cga.plane(
+                                        [1 * fd.x, 1 * fd.y, 1 * fd.z],
+                                        1 * fd.distance,
+                                    );
+                                }}
+                            >
+                                <label class="form-row">
+                                    X:
+                                    <input
+                                        type="range"
+                                        name="x"
+                                        value={plnParams.normal[0]}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <label class="form-row">
+                                    Y:
+                                    <input
+                                        type="range"
+                                        name="y"
+                                        value={plnParams.normal[1]}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <label class="form-row">
+                                    Z:
+                                    <input
+                                        type="range"
+                                        name="z"
+                                        value={plnParams.normal[2]}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+
+                                <label class="form-row">
+                                    Distance:
+                                    <input
+                                        type="range"
+                                        name="distance"
+                                        value={plnParams.distance}
+                                        min="-2"
+                                        max="2"
+                                        step="0.01"
+                                    />
+                                </label>
+                            </form>
+                        {:else if cga.isPointPair(el)}
+                            <strong>Point Pair</strong>
+                            {@const [a, b] = cga.pointPairCoords(el)}
+                            <div
+                                style="display: grid; grid-template-columns: 1fr 1fr"
+                            >
+                                <form
+                                    oninput={(evt) => {
+                                        const fd = Object.fromEntries(
+                                            new FormData(evt.currentTarget),
+                                        );
+
+                                        const npp = cga.pointPair(
+                                            cga.zeroSphere(fd.x, fd.y, fd.z),
+                                            cga.zeroSphere(b.x, b.y, b.z),
+                                        );
+                                        if (cga.isPointPair(npp))
+                                            elements[eli].el = npp;
+                                    }}
+                                >
                                     <label class="form-row">
                                         X:
                                         <input
                                             type="range"
                                             name="x"
-                                            value={cirParams.center[0]}
+                                            value={a.x}
                                             min="-1"
                                             max="1"
                                             step="0.01"
@@ -642,7 +612,7 @@
                                         <input
                                             type="range"
                                             name="y"
-                                            value={cirParams.center[1]}
+                                            value={a.y}
                                             min="-1"
                                             max="1"
                                             step="0.01"
@@ -653,107 +623,326 @@
                                         <input
                                             type="range"
                                             name="z"
-                                            value={cirParams.center[2]}
+                                            value={a.z}
                                             min="-1"
                                             max="1"
                                             step="0.01"
                                         />
                                     </label>
-                                </div>
-                                <div>
+                                </form>
+                                <form
+                                    oninput={(evt) => {
+                                        const fd = Object.fromEntries(
+                                            new FormData(evt.currentTarget),
+                                        );
+
+                                        const npp = cga.pointPair(
+                                            cga.zeroSphere(a.x, a.y, a.z),
+                                            cga.zeroSphere(fd.x, fd.y, fd.z),
+                                        );
+                                        if (cga.isPointPair(npp))
+                                            elements[eli].el = npp;
+                                    }}
+                                >
                                     <label class="form-row">
-                                        NX:
+                                        X:
                                         <input
                                             type="range"
-                                            name="nx"
-                                            value={cirParams.normal[0]}
+                                            name="x"
+                                            value={b.x}
                                             min="-1"
                                             max="1"
                                             step="0.01"
                                         />
                                     </label>
                                     <label class="form-row">
-                                        NY:
+                                        Y:
                                         <input
                                             type="range"
-                                            name="ny"
-                                            value={cirParams.normal[1]}
+                                            name="y"
+                                            value={b.y}
                                             min="-1"
                                             max="1"
                                             step="0.01"
                                         />
                                     </label>
                                     <label class="form-row">
-                                        NZ:
+                                        Z:
                                         <input
                                             type="range"
-                                            name="nz"
-                                            value={cirParams.normal[2]}
+                                            name="z"
+                                            value={b.z}
                                             min="-1"
                                             max="1"
                                             step="0.01"
                                         />
                                     </label>
-                                </div>
+                                </form>
                             </div>
-                        </form>
-                    {:else if cga.isEuclideanPoint(el)}
-                        {@const p = cga.pointParameters(el)}
-                        <strong>Point</strong>
-                        <form
-                            oninput={(evt) => {
-                                const fd = Object.fromEntries(
-                                    new FormData(evt.currentTarget),
-                                );
-                                elements[eli].el = cga.pointReflection(
-                                    fd.x,
-                                    fd.y,
-                                    fd.z,
-                                );
-                            }}
+                        {:else if cga.isCircle(el)}
+                            <strong>Circle</strong>
+                            {@const cirParams = cga.circleParameters(el)}
+                            <form
+                                oninput={(evt) => {
+                                    const fd = Object.fromEntries(
+                                        new FormData(evt.currentTarget),
+                                    );
+                                    if (
+                                        Math.hypot(fd.nx, fd.ny, fd.nz) > 0 &&
+                                        fd.radius > 0
+                                    ) {
+                                        const nc = cga.circle(
+                                            [1 * fd.x, 1 * fd.y, 1 * fd.z],
+                                            1 * fd.radius,
+                                            [1 * fd.nx, 1 * fd.ny, 1 * fd.nz],
+                                        );
+
+                                        if (cga.isCircle(nc)) {
+                                            elements[eli].el = nc;
+                                        }
+                                    }
+                                }}
+                            >
+                                <div
+                                    style="display: grid; gap: 1ex; grid-template-columns: 1fr 1fr;"
+                                >
+                                    <label
+                                        class="form-row"
+                                        style:grid-column="1 / -1"
+                                    >
+                                        Radius:
+                                        <input
+                                            type="range"
+                                            name="radius"
+                                            value={cirParams.radius}
+                                            min="0.0001"
+                                            max="1"
+                                            step="0.001"
+                                        />
+                                    </label>
+                                    <div>
+                                        <label class="form-row">
+                                            X:
+                                            <input
+                                                type="range"
+                                                name="x"
+                                                value={cirParams.center[0]}
+                                                min="-1"
+                                                max="1"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label class="form-row">
+                                            Y:
+                                            <input
+                                                type="range"
+                                                name="y"
+                                                value={cirParams.center[1]}
+                                                min="-1"
+                                                max="1"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label class="form-row">
+                                            Z:
+                                            <input
+                                                type="range"
+                                                name="z"
+                                                value={cirParams.center[2]}
+                                                min="-1"
+                                                max="1"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="form-row">
+                                            NX:
+                                            <input
+                                                type="range"
+                                                name="nx"
+                                                value={cirParams.normal[0]}
+                                                min="-1"
+                                                max="1"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label class="form-row">
+                                            NY:
+                                            <input
+                                                type="range"
+                                                name="ny"
+                                                value={cirParams.normal[1]}
+                                                min="-1"
+                                                max="1"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label class="form-row">
+                                            NZ:
+                                            <input
+                                                type="range"
+                                                name="nz"
+                                                value={cirParams.normal[2]}
+                                                min="-1"
+                                                max="1"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
+                            </form>
+                        {:else if cga.isLine(el)}
+                            <strong>Line</strong>
+                            {@const lineParams = cga.lineParameters(el)}
+                            {#if lineParams}
+                                <form
+                                    oninput={(evt) => {
+                                        const fd = Object.fromEntries(
+                                            new FormData(evt.currentTarget),
+                                        );
+                                    }}
+                                >
+                                    <div
+                                        style="display: grid; gap: 1ex; grid-template-columns: 1fr 1fr;"
+                                    >
+                                        <div>
+                                            Point
+                                            <label class="form-row">
+                                                X:
+                                                <input
+                                                    type="range"
+                                                    name="px"
+                                                    value={lineParams.point[0]}
+                                                    min="-1"
+                                                    max="1"
+                                                    step="0.01"
+                                                />
+                                            </label>
+                                            <label class="form-row">
+                                                Y:
+                                                <input
+                                                    type="range"
+                                                    name="py"
+                                                    value={lineParams.point[1]}
+                                                    min="-1"
+                                                    max="1"
+                                                    step="0.01"
+                                                />
+                                            </label>
+                                            <label class="form-row">
+                                                Z:
+                                                <input
+                                                    type="range"
+                                                    name="pz"
+                                                    value={lineParams.point[2]}
+                                                    min="-1"
+                                                    max="1"
+                                                    step="0.01"
+                                                />
+                                            </label>
+                                        </div>
+                                        <div>
+                                            Direction
+                                            <label class="form-row">
+                                                X:
+                                                <input
+                                                    type="range"
+                                                    name="dx"
+                                                    value={lineParams
+                                                        .direction[0]}
+                                                    min="-1"
+                                                    max="1"
+                                                    step="0.01"
+                                                />
+                                            </label>
+                                            <label class="form-row">
+                                                Y:
+                                                <input
+                                                    type="range"
+                                                    name="dy"
+                                                    value={lineParams
+                                                        .direction[1]}
+                                                    min="-1"
+                                                    max="1"
+                                                    step="0.01"
+                                                />
+                                            </label>
+                                            <label class="form-row">
+                                                Z:
+                                                <input
+                                                    type="range"
+                                                    name="dz"
+                                                    value={lineParams
+                                                        .direction[2]}
+                                                    min="-1"
+                                                    max="1"
+                                                    step="0.01"
+                                                />
+                                            </label>
+                                        </div>
+                                    </div>
+                                </form>
+                            {/if}
+                        {:else if cga.isEuclideanPoint(el)}
+                            {@const p = cga.pointParameters(el)}
+                            <strong>Point</strong>
+                            <form
+                                oninput={(evt) => {
+                                    const fd = Object.fromEntries(
+                                        new FormData(evt.currentTarget),
+                                    );
+                                    elements[eli].el = cga.pointReflection(
+                                        fd.x,
+                                        fd.y,
+                                        fd.z,
+                                    );
+                                }}
+                            >
+                                <label class="form-row">
+                                    X:
+                                    <input
+                                        type="range"
+                                        name="x"
+                                        value={p.x}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <label class="form-row">
+                                    Y:
+                                    <input
+                                        type="range"
+                                        name="y"
+                                        value={p.y}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+                                <label class="form-row">
+                                    Z:
+                                    <input
+                                        type="range"
+                                        name="z"
+                                        value={p.z}
+                                        min="-1"
+                                        max="1"
+                                        step="0.01"
+                                    />
+                                </label>
+                            </form>
+                        {:else}
+                            <strong>Unknown</strong>
+                        {/if}
+                        <textarea
+                            class="serialized"
+                            style:resize="none"
+                            readonly
+                            style:user-select="all">{cga.toString(el)}</textarea
                         >
-                            <label class="form-row">
-                                X:
-                                <input
-                                    type="range"
-                                    name="x"
-                                    value={p.x}
-                                    min="-1"
-                                    max="1"
-                                    step="0.01"
-                                />
-                            </label>
-                            <label class="form-row">
-                                Y:
-                                <input
-                                    type="range"
-                                    name="y"
-                                    value={p.y}
-                                    min="-1"
-                                    max="1"
-                                    step="0.01"
-                                />
-                            </label>
-                            <label class="form-row">
-                                Z:
-                                <input
-                                    type="range"
-                                    name="z"
-                                    value={p.z}
-                                    min="-1"
-                                    max="1"
-                                    step="0.01"
-                                />
-                            </label>
-                        </form>
-                    {:else}
-                        <strong>Unknown</strong>
-                    {/if}
-                    <textarea
-                        style:resize="none"
-                        readonly
-                        style:user-select="all">{cga.toString(el)}</textarea
-                    >
+                    </div>
                 </div>
             {/each}
         </div>
@@ -763,7 +952,7 @@
 <style>
     .app {
         display: grid;
-        grid-template-columns: 0 [menu-start] 1.5fr [menu-end viewport-start] 2fr 2fr [viewport-end] 0;
+        grid-template-columns: 0 [menu-start] 2fr [menu-end viewport-start] 2fr 2fr [viewport-end] 0;
         grid-template-rows: 0 [menu-start viewport-start] 1fr 1fr 1fr [menu-end viewport-end] 0;
         width: 100%;
         height: 100%;
@@ -812,18 +1001,31 @@
     }
     .element {
         user-select: none;
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto 1fr;
+        flex-direction: row;
         accent-color: var(--color);
         border: 1px solid var(--color);
         background: rgb(from var(--color) r g b / 10%);
         padding: 1ex;
+        gap: 1ex;
+    }
+    .element-side {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        text-align: center;
+        grid-column: 1 / span 1;
+        grid-row: 1 / span 2;
     }
 
     .element-head {
         user-select: none;
         display: flex;
         gap: 1ex;
+        grid-column: 2 / span 1;
+        grid-row: 1 / span 1;
     }
     .form-checkbox {
         display: flex;
@@ -877,6 +1079,7 @@
     }
     .button-row {
         display: flex;
+        flex-wrap: wrap;
         gap: 1ex;
         padding: 1ex;
     }
@@ -899,8 +1102,9 @@
         background-color: #222;
         color: #fff;
         align-items: center;
-        padding: 1ex;
-        display: flex;
+    }
+    [draggable]:hover {
+        color: royalblue;
     }
     .dragging {
         opacity: 0.2;
@@ -914,5 +1118,27 @@
     }
     .fieldset-mini {
         padding: 0;
+    }
+    .element-button {
+        text-align: center;
+        justify-content: center;
+        padding: 1ex;
+        display: flex;
+    }
+    .serialized {
+        opacity: 1;
+        background-color: #fff;
+        border: 1px solid #333;
+        width: 100%;
+    }
+    legend {
+        font-size: small;
+        background-color: #333;
+        margin-left: 1ex;
+        padding: 0.2ex 0.5ex;
+    }
+    fieldset {
+        border: 1px solid #333;
+        padding: 0.5ex;
     }
 </style>
