@@ -181,7 +181,7 @@
     ];
     const vfcount = 16 * 16 * 16;
 
-    const vfgeometry = new THREE.SphereGeometry(0.02, 12, 12);
+    const vfgeometry = new THREE.CylinderGeometry(0.01, 0.01, 1, 16, 10);
     const vfmaterial = new THREE.ShaderMaterial({
         uniforms: {
             uTime: { value: 0 },
@@ -207,7 +207,7 @@
                     MV p = point(aPosition.xyz);
                     MV motorResult = sandwich(p, motor);
 
-                    vec4 worldPos = modelMatrix * vec4(position + pointCoords(motorResult), 1.0);
+                    vec4 worldPos = modelMatrix * vec4(position * vec3(1.0,0.0,1.0) + aPosition * (1.0-(2.0 * position.y + 1.0)) + (2.0 * position.y + 1.0) * pointCoords(motorResult), 1.0);
                     vec4 mvPosition = modelViewMatrix *
                        worldPos ;
                             #include <clipping_planes_vertex>
