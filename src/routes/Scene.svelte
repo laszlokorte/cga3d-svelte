@@ -447,6 +447,7 @@
                             1 * object.position.y,
                             1 * object.position.z,
                             1 * sphCoords.radius,
+                            sphCoords.sign,
                         );
                     }
                 }}
@@ -519,6 +520,7 @@
                                 1 * object.position.y,
                                 1 * object.position.z,
                                 1 * sphCoords.radius,
+                                sphCoords.sign,
                             ),
                         );
                     }

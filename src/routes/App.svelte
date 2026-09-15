@@ -414,10 +414,6 @@
                     bind:this={scene}
                 />
             </Canvas>
-
-            {#snippet pending()}
-
-            {/snippet}
         </svelte:boundary>
     </div>
     <div
@@ -1083,6 +1079,7 @@
                                         1 * fd.y,
                                         1 * fd.z,
                                         1 * fd.radius,
+                                        1 * fd.sign,
                                     );
                                 }}
                             >
@@ -1131,6 +1128,16 @@
                                         step="0.01"
                                     />
                                 </label>
+                                <input type="hidden" name="sign" value="1" />
+                                <label class="form-row">
+                                    negative:
+                                    <input
+                                        type="checkbox"
+                                        name="sign"
+                                        value="-1"
+                                        checked={sphCoords.sign < 0}
+                                    />
+                                </label>
                             </form>
                         {:else if cga.isSphere(cga.dual(el))}
                             <strong>Sphere (Dual)</strong>
@@ -1149,6 +1156,7 @@
                                             1 * fd.y,
                                             1 * fd.z,
                                             1 * fd.radius,
+                                            1 * fd.sign,
                                         ),
                                     );
                                 }}
@@ -1196,6 +1204,16 @@
                                         min="-4"
                                         max="4"
                                         step="0.01"
+                                    />
+                                </label>
+                                <input type="hidden" name="sign" value="1" />
+                                <label class="form-row">
+                                    negative:
+                                    <input
+                                        type="checkbox"
+                                        name="sign"
+                                        value="-1"
+                                        checked={sphCoords.sign < 0}
                                     />
                                 </label>
                             </form>
@@ -1441,8 +1459,18 @@
                                         );
 
                                         const npp = cga.pointPair(
-                                            cga.zeroSphere(b.x, b.y, b.z),
-                                            cga.zeroSphere(fd.x, fd.y, fd.z),
+                                            cga.zeroSphere(
+                                                b.x,
+                                                b.y,
+                                                b.z,
+                                                b.sign,
+                                            ),
+                                            cga.zeroSphere(
+                                                fd.x,
+                                                fd.y,
+                                                fd.z,
+                                                1 * fd.sign,
+                                            ),
                                         );
                                         if (cga.isPointPair(npp))
                                             elements[eli].el = cga.undual(npp);
@@ -1481,6 +1509,20 @@
                                             step="0.01"
                                         />
                                     </label>
+                                    <input
+                                        type="hidden"
+                                        name="sign"
+                                        value="1"
+                                    />
+                                    <label class="form-row">
+                                        negative:
+                                        <input
+                                            type="checkbox"
+                                            name="sign"
+                                            value="-1"
+                                            checked={a.sign < 0}
+                                        />
+                                    </label>
                                 </form>
                                 <form
                                     oninput={(evt) => {
@@ -1489,8 +1531,18 @@
                                         );
 
                                         const npp = cga.pointPair(
-                                            cga.zeroSphere(fd.x, fd.y, fd.z),
-                                            cga.zeroSphere(a.x, a.y, a.z),
+                                            cga.zeroSphere(
+                                                fd.x,
+                                                fd.y,
+                                                fd.z,
+                                                fd.sign,
+                                            ),
+                                            cga.zeroSphere(
+                                                a.x,
+                                                a.y,
+                                                a.z,
+                                                a.sign,
+                                            ),
                                         );
                                         if (cga.isPointPair(npp))
                                             elements[eli].el = cga.undual(npp);
@@ -1527,6 +1579,20 @@
                                             min="-1"
                                             max="1"
                                             step="0.01"
+                                        />
+                                    </label>
+                                    <input
+                                        type="hidden"
+                                        name="sign"
+                                        value="1"
+                                    />
+                                    <label class="form-row">
+                                        negative:
+                                        <input
+                                            type="checkbox"
+                                            name="sign"
+                                            value="-1"
+                                            checked={b.sign < 0}
                                         />
                                     </label>
                                 </form>
@@ -2308,5 +2374,9 @@
         width: 1em;
         height: 1em;
         vertical-align: center;
+    }
+    label:has(input[type="checkbox"]) {
+        display: flex;
+        align-items: center;
     }
 </style>

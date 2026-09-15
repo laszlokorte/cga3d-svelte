@@ -165,12 +165,15 @@ function norm2(a) {
 // CGA geometry
 // ------------------------------------------------------------
 
-export function zeroSphere(x, y, z) {
+export function zeroSphere(x, y, z, sign = 1) {
   const r2 = x * x + y * y + z * z;
 
-  return add(
-    add(add(e0, scale(x, e1)), scale(y, e2)),
-    add(scale(z, e3), scale(0.5 * r2, einf)),
+  return scale(
+    Math.sign(1 * sign),
+    add(
+      add(add(e0, scale(x, e1)), scale(y, e2)),
+      add(scale(z, e3), scale(0.5 * r2, einf)),
+    ),
   );
 }
 export function point(x, y, z) {
@@ -187,10 +190,13 @@ export function pointReflection(x, y, z, sign = 1) {
 export function pointPair(a, b) {
   return wedge(a, b);
 }
-export function sphere(x, y, z, radius) {
-  return sub(
-    zeroSphere(x, y, z),
-    scale(0.5 * Math.sign(radius) * radius * radius, einf),
+export function sphere(x, y, z, radius, sign = 1) {
+  return scale(
+    sign,
+    sub(
+      zeroSphere(x, y, z, 1),
+      scale(0.5 * Math.sign(radius) * radius * radius, einf),
+    ),
   );
 }
 
@@ -256,11 +262,15 @@ export function pointCoords(p) {
   // e1/e2/e3 coefficients are w*x etc.
 
   const w = p[16] - p[8]; // em - ep = w
+  const x = p[1] / w;
+  const y = p[2] / w;
+  const z = p[4] / w;
 
   return {
-    x: p[1] / w,
-    y: p[2] / w,
-    z: p[4] / w,
+    x: x,
+    y: y,
+    z: z,
+    sign: Math.sign(w),
   };
 }
 
@@ -365,6 +375,7 @@ export function sphereParameters(s) {
   return {
     center: [x, y, z],
     radius: Math.sign(radius2) * Math.sqrt(Math.abs(radius2)),
+    sign: Math.sign(w),
   };
 }
 
