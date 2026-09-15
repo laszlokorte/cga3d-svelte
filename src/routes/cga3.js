@@ -471,9 +471,9 @@ export function lineParameters(L, eps = 1e-10) {
 
   // Plücker moment
   const m = [
-    L[14], // e23o
-    -L[13], // -e13o
-    L[11], // e12o
+    -L[14], // e23o
+    L[13], // -e13o
+    -L[11], // e12o
   ];
 
   // Point on line closest to origin:
