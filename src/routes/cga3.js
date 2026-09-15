@@ -863,5 +863,18 @@ export function normalize(a, eps = 1e-10) {
   return scale(1 / n, a);
 }
 
+export function isVersor(V, eps = 1e-10) {
+  const Vinv = inverse(V, eps);
+  if (!Vinv) return false;
+
+  for (const e of [e1, e2, e3, ep, em]) {
+    const x = gp(gp(V, e), Vinv);
+
+    if (!isGrade(x, 1, eps)) return false;
+  }
+
+  return true;
+}
+
 // Useful exports
 export { scalar, add, sub, scale, gp, wedge, reverse, norm2, dual };

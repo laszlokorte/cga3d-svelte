@@ -43,17 +43,12 @@
     );
     const wedgedMotor = $derived(
         cga.normalize(
-            elements
-                .filter((e) => e.active)
-                .reduce((a, b) => cga.wedge(b.el, a), cga.scalar(1)),
+            elements.reduce((a, b) => cga.wedge(b.el, a), cga.scalar(1)),
         ),
     );
     const summedMotor = $derived(
         cga.normalize(
-            elements
-
-                .filter((e) => e.active)
-                .reduce((a, b) => cga.add(b.el, a), cga.scalar(0)),
+            elements.reduce((a, b) => cga.add(b.el, a), cga.scalar(0)),
         ),
     );
 </script>
@@ -290,7 +285,8 @@
                         }}>Clear</button
                     >
                     <button
-                        disabled={!combinedMotor}
+                        disabled={!combinedMotor ||
+                            !cga.isVersor(combinedMotor)}
                         onclick={(evt) => {
                             const cmb = combinedMotor;
                             while (elements.length) {
@@ -304,7 +300,7 @@
                         }}>gp all</button
                     >
                     <button
-                        disabled={!wedgedMotor}
+                        disabled={!wedgedMotor || !cga.isVersor(wedgedMotor)}
                         onclick={(evt) => {
                             const cmb = wedgedMotor;
                             while (elements.length) {
@@ -318,7 +314,7 @@
                         }}>&wedge; all</button
                     >
                     <button
-                        disabled={!summedMotor}
+                        disabled={!summedMotor || !cga.isVersor(summedMotor)}
                         onclick={(evt) => {
                             const cmb = summedMotor;
                             while (elements.length) {
@@ -368,14 +364,17 @@
                             from.type == "cga-sum" &&
                             freeColors.length
                         ) {
-                            elements.push({
-                                el: cga.add(
-                                    elements[to].el,
-                                    elements[fromIndex].el,
-                                ),
-                                color: freeColors.pop(),
-                                active: false,
-                            });
+                            const sum = cga.add(
+                                elements[to].el,
+                                elements[fromIndex].el,
+                            );
+                            if (cga.isVersor(sum)) {
+                                elements.push({
+                                    el: sum,
+                                    color: freeColors.pop(),
+                                    active: false,
+                                });
+                            }
                         } else if (
                             from.type == "cga-sub" &&
                             freeColors.length
@@ -403,9 +402,21 @@
                             freeColors.length
                         ) {
                             elements.push({
+                                el: cga.wedge(
+                                    cga.normalize(elements[to].el),
+                                    cga.normalize(elements[fromIndex].el),
+                                ),
+                                color: freeColors.pop(),
+                                active: true,
+                            });
+                        } else if (
+                            from.type == "cga-meet" &&
+                            freeColors.length
+                        ) {
+                            elements.push({
                                 el: cga.meet(
-                                    elements[to].el,
-                                    elements[fromIndex].el,
+                                    cga.normalize(elements[to].el),
+                                    cga.normalize(elements[fromIndex].el),
                                 ),
                                 color: freeColors.pop(),
                                 active: true,
@@ -575,6 +586,28 @@
                             }}
                         >
                             &wedge;
+                        </div>
+                        <div
+                            class="element-button"
+                            role="button"
+                            tabindex="-1"
+                            draggable="true"
+                            ondragstart={(evt) => {
+                                evt.dataTransfer.setData(
+                                    "text/plain",
+                                    JSON.stringify({
+                                        type: "cga-meet",
+                                        index: eli,
+                                    }),
+                                );
+                                dragging = eli;
+                            }}
+                            ondragend={(evt) => {
+                                dragging = null;
+                                over = null;
+                            }}
+                        >
+                            meet
                         </div>
                     </div>
                     <div class="element-head">
@@ -1107,7 +1140,7 @@
                                             type="range"
                                             name="radius"
                                             value={cirParams.radius}
-                                            min="0.0001"
+                                            min="0"
                                             max="1"
                                             step="0.001"
                                         />
@@ -1222,7 +1255,7 @@
                                             type="range"
                                             name="radius"
                                             value={cirParams.radius}
-                                            min="0.0001"
+                                            min="0"
                                             max="1"
                                             step="0.001"
                                         />
