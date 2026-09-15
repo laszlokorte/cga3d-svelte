@@ -108,6 +108,140 @@ export function generateGP() {
 
         return r;
     }
+    float scalarPart(MV a) {
+        return a.c[0];
+    }
+    MV add(MV a, MV b) {
+        MV r;
+
+        for (int i = 0; i < 32; i++)
+            r.c[i] = a.c[i] + b.c[i];
+
+        return r;
+    }
+
+    MV scale(float s, MV a) {
+        MV r;
+
+        for (int i = 0; i < 32; i++)
+            r.c[i] = s * a.c[i];
+
+        return r;
+
+    }
+    MV ZERO() {
+        MV r;
+        for (int i = 0; i < 32; i++)
+            r.c[i] = 0.0;
+        return r;
+    }
+    MV identity() {
+        MV r;
+
+        for (int i = 0; i < 32; i++)
+            r.c[i] = 0.0;
+
+        r.c[31] = 1.0;
+
+        return r;
+    }
+    MV motorSqrt(MV M) {
+        MV X = add(M, scale(-1.0, identity()));
+
+        MV result = identity();
+        MV term = identity();
+
+        float coefficient = 1.0;
+
+        // sqrt(1 + X)
+        for (int i = 1; i <= 10; i++) {
+            coefficient *= (0.5 - float(i - 1)) / float(i);
+
+            term = gp(term, X);
+            result = add(
+                result,
+                scale(coefficient, term)
+            );
+        }
+
+        return result;
+    }
+    MV motorLog(MV M) {
+        int k = 0;
+
+        // Repeatedly take square roots until M is close to identity.
+        for (int i = 0; i < 8; i++) {
+            float d = 0.0;
+
+            for (int j = 0; j < 32; j++) {
+                float x = M.c[j];
+
+                if (j == 0)
+                    x -= 1.0;
+
+                d += x * x;
+            }
+
+            if (d < 0.01)
+                break;
+
+            M = motorSqrt(M);
+            k++;
+        }
+
+        MV X = add(M, scale(-1.0, identity()));
+
+        MV result = ZERO();
+        MV power = X;
+
+        // log(1 + X)
+        //
+        // X - X²/2 + X³/3 - X⁴/4 + ...
+        for (int i = 1; i <= 16; i++) {
+            float s = (i & 1) == 1
+                ? 1.0 / float(i)
+                : -1.0 / float(i);
+
+            result = add(
+                result,
+                scale(s, power)
+            );
+
+            power = gp(power, X);
+        }
+
+        // Undo repeated square roots:
+        // log(M) = 2^k log(M^(1/2^k))
+        result = scale(pow(2.0, float(k)), result);
+
+        return result;
+    }
+    MV motorExp(MV B) {
+        MV I;
+        I.c[0] = 1.0;
+
+        float b2 = scalarPart(gp(B, B));
+
+        if (abs(b2) < 1e-8) {
+            return add(I, B);
+        }
+
+        if (b2 < 0.0) {
+            float a = sqrt(-b2);
+
+            return add(
+                scale(cos(a), I),
+                scale(sin(a) / a, B)
+            );
+        }
+
+        float a = sqrt(b2);
+
+        return add(
+            scale(cosh(a), I),
+            scale(sinh(a) / a, B)
+        );
+    }
 
     vec3 pointCoords(MV p) {
         // e0 coefficient

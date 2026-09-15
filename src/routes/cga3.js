@@ -176,10 +176,10 @@ export function zeroSphere(x, y, z) {
 export function point(x, y, z) {
   return add(add(add(e123, scale(x, e23)), scale(y, e31)), scale(z, e12));
 }
-export function pointReflection(x, y, z) {
-  return wedge(
-    wedge(plane([1, 0, 0], x), plane([0, 1, 0], y)),
-    plane([0, 0, 1], z),
+export function pointReflection(x, y, z, sign = 1) {
+  return scale(
+    sign,
+    wedge(wedge(plane([1, 0, 0], x), plane([0, 1, 0], y)), plane([0, 0, 1], z)),
   );
 }
 
@@ -188,7 +188,10 @@ export function pointPair(a, b) {
   return wedge(a, b);
 }
 export function sphere(x, y, z, radius) {
-  return sub(zeroSphere(x, y, z), scale(0.5 * radius * radius, einf));
+  return sub(
+    zeroSphere(x, y, z),
+    scale(0.5 * Math.sign(radius) * radius * radius, einf),
+  );
 }
 
 // Line through two points
@@ -226,7 +229,7 @@ export function circle(center, radius, normal) {
 
   const distance = n[0] * x + n[1] * y + n[2] * z;
 
-  return meet(sphere(x, y, z, radius), plane(n, distance));
+  return gp(sphere(x, y, z, radius), plane(n, distance));
 }
 
 // ------------------------------------------------------------
@@ -313,7 +316,8 @@ export function undual(a) {
   return gp(a, I);
 }
 
-export function circleParameters(C, eps = 1e-10) {
+export function circleParameters(CC, eps = 1e-10) {
+  const C = dual(CC);
   const q = gp(gp(C, einf), C);
 
   const w = q[16] - q[8];
@@ -343,7 +347,7 @@ export function circleParameters(C, eps = 1e-10) {
 
   return {
     center,
-    radius: Math.sqrt(Math.max(0, radius2)),
+    radius: Math.sign(radius2) * Math.sqrt(Math.abs(radius2)),
     normal: normal.map((x) => x / len),
   };
 }
@@ -360,7 +364,7 @@ export function sphereParameters(s) {
 
   return {
     center: [x, y, z],
-    radius: Math.sqrt(Math.max(0, radius2)),
+    radius: Math.sign(radius2) * Math.sqrt(Math.abs(radius2)),
   };
 }
 
@@ -384,25 +388,21 @@ export function spinorNorm(a, eps = 1e-10) {
   return n[0];
 }
 export function isEuclideanPoint(a, eps = 1e-10) {
-  if (isCircle(a, eps)) {
-    return false;
-  }
+  if (!isGrade(a, 3, eps)) return false;
+
+  if (Math.abs(a[7]) < eps) return false;
 
   const allowed = new Set([
-    11, // e12o
-    19, // e12∞
-    14, // e23o
-    22, // e23∞
-    13, // e13o
-    21, // e13∞
     7, // e123
+    11, // e12o
+    13, // e13o
+    14, // e23o
+    19, // e12∞
+    21, // e13∞
+    22, // e23∞
   ]);
 
-  if (Math.abs(a[7]) < eps) {
-    return false;
-  }
-
-  for (let i = 0; i < a.length; i++) {
+  for (let i = 0; i < 32; i++) {
     if (!allowed.has(i) && Math.abs(a[i]) >= eps) {
       return false;
     }
@@ -412,16 +412,24 @@ export function isEuclideanPoint(a, eps = 1e-10) {
 }
 export function isPointPair(a, eps = 1e-10) {
   if (!isGrade(a, 2, eps)) return false;
+  if (isCircle(a, eps)) return false;
+  if (isLine(a, eps)) return false;
 
-  if (isEuclideanPoint(dual(a), eps)) return false;
-  if (isCircle(dual(a), eps)) return false;
+  const points = pointPairCoords(a, eps);
 
-  const n = spinorNorm(a, eps);
+  if (!points || points.length == 3) return false;
 
-  return n !== null && Math.abs(n) > eps;
+  return (
+    Math.hypot(
+      points[0].x - points[1].x,
+      points[0].y - points[1].y,
+      points[0].z - points[1].z,
+    ) > eps
+  );
 }
 
-export function isCircle(a, eps = 1e-10) {
+export function isCircle(aa, eps = 1e-10) {
+  const a = dual(aa);
   if (!isGrade(a, 3, eps)) return false;
 
   const n = spinorNorm(a, eps);
@@ -434,7 +442,9 @@ export function isCircle(a, eps = 1e-10) {
 }
 export function isLine(a, eps = 1e-10) {
   if (!isGrade(a, 3, eps)) return false;
-
+  if (isCircle(a, eps)) {
+    return false;
+  }
   const n = spinorNorm(a, eps);
   if (n === null || n >= -eps) return false;
 
@@ -487,7 +497,7 @@ export function pointPairCoords(b, eps = 1e-10) {
   }
 
   if (result.tangent) {
-    return [pointCoords(result.point), pointCoords(result.point)];
+    return [pointCoords(result.point), pointCoords(result.point), true];
   }
 
   return [pointCoords(result.p2), pointCoords(result.p1)];
@@ -503,6 +513,7 @@ export function pointParameters(P, eps = 1e-10) {
     x: (P[14] + P[22]) / (2 * w), // e23o + e23∞
     y: -(P[13] + P[21]) / (2 * w), // e31o + e31∞
     z: (P[11] + P[19]) / (2 * w), // e12o + e12∞
+    sign: Math.sign(w),
   };
 }
 export function splitPointPair(b, eps = 1e-10) {
@@ -645,7 +656,7 @@ export function planeParameters(p) {
   };
 }
 export function meet(a, b) {
-  return dual(wedge(a, b));
+  return wedge(a, b);
 }
 export function toString(a, eps = 1e-10) {
   const names = [
@@ -703,6 +714,153 @@ export function toString(a, eps = 1e-10) {
   }
 
   return terms.length ? terms.join("") : "0";
+}
+export function zero() {
+  return new Float32Array(32);
+}
+
+export function identity() {
+  const r = new Float32Array(32);
+  r[0] = 1;
+  return r;
+}
+
+export function motorSqrt(m) {
+  const I = identity();
+
+  // X = M - 1
+  const X = add(m, scale(-1, I));
+
+  let result = I;
+  let term = I;
+
+  let coefficient = 1;
+
+  // sqrt(1 + X)
+  for (let i = 1; i <= 10; i++) {
+    coefficient *= (0.5 - (i - 1)) / i;
+
+    term = gp(term, X);
+
+    result = add(result, scale(coefficient, term));
+  }
+
+  return result;
+}
+
+export function motorLog(M, eps = 1e-10) {
+  const I = identity();
+
+  // X = M - 1
+  const X = M.slice();
+  X[0] -= 1;
+
+  // If X² = 0, then X is a nilpotent generator.
+  // This covers BOTH:
+  //
+  //   M = X
+  //   M = 1 + X
+  //
+  // for the interpolation we want.
+  const X2 = gp(X, X);
+
+  let x2 = 0;
+  for (let i = 0; i < 32; i++) {
+    x2 += Math.abs(X2[i]);
+  }
+
+  if (x2 < eps) {
+    return X;
+  }
+
+  // If M itself is nilpotent, use M directly.
+  const M2 = gp(M, M);
+
+  let m2 = 0;
+  for (let i = 0; i < 32; i++) {
+    m2 += Math.abs(M2[i]);
+  }
+
+  if (m2 < eps) {
+    return M.slice();
+  }
+
+  // ---- ordinary motor logarithm ----
+
+  let m = M.slice();
+  let k = 0;
+
+  for (let i = 0; i < 16; i++) {
+    let d = 0;
+
+    for (let j = 0; j < 32; j++) {
+      const x = m[j] - (j === 0 ? 1 : 0);
+      d += x * x;
+    }
+
+    if (d < 0.01) break;
+
+    m = motorSqrt(m);
+    k++;
+  }
+
+  const Y = m.slice();
+  Y[0] -= 1;
+
+  let result = zero();
+  let power = Y;
+
+  for (let i = 1; i <= 64; i++) {
+    const coefficient = i & 1 ? 1 / i : -1 / i;
+
+    result = add(result, scale(coefficient, power));
+
+    power = gp(power, Y);
+
+    let term = 0;
+
+    for (let j = 0; j < 32; j++) term += Math.abs(power[j]);
+
+    if (term < eps) break;
+  }
+
+  return scale(2 ** k, result);
+}
+
+export function rotorLog(M) {
+  const s = M[0];
+
+  // bivector part
+  const B = new Float32Array(32);
+
+  for (let i = 0; i < 32; i++) B[i] = M[i];
+
+  B[0] = 0;
+
+  const sinTheta = Math.sqrt(Math.max(0, 1 - s * s));
+
+  if (sinTheta < 1e-8) {
+    return B;
+  }
+
+  const theta = Math.acos(s);
+
+  return scale(theta / sinTheta, B);
+}
+export function normalize(a, eps = 1e-10) {
+  let n = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    n += a[i] * a[i];
+  }
+
+  n = Math.sqrt(n);
+
+  if (n < eps) {
+    return a;
+  }
+
+  return scale(1 / n, a);
 }
 
 // Useful exports
