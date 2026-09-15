@@ -106,8 +106,12 @@
         elements = $bindable(),
         showVectorField = false,
         motor = cga.scalar(0),
+        wedged,
+        showIntersections,
+        showObject,
     } = $props();
 
+    let objPos = $state([1, 0, 0]);
     renderer.localClippingEnabled = true;
 
     let group = $state();
@@ -185,7 +189,7 @@
     ];
     const vfcount = 10 * 10;
 
-    const vfgeometry = new THREE.CylinderGeometry(0.005, 0.01, 1, 4, 32);
+    const vfgeometry = new THREE.CylinderGeometry(0.005, 0.01, 1, 4, 128);
     const vfmaterial = new THREE.ShaderMaterial({
         uniforms: {
             uTime: { value: 0 },
@@ -248,9 +252,9 @@
     const positions = new Float32Array(vfcount * 4);
 
     for (let i = 0; i < vfcount; i++) {
-        const x = THREE.MathUtils.randFloat(-2, 2);
+        const x = THREE.MathUtils.randFloat(-1, 1);
         const y = THREE.MathUtils.randFloat(-1, 1);
-        const z = THREE.MathUtils.randFloat(-2, 2);
+        const z = THREE.MathUtils.randFloat(-1, 1);
 
         positions[i * 4 + 0] = x;
         positions[i * 4 + 1] = y;
@@ -339,186 +343,222 @@
 </T.Mesh>
 
 <T.DirectionalLight position={[3, 10, 5]} intensity={2} />
-<TransformControls
-    scale={5}
-    position={[1, 0, 0]}
-    size={0.4}
-    onobjectChange={(evt) => {
-        const object = evt.target.object;
-        if (object) {
-            object.position.x = THREE.MathUtils.clamp(object.position.x, -2, 2);
-            object.position.y = THREE.MathUtils.clamp(object.position.y, -1, 1);
-            object.position.z = THREE.MathUtils.clamp(object.position.z, -2, 2);
-        }
-    }}
-    mode="translate"
->
-    {#await gltf}
-        <T.Mesh>
-            <T.BoxGeometry args={[0.1, 0.1, 0.1]} />
-            <T.MeshStandardMaterial
-                transparent
-                opacity={0.2}
-                toneMapped={true}
-                color="tomato"
-            />
-        </T.Mesh>
-    {:then { a, b }}
-        <T
-            is={a}
-            oncreate={(scene) => {
-                const clock = new THREE.Clock();
-                function animate() {
-                    requestAnimationFrame(animate);
+{#if showObject}
+    <TransformControls
+        visible={showObject}
+        scale={5}
+        position={objPos}
+        size={0.4}
+        onobjectChange={(evt) => {
+            const object = evt.target.object;
+            if (object) {
+                object.position.x = THREE.MathUtils.clamp(
+                    object.position.x,
+                    -2,
+                    2,
+                );
+                object.position.y = THREE.MathUtils.clamp(
+                    object.position.y,
+                    -1,
+                    1,
+                );
+                object.position.z = THREE.MathUtils.clamp(
+                    object.position.z,
+                    -2,
+                    2,
+                );
+            }
+            objPos = object.position.toArray();
+        }}
+        mode="translate"
+    />
+{/if}
 
-                    const elapsedTime = clock.getElapsedTime();
-
-                    scene.traverse((node) => {
-                        if (node.isMesh && node.userData.shader) {
-                            node.userData.shader.uniforms.uTime.value =
-                                elapsedTime;
-                            node.userData.shader.uniforms.uMotor.value = motor;
-                        }
-                    });
-
-                    vfmaterial.uniforms.uMotor.value = motor;
-                    vfmaterial.uniforms.uTime.value = elapsedTime;
-                }
-                animate();
-            }}
+{#await gltf}
+    <T.Mesh>
+        <T.BoxGeometry args={[0.1, 0.1, 0.1]} />
+        <T.MeshStandardMaterial
+            transparent
+            opacity={0.2}
+            toneMapped={true}
+            color="tomato"
         />
-        <T is={b} />
-    {/await}
-</TransformControls>
+    </T.Mesh>
+{:then { a, b }}
+    <T
+        scale={5}
+        position={objPos}
+        visible={showObject}
+        is={a}
+        oncreate={(scene) => {
+            const clock = new THREE.Clock();
+            function animate() {
+                requestAnimationFrame(animate);
 
-{#each elements as { el, color, active }, eli}
+                const elapsedTime = clock.getElapsedTime();
+
+                scene.traverse((node) => {
+                    if (node.isMesh && node.userData.shader) {
+                        node.userData.shader.uniforms.uTime.value = elapsedTime;
+                        node.userData.shader.uniforms.uMotor.value = motor;
+                    }
+                });
+
+                vfmaterial.uniforms.uMotor.value = motor;
+                vfmaterial.uniforms.uTime.value = elapsedTime;
+            }
+            animate();
+        }}
+    />
+    <T scale={5} position={objPos} visible={showObject} is={b} />
+{/await}
+
+{#each [...elements, ...(showIntersections && wedged ? [{ el: wedged, color: "red", active: true, passive: true }] : [{ el: cga.scalar(1), color: "red", active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
     {#if cga.isSphere(el)}
         {@const sphCoords = cga.sphereParameters(el)}
 
-        <TransformControls
-            enabled={active}
-            size={active ? 0.6 : 0}
-            maxX={2}
-            maxY={2}
-            maxZ={2}
-            minX={-2}
-            minY={-2}
-            minZ={-2}
-            scale={Math.max(Math.abs(sphCoords.radius), 0.1)}
-            position={[
-                sphCoords.center[0],
-                sphCoords.center[1],
-                sphCoords.center[2],
-            ]}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
-                if (object) {
-                    const activeAxis = evt.target.axis;
+        {#if active && !passive}
+            <TransformControls
+                enabled={active}
+                size={active ? 0.6 : 0}
+                maxX={2}
+                maxY={2}
+                maxZ={2}
+                minX={-2}
+                minY={-2}
+                minZ={-2}
+                scale={Math.max(Math.abs(sphCoords.radius), 0.1)}
+                position={[
+                    sphCoords.center[0],
+                    sphCoords.center[1],
+                    sphCoords.center[2],
+                ]}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    if (object) {
+                        const activeAxis = evt.target.axis;
 
-                    object.position.x = THREE.MathUtils.clamp(
-                        object.position.x,
-                        -2,
-                        2,
-                    );
-                    object.position.y = THREE.MathUtils.clamp(
-                        object.position.y,
-                        -1,
-                        1,
-                    );
-                    object.position.z = THREE.MathUtils.clamp(
-                        object.position.z,
-                        -2,
-                        2,
-                    );
+                        object.position.x = THREE.MathUtils.clamp(
+                            object.position.x,
+                            -2,
+                            2,
+                        );
+                        object.position.y = THREE.MathUtils.clamp(
+                            object.position.y,
+                            -1,
+                            1,
+                        );
+                        object.position.z = THREE.MathUtils.clamp(
+                            object.position.z,
+                            -2,
+                            2,
+                        );
 
-                    elements[eli].el = cga.sphere(
-                        1 * object.position.x,
-                        1 * object.position.y,
-                        1 * object.position.z,
-                        1 * sphCoords.radius,
-                    );
-                }
-            }}
-            mode={"translate"}
-        >
-            <T.Mesh renderOrder={40000 + eli * 100}>
-                <T.SphereGeometry args={[1, 32, 16]} />
-                <T.MeshStandardMaterial
-                    toneMapped={false}
-                    side={THREE.DoubleSide}
-                    opacity={active ? 0.6 : 0.1}
-                    depthWrite={false}
-                    transparent={true}
-                    premultipliedAlpha={true}
-                    clippingPlanes={planes}
-                    color={active ? color : "gray"}
-                />
-            </T.Mesh>
-        </TransformControls>
-    {:else if cga.isSphere(cga.dual(el))}
-        {@const sphCoords = cga.sphereParameters(cga.dual(el))}
-
-        <TransformControls
-            enabled={active}
-            size={active ? 0.6 : 0}
-            maxX={2}
-            maxY={2}
-            maxZ={2}
-            minX={-2}
-            minY={-2}
-            minZ={-2}
-            scale={Math.max(Math.abs(sphCoords.radius), 0.1)}
-            position={[
-                sphCoords.center[0],
-                sphCoords.center[1],
-                sphCoords.center[2],
-            ]}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
-                if (object) {
-                    const activeAxis = evt.target.axis;
-
-                    object.position.x = THREE.MathUtils.clamp(
-                        object.position.x,
-                        -2,
-                        2,
-                    );
-                    object.position.y = THREE.MathUtils.clamp(
-                        object.position.y,
-                        -1,
-                        1,
-                    );
-                    object.position.z = THREE.MathUtils.clamp(
-                        object.position.z,
-                        -2,
-                        2,
-                    );
-                    elements[eli].el = cga.undual(
-                        cga.sphere(
+                        elements[eli].el = cga.sphere(
                             1 * object.position.x,
                             1 * object.position.y,
                             1 * object.position.z,
                             1 * sphCoords.radius,
-                        ),
-                    );
-                }
-            }}
-            mode={"translate"}
+                        );
+                    }
+                }}
+                mode={"translate"}
+            />
+        {/if}
+        <T.Mesh
+            scale={Math.max(Math.abs(sphCoords.radius), 0.1)}
+            position={[
+                sphCoords.center[0],
+                sphCoords.center[1],
+                sphCoords.center[2],
+            ]}
+            renderOrder={40000 + eli * 100}
         >
-            <T.Mesh renderOrder={40000 + eli * 100}>
-                <T.SphereGeometry args={[1, 32, 16]} />
-                <T.MeshStandardMaterial
-                    toneMapped={false}
-                    side={THREE.DoubleSide}
-                    opacity={active ? 0.6 : 0.1}
-                    depthWrite={false}
-                    transparent={true}
-                    premultipliedAlpha={true}
-                    clippingPlanes={planes}
-                    color={active ? color : "gray"}
-                />
-            </T.Mesh>
-        </TransformControls>
+            <T.SphereGeometry args={[1, 32, 16]} />
+            <T.MeshStandardMaterial
+                toneMapped={false}
+                side={THREE.DoubleSide}
+                opacity={active ? 0.6 : 0.1}
+                depthWrite={false}
+                transparent={true}
+                premultipliedAlpha={true}
+                clippingPlanes={planes}
+                color={active ? color : "gray"}
+            />
+        </T.Mesh>
+    {:else if cga.isSphere(cga.dual(el))}
+        {@const sphCoords = cga.sphereParameters(cga.dual(el))}
+
+        {#if active && !passive}
+            <TransformControls
+                enabled={active}
+                size={active ? 0.6 : 0}
+                maxX={2}
+                maxY={2}
+                maxZ={2}
+                minX={-2}
+                minY={-2}
+                minZ={-2}
+                scale={Math.max(Math.abs(sphCoords.radius), 0.1)}
+                position={[
+                    sphCoords.center[0],
+                    sphCoords.center[1],
+                    sphCoords.center[2],
+                ]}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    if (object) {
+                        const activeAxis = evt.target.axis;
+
+                        object.position.x = THREE.MathUtils.clamp(
+                            object.position.x,
+                            -2,
+                            2,
+                        );
+                        object.position.y = THREE.MathUtils.clamp(
+                            object.position.y,
+                            -1,
+                            1,
+                        );
+                        object.position.z = THREE.MathUtils.clamp(
+                            object.position.z,
+                            -2,
+                            2,
+                        );
+                        elements[eli].el = cga.undual(
+                            cga.sphere(
+                                1 * object.position.x,
+                                1 * object.position.y,
+                                1 * object.position.z,
+                                1 * sphCoords.radius,
+                            ),
+                        );
+                    }
+                }}
+                mode={"translate"}
+            />
+        {/if}
+        <T.Mesh
+            scale={Math.max(Math.abs(sphCoords.radius), 0.1)}
+            position={[
+                sphCoords.center[0],
+                sphCoords.center[1],
+                sphCoords.center[2],
+            ]}
+            renderOrder={40000 + eli * 100}
+        >
+            <T.SphereGeometry args={[1, 32, 16]} />
+            <T.MeshStandardMaterial
+                toneMapped={false}
+                side={THREE.DoubleSide}
+                opacity={active ? 0.6 : 0.1}
+                depthWrite={false}
+                transparent={true}
+                premultipliedAlpha={true}
+                clippingPlanes={planes}
+                color={active ? color : "gray"}
+            />
+        </T.Mesh>
     {:else if cga.isPlane(el)}
         {@const plnParams = cga.planeParameters(el)}
         {@const rot = new THREE.Quaternion().setFromUnitVectors(
@@ -659,41 +699,44 @@
                 cirParams?.normal[2],
             ).normalize(),
         )}
-        <TransformControls
-            position={cirParams?.center}
-            size={0.4}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
-                if (object) {
-                    object.position.x = THREE.MathUtils.clamp(
-                        object.position.x,
-                        -2,
-                        2,
-                    );
-                    object.position.y = THREE.MathUtils.clamp(
-                        object.position.y,
-                        -1,
-                        1,
-                    );
-                    object.position.z = THREE.MathUtils.clamp(
-                        object.position.z,
-                        -2,
-                        2,
-                    );
-                    const np = cga.circle(
-                        [
+        {#if active && !passive}
+            <TransformControls
+                enabled={active}
+                position={cirParams?.center}
+                size={0.4}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    if (object) {
+                        object.position.x = THREE.MathUtils.clamp(
                             object.position.x,
+                            -2,
+                            2,
+                        );
+                        object.position.y = THREE.MathUtils.clamp(
                             object.position.y,
+                            -1,
+                            1,
+                        );
+                        object.position.z = THREE.MathUtils.clamp(
                             object.position.z,
-                        ],
-                        cirParams?.radius,
-                        cirParams?.normal,
-                    );
-                    elements[eli].el = np;
-                }
-            }}
-            mode="translate"
-        />
+                            -2,
+                            2,
+                        );
+                        const np = cga.circle(
+                            [
+                                object.position.x,
+                                object.position.y,
+                                object.position.z,
+                            ],
+                            cirParams?.radius,
+                            cirParams?.normal,
+                        );
+                        elements[eli].el = np;
+                    }
+                }}
+                mode="translate"
+            />
+        {/if}
         <T.Mesh position={cirParams?.center} quaternion={rot.toArray()}>
             <T.TorusGeometry args={[cirParams?.radius, 0.01, 32, 64]} />
             <T.MeshBasicMaterial
@@ -716,43 +759,46 @@
                 cirParams?.normal[2],
             ).normalize(),
         )}
-        <TransformControls
-            position={cirParams?.center}
-            size={0.4}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
-                if (object) {
-                    object.position.x = THREE.MathUtils.clamp(
-                        object.position.x,
-                        -2,
-                        2,
-                    );
-                    object.position.y = THREE.MathUtils.clamp(
-                        object.position.y,
-                        -1,
-                        1,
-                    );
-                    object.position.z = THREE.MathUtils.clamp(
-                        object.position.z,
-                        -2,
-                        2,
-                    );
-                    const np = cga.undual(
-                        cga.circle(
-                            [
-                                object.position.x,
-                                object.position.y,
-                                object.position.z,
-                            ],
-                            cirParams?.radius,
-                            cirParams?.normal,
-                        ),
-                    );
-                    elements[eli].el = np;
-                }
-            }}
-            mode="translate"
-        />
+        {#if active && !passive}
+            <TransformControls
+                enabled={active}
+                position={cirParams?.center}
+                size={0.4}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    if (object) {
+                        object.position.x = THREE.MathUtils.clamp(
+                            object.position.x,
+                            -2,
+                            2,
+                        );
+                        object.position.y = THREE.MathUtils.clamp(
+                            object.position.y,
+                            -1,
+                            1,
+                        );
+                        object.position.z = THREE.MathUtils.clamp(
+                            object.position.z,
+                            -2,
+                            2,
+                        );
+                        const np = cga.undual(
+                            cga.circle(
+                                [
+                                    object.position.x,
+                                    object.position.y,
+                                    object.position.z,
+                                ],
+                                cirParams?.radius,
+                                cirParams?.normal,
+                            ),
+                        );
+                        elements[eli].el = np;
+                    }
+                }}
+                mode="translate"
+            />
+        {/if}
         <T.Mesh position={cirParams?.center} quaternion={rot.toArray()}>
             <T.TorusGeometry args={[cirParams?.radius, 0.01, 32, 64]} />
             <T.MeshBasicMaterial
@@ -811,321 +857,341 @@
         </T.Mesh>
     {:else if cga.isPointPair(el)}
         {@const [a, b] = cga.pointPairCoords(el)}
-        <TransformControls
+
+        {#if active && !passive}
+            <TransformControls
+                enabled={active}
+                position={[a.x, a.y, a.z]}
+                size={0.4}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    if (object) {
+                        object.position.x = THREE.MathUtils.clamp(
+                            object.position.x,
+                            -2,
+                            2,
+                        );
+                        object.position.y = THREE.MathUtils.clamp(
+                            object.position.y,
+                            -1,
+                            1,
+                        );
+                        object.position.z = THREE.MathUtils.clamp(
+                            object.position.z,
+                            -2,
+                            2,
+                        );
+                        const npp = cga.pointPair(
+                            cga.zeroSphere(
+                                1 * object.position.x,
+                                1 * object.position.y,
+                                1 * object.position.z,
+                            ),
+                            cga.zeroSphere(1 * b.x, 1 * b.y, 1 * b.z),
+                        );
+
+                        if (cga.isPointPair(npp)) elements[eli].el = npp;
+                    }
+                }}
+                mode="translate"
+            />
+        {/if}
+        <T.Mesh
             position={[a.x, a.y, a.z]}
-            size={0.4}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
-                if (object) {
-                    object.position.x = THREE.MathUtils.clamp(
-                        object.position.x,
-                        -2,
-                        2,
-                    );
-                    object.position.y = THREE.MathUtils.clamp(
-                        object.position.y,
-                        -1,
-                        1,
-                    );
-                    object.position.z = THREE.MathUtils.clamp(
-                        object.position.z,
-                        -2,
-                        2,
-                    );
-                    const npp = cga.pointPair(
-                        cga.zeroSphere(
-                            1 * object.position.x,
-                            1 * object.position.y,
-                            1 * object.position.z,
-                        ),
-                        cga.zeroSphere(1 * b.x, 1 * b.y, 1 * b.z),
-                    );
-
-                    if (cga.isPointPair(npp)) elements[eli].el = npp;
-                }
-            }}
-            mode="translate"
+            renderOrder={20000 + eli * 100 + 4 * 12 + 1}
+            rotation={[0, 0, 0]}
         >
-            <T.Mesh
-                renderOrder={20000 + eli * 100 + 4 * 12 + 1}
-                rotation={[0, 0, 0]}
-            >
-                <T.SphereGeometry args={[0.08, 32, 16]} />
-                <T.MeshBasicMaterial
-                    toneMapped={false}
-                    side={THREE.DoubleSide}
-                    opacity={active ? 0.6 : 0.1}
-                    transparent={true}
-                    premultipliedAlpha={true}
-                    clippingPlanes={planes}
-                    color={active ? color : "gray"}
-                />
-            </T.Mesh>
-        </TransformControls>
-        <TransformControls
+            <T.SphereGeometry args={[0.08, 32, 16]} />
+            <T.MeshBasicMaterial
+                toneMapped={false}
+                side={THREE.DoubleSide}
+                opacity={active ? 0.6 : 0.1}
+                transparent={true}
+                premultipliedAlpha={true}
+                clippingPlanes={planes}
+                color={active ? color : "gray"}
+            />
+        </T.Mesh>
+        {#if active && !passive}
+            <TransformControls
+                visible={active}
+                enabled={active}
+                position={[b.x, b.y, b.z]}
+                size={0.4}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    if (object) {
+                        object.position.x = THREE.MathUtils.clamp(
+                            object.position.x,
+                            -2,
+                            2,
+                        );
+                        object.position.y = THREE.MathUtils.clamp(
+                            object.position.y,
+                            -1,
+                            1,
+                        );
+                        object.position.z = THREE.MathUtils.clamp(
+                            object.position.z,
+                            -2,
+                            2,
+                        );
+                        const npp = cga.pointPair(
+                            cga.zeroSphere(1 * a.x, 1 * a.y, 1 * a.z),
+                            cga.zeroSphere(
+                                1 * object.position.x,
+                                1 * object.position.y,
+                                1 * object.position.z,
+                            ),
+                        );
+
+                        if (cga.isPointPair(npp)) elements[eli].el = npp;
+                    }
+                }}
+                mode="translate"
+            />
+        {/if}
+        <T.Mesh
             position={[b.x, b.y, b.z]}
-            size={0.4}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
-                if (object) {
-                    object.position.x = THREE.MathUtils.clamp(
-                        object.position.x,
-                        -2,
-                        2,
-                    );
-                    object.position.y = THREE.MathUtils.clamp(
-                        object.position.y,
-                        -1,
-                        1,
-                    );
-                    object.position.z = THREE.MathUtils.clamp(
-                        object.position.z,
-                        -2,
-                        2,
-                    );
-                    const npp = cga.pointPair(
-                        cga.zeroSphere(1 * a.x, 1 * a.y, 1 * a.z),
-                        cga.zeroSphere(
-                            1 * object.position.x,
-                            1 * object.position.y,
-                            1 * object.position.z,
-                        ),
-                    );
-
-                    if (cga.isPointPair(npp)) elements[eli].el = npp;
-                }
-            }}
-            mode="translate"
+            rotation={[0, 0, 0]}
+            renderOrder={20000 + eli * 100 + 4 * 12 + 1}
         >
-            <T.Mesh
-                rotation={[0, 0, 0]}
-                renderOrder={20000 + eli * 100 + 4 * 12 + 1}
-            >
-                <T.SphereGeometry args={[0.08, 32, 16]} />
-                <T.MeshBasicMaterial
-                    toneMapped={false}
-                    side={THREE.DoubleSide}
-                    opacity={active ? 0.6 : 0.1}
-                    transparent={true}
-                    premultipliedAlpha={true}
-                    clippingPlanes={planes}
-                    color={active ? color : "gray"}
-                />
-            </T.Mesh>
-        </TransformControls>
+            <T.SphereGeometry args={[0.08, 32, 16]} />
+            <T.MeshBasicMaterial
+                toneMapped={false}
+                side={THREE.DoubleSide}
+                opacity={active ? 0.6 : 0.1}
+                transparent={true}
+                premultipliedAlpha={true}
+                clippingPlanes={planes}
+                color={active ? color : "gray"}
+            />
+        </T.Mesh>
     {:else if cga.isPointPair(cga.dual(el))}
         {@const [a, b] = cga.pointPairCoords(cga.dual(el))}
-        <TransformControls
+        {#if active && !passive}
+            <TransformControls
+                enabled={active}
+                position={[a.x, a.y, a.z]}
+                size={0.4}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    if (object) {
+                        object.position.x = THREE.MathUtils.clamp(
+                            object.position.x,
+                            -2,
+                            2,
+                        );
+                        object.position.y = THREE.MathUtils.clamp(
+                            object.position.y,
+                            -1,
+                            1,
+                        );
+                        object.position.z = THREE.MathUtils.clamp(
+                            object.position.z,
+                            -2,
+                            2,
+                        );
+                        const npp = cga.pointPair(
+                            cga.zeroSphere(
+                                1 * object.position.x,
+                                1 * object.position.y,
+                                1 * object.position.z,
+                            ),
+                            cga.zeroSphere(1 * b.x, 1 * b.y, 1 * b.z),
+                        );
+
+                        if (cga.isPointPair(npp))
+                            elements[eli].el = cga.undual(npp);
+                    }
+                }}
+                mode="translate"
+            />
+        {/if}
+        <T.Mesh
             position={[a.x, a.y, a.z]}
-            size={0.4}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
-                if (object) {
-                    object.position.x = THREE.MathUtils.clamp(
-                        object.position.x,
-                        -2,
-                        2,
-                    );
-                    object.position.y = THREE.MathUtils.clamp(
-                        object.position.y,
-                        -1,
-                        1,
-                    );
-                    object.position.z = THREE.MathUtils.clamp(
-                        object.position.z,
-                        -2,
-                        2,
-                    );
-                    const npp = cga.pointPair(
-                        cga.zeroSphere(
-                            1 * object.position.x,
-                            1 * object.position.y,
-                            1 * object.position.z,
-                        ),
-                        cga.zeroSphere(1 * b.x, 1 * b.y, 1 * b.z),
-                    );
-
-                    if (cga.isPointPair(npp))
-                        elements[eli].el = cga.undual(npp);
-                }
-            }}
-            mode="translate"
+            renderOrder={20000 + eli * 100 + 4 * 12 + 1}
+            rotation={[0, 0, 0]}
         >
-            <T.Mesh
-                renderOrder={20000 + eli * 100 + 4 * 12 + 1}
-                rotation={[0, 0, 0]}
-            >
-                <T.SphereGeometry args={[0.08, 32, 16]} />
-                <T.MeshBasicMaterial
-                    toneMapped={false}
-                    side={THREE.DoubleSide}
-                    opacity={active ? 0.6 : 0.1}
-                    transparent={true}
-                    premultipliedAlpha={true}
-                    clippingPlanes={planes}
-                    color={active ? color : "gray"}
-                />
-            </T.Mesh>
-        </TransformControls>
-        <TransformControls
+            <T.SphereGeometry args={[0.08, 32, 16]} />
+            <T.MeshBasicMaterial
+                toneMapped={false}
+                side={THREE.DoubleSide}
+                opacity={active ? 0.6 : 0.1}
+                transparent={true}
+                premultipliedAlpha={true}
+                clippingPlanes={planes}
+                color={active ? color : "gray"}
+            />
+        </T.Mesh>
+        {#if active && !passive}
+            <TransformControls
+                visible={active}
+                enabled={active}
+                position={[b.x, b.y, b.z]}
+                size={0.4}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    if (object) {
+                        object.position.x = THREE.MathUtils.clamp(
+                            object.position.x,
+                            -2,
+                            2,
+                        );
+                        object.position.y = THREE.MathUtils.clamp(
+                            object.position.y,
+                            -1,
+                            1,
+                        );
+                        object.position.z = THREE.MathUtils.clamp(
+                            object.position.z,
+                            -2,
+                            2,
+                        );
+                        const npp = cga.pointPair(
+                            cga.zeroSphere(1 * a.x, 1 * a.y, 1 * a.z),
+                            cga.zeroSphere(
+                                1 * object.position.x,
+                                1 * object.position.y,
+                                1 * object.position.z,
+                            ),
+                        );
+
+                        if (cga.isPointPair(npp))
+                            elements[eli].el = cga.undual(npp);
+                    }
+                }}
+                mode="translate"
+            />
+        {/if}
+        <T.Mesh
             position={[b.x, b.y, b.z]}
-            size={0.4}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
-                if (object) {
-                    object.position.x = THREE.MathUtils.clamp(
-                        object.position.x,
-                        -2,
-                        2,
-                    );
-                    object.position.y = THREE.MathUtils.clamp(
-                        object.position.y,
-                        -1,
-                        1,
-                    );
-                    object.position.z = THREE.MathUtils.clamp(
-                        object.position.z,
-                        -2,
-                        2,
-                    );
-                    const npp = cga.pointPair(
-                        cga.zeroSphere(1 * a.x, 1 * a.y, 1 * a.z),
-                        cga.zeroSphere(
-                            1 * object.position.x,
-                            1 * object.position.y,
-                            1 * object.position.z,
-                        ),
-                    );
-
-                    if (cga.isPointPair(npp))
-                        elements[eli].el = cga.undual(npp);
-                }
-            }}
-            mode="translate"
+            rotation={[0, 0, 0]}
+            renderOrder={20000 + eli * 100 + 4 * 12 + 1}
         >
-            <T.Mesh
-                rotation={[0, 0, 0]}
-                renderOrder={20000 + eli * 100 + 4 * 12 + 1}
-            >
-                <T.SphereGeometry args={[0.08, 32, 16]} />
-                <T.MeshBasicMaterial
-                    toneMapped={false}
-                    side={THREE.DoubleSide}
-                    opacity={active ? 0.6 : 0.1}
-                    transparent={true}
-                    premultipliedAlpha={true}
-                    clippingPlanes={planes}
-                    color={active ? color : "gray"}
-                />
-            </T.Mesh>
-        </TransformControls>
+            <T.SphereGeometry args={[0.08, 32, 16]} />
+            <T.MeshBasicMaterial
+                toneMapped={false}
+                side={THREE.DoubleSide}
+                opacity={active ? 0.6 : 0.1}
+                transparent={true}
+                premultipliedAlpha={true}
+                clippingPlanes={planes}
+                color={active ? color : "gray"}
+            />
+        </T.Mesh>
     {:else if cga.isEuclideanPoint(el)}
         {@const p = cga.pointParameters(el)}
-        <TransformControls
+        {#if active && !passive}
+            <TransformControls
+                enabled={active}
+                position={[p.x, p.y, p.z]}
+                size={0.4}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    if (object) {
+                        object.position.x = THREE.MathUtils.clamp(
+                            object.position.x,
+                            -2,
+                            2,
+                        );
+                        object.position.y = THREE.MathUtils.clamp(
+                            object.position.y,
+                            -1,
+                            1,
+                        );
+                        object.position.z = THREE.MathUtils.clamp(
+                            object.position.z,
+                            -2,
+                            2,
+                        );
+                        const np = cga.pointReflection(
+                            object.position.x,
+                            object.position.y,
+                            object.position.z,
+                            p.sign,
+                        );
+                        if (
+                            cga.isEuclideanPoint(np) &&
+                            !cga.isPointPair(cga.dual(np))
+                        )
+                            elements[eli].el = np;
+                    }
+                }}
+                mode="translate"
+            />
+        {/if}
+        <T.Mesh
             position={[p.x, p.y, p.z]}
-            size={0.4}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
-                if (object) {
-                    object.position.x = THREE.MathUtils.clamp(
-                        object.position.x,
-                        -2,
-                        2,
-                    );
-                    object.position.y = THREE.MathUtils.clamp(
-                        object.position.y,
-                        -1,
-                        1,
-                    );
-                    object.position.z = THREE.MathUtils.clamp(
-                        object.position.z,
-                        -2,
-                        2,
-                    );
-                    const np = cga.pointReflection(
-                        object.position.x,
-                        object.position.y,
-                        object.position.z,
-                        p.sign,
-                    );
-                    if (
-                        cga.isEuclideanPoint(np) &&
-                        !cga.isPointPair(cga.dual(np))
-                    )
-                        elements[eli].el = np;
-                }
-            }}
-            mode="translate"
+            renderOrder={20000 + eli * 100 + 4 * 12 + 1}
+            rotation={[0, 0, 0]}
         >
-            <T.Mesh
-                renderOrder={20000 + eli * 100 + 4 * 12 + 1}
-                rotation={[0, 0, 0]}
-            >
-                <T.SphereGeometry args={[0.08, 32, 16]} />
-                <T.MeshBasicMaterial
-                    toneMapped={false}
-                    side={THREE.DoubleSide}
-                    opacity={active ? 0.6 : 0.1}
-                    transparent={true}
-                    premultipliedAlpha={true}
-                    clippingPlanes={planes}
-                    color={active ? color : "gray"}
-                />
-            </T.Mesh>
-        </TransformControls>
+            <T.SphereGeometry args={[0.08, 32, 16]} />
+            <T.MeshBasicMaterial
+                toneMapped={false}
+                side={THREE.DoubleSide}
+                opacity={active ? 0.6 : 0.1}
+                transparent={true}
+                premultipliedAlpha={true}
+                clippingPlanes={planes}
+                color={active ? color : "gray"}
+            />
+        </T.Mesh>
     {:else if cga.isEuclideanPoint(cga.dual(el))}
         {@const p = cga.pointParameters(cga.dual(el))}
-        <TransformControls
-            position={[p.x, p.y, p.z]}
-            size={0.4}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
-                if (object) {
-                    object.position.x = THREE.MathUtils.clamp(
-                        object.position.x,
-                        -2,
-                        2,
-                    );
-                    object.position.y = THREE.MathUtils.clamp(
-                        object.position.y,
-                        -1,
-                        1,
-                    );
-                    object.position.z = THREE.MathUtils.clamp(
-                        object.position.z,
-                        -2,
-                        2,
-                    );
-                    const np = cga.pointReflection(
-                        object.position.x,
-                        object.position.y,
-                        object.position.z,
-                        p.sign,
-                    );
-                    if (
-                        cga.isEuclideanPoint(np) &&
-                        !cga.isPointPair(cga.undual(np))
-                    )
-                        elements[eli].el = cga.undual(np);
-                }
-            }}
-            mode="translate"
+        {#if active && !passive}
+            <TransformControls
+                enabled={active}
+                position={[p.x, p.y, p.z]}
+                size={0.4}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    if (object) {
+                        object.position.x = THREE.MathUtils.clamp(
+                            object.position.x,
+                            -2,
+                            2,
+                        );
+                        object.position.y = THREE.MathUtils.clamp(
+                            object.position.y,
+                            -1,
+                            1,
+                        );
+                        object.position.z = THREE.MathUtils.clamp(
+                            object.position.z,
+                            -2,
+                            2,
+                        );
+                        const np = cga.pointReflection(
+                            object.position.x,
+                            object.position.y,
+                            object.position.z,
+                            p.sign,
+                        );
+                        if (
+                            cga.isEuclideanPoint(np) &&
+                            !cga.isPointPair(cga.undual(np))
+                        )
+                            elements[eli].el = cga.undual(np);
+                    }
+                }}
+                mode="translate"
+            />
+        {/if}
+        <T.Mesh
+            renderOrder={20000 + eli * 100 + 4 * 12 + 1}
+            rotation={[0, 0, 0]}
         >
-            <T.Mesh
-                renderOrder={20000 + eli * 100 + 4 * 12 + 1}
-                rotation={[0, 0, 0]}
-            >
-                <T.SphereGeometry args={[0.08, 32, 16]} />
-                <T.MeshBasicMaterial
-                    toneMapped={false}
-                    side={THREE.DoubleSide}
-                    opacity={active ? 0.6 : 0.1}
-                    transparent={true}
-                    premultipliedAlpha={true}
-                    clippingPlanes={planes}
-                    color={active ? color : "gray"}
-                />
-            </T.Mesh>
-        </TransformControls>
+            <T.SphereGeometry args={[0.08, 32, 16]} />
+            <T.MeshBasicMaterial
+                toneMapped={false}
+                side={THREE.DoubleSide}
+                opacity={active ? 0.6 : 0.1}
+                transparent={true}
+                premultipliedAlpha={true}
+                clippingPlanes={planes}
+                color={active ? color : "gray"}
+            />
+        </T.Mesh>
     {/if}
 {/each}

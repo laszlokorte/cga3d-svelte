@@ -32,6 +32,8 @@
     let over = $state(null);
     let elements = $state([]);
     let showVectorField = $state(false);
+    let showIntersections = $state(true);
+    let showObject = $state(true);
     const combinedMotor = $derived(
         cga.normalize(
             elements
@@ -51,6 +53,355 @@
             elements.reduce((a, b) => cga.add(b.el, a), cga.scalar(0)),
         ),
     );
+
+    const examples = [
+        {
+            name: "Rotation",
+            showVectorField: true,
+            elements: [
+                {
+                    color: "royalblue",
+                    active: true,
+                    el: [
+                        0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "limegreen",
+                    active: true,
+                    el: [
+                        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+            ],
+        },
+        {
+            name: "Scaling",
+
+            showVectorField: true,
+            elements: [
+                {
+                    color: "royalblue",
+                    active: true,
+                    el: [
+                        0, 0, 0, 0, 0, 0, 0, 0, -0.7888, 0, 0, 0, 0, 0, 0, 0,
+                        0.2112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "limegreen",
+                    active: true,
+                    el: [
+                        0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+            ],
+        },
+        {
+            name: "Circle",
+            showVectorField: true,
+            elements: [
+                {
+                    color: "royalblue",
+                    active: true,
+                    el: [
+                        0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "limegreen",
+                    active: true,
+                    el: [
+                        0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+            ],
+        },
+        {
+            name: "point pair",
+            showVectorField: true,
+            elements: [
+                {
+                    color: "limegreen",
+                    active: true,
+                    el: [
+                        0, -2, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, -2, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "royalblue",
+                    active: true,
+                    el: [
+                        0, -2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+            ],
+        },
+        {
+            name: "Roto Scale",
+            showVectorField: true,
+            elements: [
+                {
+                    color: "limegreen",
+                    active: true,
+                    el: [
+                        0, 0, 0, 0, 0, 0, 0, 0, -1.9449999999999998, 0, 0, 0, 0,
+                        0, 0, 0, -0.9449999999999998, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "royalblue",
+                    active: true,
+                    el: [
+                        0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "teal",
+                    active: true,
+                    el: [
+                        0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "tomato",
+                    active: true,
+                    el: [
+                        0, 0.9134016707474314, 0, 0, 0.4070594402243987, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0,
+                    ],
+                },
+            ],
+        },
+        {
+            name: "Screw",
+            showVectorField: true,
+            elements: [
+                {
+                    color: "royalblue",
+                    active: true,
+                    el: [
+                        0, 0, 1, 0, 0, 0, 0, 0, 0.14, 0, 0, 0, 0, 0, 0, 0, 0.14,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "limegreen",
+                    active: true,
+                    el: [
+                        0, 0, 1, 0, 0, 0, 0, 0, -0.23, 0, 0, 0, 0, 0, 0, 0,
+                        -0.23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "teal",
+                    active: true,
+                    el: [
+                        0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "tomato",
+                    active: true,
+                    el: [
+                        0, 0.9338567516961642, 0, 0, 0.35764726660704166, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0,
+                    ],
+                },
+            ],
+        },
+        {
+            name: "Loxodrome",
+            showVectorField: true,
+            elements: [
+                {
+                    color: "royalblue",
+                    active: true,
+                    el: [
+                        0, 1.0891029675340143, 0, 0, 0, 0, 0, 0,
+                        0.09307263694569601, 0, 0, 0, 0, 0, 0, 0,
+                        1.093072636945696, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0,
+                    ],
+                },
+                {
+                    color: "teal",
+                    active: true,
+                    el: [
+                        0, -1.1376184679875454, 0, 0, 0, 0, 0, 0,
+                        0.14708788935315986, 0, 0, 0, 0, 0, 0, 0,
+                        1.1470878893531598, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0,
+                    ],
+                },
+                {
+                    color: "limegreen",
+                    active: true,
+                    el: [
+                        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "tomato",
+                    active: true,
+                    el: [
+                        0, 0, 0.6283371070876214, 0, 0.7779411802037217, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0,
+                    ],
+                },
+            ],
+        },
+        {
+            name: "Double Rotation",
+            showVectorField: true,
+            elements: [
+                {
+                    color: "limegreen",
+                    active: true,
+                    el: [
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "royalblue",
+                    active: true,
+                    el: [
+                        0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "teal",
+                    active: true,
+                    el: [
+                        0, 0.9338567516961642, 0.35764726660704166, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0,
+                    ],
+                },
+            ],
+        },
+        {
+            name: "Quad-Spheres",
+            showVectorField: true,
+            elements: [
+                {
+                    color: "teal",
+                    active: true,
+                    el: [
+                        0, 0.14, -0.3857232671671479, 0, -0.7936569589243941, 0,
+                        0, 0, -0.012663096358391857, 0, 0, 0, 0, 0, 0, 0,
+                        0.9873369036416081, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0,
+                    ],
+                },
+                {
+                    color: "tomato",
+                    active: true,
+                    el: [
+                        0, 0.13643666094813728, 0.22, 0, -0.7936359875182499, 0,
+                        0, 0, -0.2356134784326273, 0, 0, 0, 0, 0, 0, 0,
+                        0.7643865215673727, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0,
+                    ],
+                },
+                {
+                    color: "gold",
+                    active: true,
+                    el: [
+                        0, -0.5046413841383113, 0, 0, 0, 0, 0, 0,
+                        -0.8726685367074869, 0, 0, 0, 0, 0, 0, 0,
+                        0.1273314632925131, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0,
+                    ],
+                },
+                {
+                    color: "royalblue",
+                    active: true,
+                    el: [
+                        0, 0.7482625938840345, -0.0036697412166969423, 0, 0, 0,
+                        0, 0, -0.7200448117966695, 0, 0, 0, 0, 0, 0, 0,
+                        0.27995518820333054, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0,
+                    ],
+                },
+            ],
+        },
+        {
+            name: "Smoke Rings",
+            showVectorField: true,
+            elements: [
+                {
+                    color: "teal",
+                    active: true,
+                    el: [
+                        0, 0.011386157244099068, -1, 0, -2.9999999999999883e-18,
+                        0, 0, 0, -0.05113517771160625, 0, 0, 0, 0, 0, 0, 0,
+                        0.9488648222883937, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0,
+                    ],
+                },
+                {
+                    color: "royalblue",
+                    active: true,
+                    el: [
+                        0, 0.011386157244099068, -1, 0, -9.999999999999981e-19,
+                        0, 0, 0, -0.028735177711606275, 0, 0, 0, 0, 0, 0, 0,
+                        0.9712648222883937, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0,
+                    ],
+                },
+                {
+                    color: "limegreen",
+                    active: true,
+                    el: [
+                        0, 0, 0, 0, 0, 5.000000000000001e-18,
+                        0.13869513543975737, 0, 0, 0, 0, 0, 0.6084798297026739,
+                        0, 0, 0, 0, 0, 0, 0, -0.3915201702973261, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0,
+                    ],
+                },
+            ],
+        },
+    ];
+
+    function loadExample(i) {
+        const ex = examples[i];
+        if (!ex) {
+            return;
+        }
+        while (elements.length) {
+            freeColors.push(elements.pop().color);
+        }
+        for (let e = 0; e < ex.elements.length; e++) {
+            elements.push({
+                ...ex.elements[e],
+                el: new Float64Array(
+                    Object.keys(ex.elements[e].el)
+                        .sort((a, b) => a - b)
+                        .map((k) => ex.elements[e].el[k]),
+                ),
+                color: freeColors.pop() || ex.elements[e].color,
+            });
+        }
+        showVectorField = ex.showVectorField;
+    }
 </script>
 
 <svelte:head>
@@ -62,7 +413,12 @@
         <Canvas dpr={Math.max(window ? window.devicePixelRatio : 1, 2)}>
             <Scene
                 {showVectorField}
+                {showIntersections}
+                {showObject}
                 bind:elements
+                wedged={wedgedMotor && cga.isVersor(wedgedMotor)
+                    ? wedgedMotor
+                    : cga.scalar(1)}
                 motor={combinedMotor}
                 bind:this={scene}
             />
@@ -87,6 +443,23 @@
         </header>
 
         <div class="button-row">
+            <div>
+                <fieldset class="fieldset-mini">
+                    <legend>Examples</legend>
+                    <div class="button-row">
+                        {#each examples as ex, exi}
+                            <button
+                                onclick={(evt) => {
+                                    loadExample(exi);
+                                }}>{ex.name}</button
+                            >
+                        {/each}
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+
+        <div class="button-row">
             <fieldset class="fieldset-mini">
                 <legend>Options</legend>
                 <div class="button-row">
@@ -96,6 +469,16 @@
                                 type="checkbox"
                                 bind:checked={showVectorField}
                             /> Show Vector Field</label
+                        >
+                        <label
+                            ><input
+                                type="checkbox"
+                                bind:checked={showIntersections}
+                            /> Show Intersections</label
+                        >
+                        <label
+                            ><input type="checkbox" bind:checked={showObject} /> Show
+                            Object</label
                         >
                     </div>
                 </div>
@@ -259,6 +642,13 @@
                 <div class="button-row">
                     <button
                         onclick={(evt) => {
+                            while (elements.length) {
+                                freeColors.push(elements.pop().color);
+                            }
+                        }}>Clear</button
+                    >
+                    <button
+                        onclick={(evt) => {
                             elements = elements.map((e) => {
                                 return { ...e, el: cga.dual(e.el) };
                             });
@@ -277,13 +667,7 @@
                             elements = elements.toReversed();
                         }}>Reverse</button
                     >
-                    <button
-                        onclick={(evt) => {
-                            while (elements.length) {
-                                freeColors.push(elements.pop().color);
-                            }
-                        }}>Clear</button
-                    >
+
                     <button
                         disabled={!combinedMotor ||
                             !cga.isVersor(combinedMotor)}
@@ -329,6 +713,16 @@
                     >
                 </div>
             </fieldset>
+            <details>
+                <summary>Export</summary>
+                <textarea class="serialized" readonly
+                    >{JSON.stringify(elements, (key, value) =>
+                        value instanceof Float64Array
+                            ? Array.from(value)
+                            : value,
+                    )}</textarea
+                >
+            </details>
         </div>
         <div class="block-list">
             {#each elements as { el, color }, eli}
@@ -1643,7 +2037,6 @@
                         {/if}
                         <textarea
                             class="serialized"
-                            style:resize="none"
                             readonly
                             style:user-select="all">{cga.toString(el)}</textarea
                         >
@@ -1835,6 +2228,9 @@
         background-color: #fff;
         border: 1px solid #333;
         width: 100%;
+        user-select: all;
+        resize: none;
+        box-sizing: border-box;
     }
     legend {
         font-size: small;
@@ -1845,5 +2241,16 @@
     fieldset {
         border: 1px solid #333;
         padding: 0.5ex;
+    }
+    details {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    summary {
+        background-color: #111;
+        color: #fff;
+        padding: 1ex;
+
+        box-sizing: border-box;
     }
 </style>
