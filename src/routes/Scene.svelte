@@ -16,7 +16,7 @@
 
     const { renderer, canvas } = useThrelte();
 
-    const gltf = useGltf(resolve("/nike.glb")).then((m) => {
+    const { a, b } = await useGltf(resolve("/nike.glb")).then((m) => {
         const a = m.nodes["root"].clone(true);
         const b = m.nodes["root"].clone(true);
         a.renderOrder = 10000000;
@@ -52,7 +52,7 @@
                     shader.vertexShader = shader.vertexShader
                         .replace(
                             "#include <begin_vertex>",
-                            `
+                            /* glsl */ `
               #include <begin_vertex>
               // Modify transformed vertex position (e.g., wave effect)
               transformed.y += sin(position.x*40.0 + uTime * 3.0) * 0.005 + cos(position.z*15.0 + uTime * 3.0) * 0.005;
@@ -60,7 +60,7 @@
                         )
                         .replace(
                             "#include <project_vertex>",
-                            `
+                            /* glsl */ `
                             MV motor;
 
                             for (int i = 0; i < 32; i++)
@@ -85,7 +85,7 @@
                         )
                         .replace(
                             "#include <common>",
-                            `
+                            /* glsl */ `
                       #include <common>
 
                       uniform float uTime;
@@ -155,7 +155,7 @@
             rect.width,
             rect.height,
             (rect.left - c.left) / 2,
-            (rect.top - c.top) / 2,
+            (rect.bottom - c.bottom) / 2,
             rect.width,
             rect.height,
         );
@@ -187,9 +187,9 @@
         new THREE.Vector3(-2, -1, 2),
         new THREE.Vector3(-2, -1, -2),
     ];
-    const vfcount = 10 * 10;
+    const vfcount = 10 * 10 * 5;
 
-    const vfgeometry = new THREE.CylinderGeometry(0.005, 0.01, 1, 4, 128);
+    const vfgeometry = new THREE.CylinderGeometry(0.005, 0.01, 1, 10, 128);
     const vfmaterial = new THREE.ShaderMaterial({
         uniforms: {
             uTime: { value: 0 },
@@ -215,15 +215,13 @@
                     for (int i = 0; i < 32; i++)
                         motor.c[i] = uMotor[i];
 
-                    float interp  = (2.0 * position.y + 1.0) / 2.0;
-                    MV p = point(aPosition.xyz);
-                    MV partialMotor = motorExp(scale(3.14 * interp + mod(uTime/2.0  +aPosition.w, 1.0) , motor));
+                    float interp  =  (position.y*0.5)  + mod(uTime * 0.2+ aPosition.w * 2.0, 1.0);
+                    MV p = point(aPosition.xyz * vec3(1.0,1.0,1.0));
+                    MV partialMotor = motorExp(scale(interp, motor));
                     MV motorResult = sandwich(p, partialMotor);
                     vec3 coords = pointCoords(motorResult);
 
-
                     skip = 1.0;
-
 
                     vec4 worldPos = modelMatrix * vec4(position * vec3(1.0,0.0,1.0) + coords, 1.0);
                     vec4 mvPosition = modelViewMatrix *
@@ -252,14 +250,14 @@
     const positions = new Float32Array(vfcount * 4);
 
     for (let i = 0; i < vfcount; i++) {
-        const x = THREE.MathUtils.randFloat(-1, 1);
+        const x = THREE.MathUtils.randFloat(-2, 2);
         const y = THREE.MathUtils.randFloat(-1, 1);
-        const z = THREE.MathUtils.randFloat(-1, 1);
+        const z = THREE.MathUtils.randFloat(-2, 2);
 
         positions[i * 4 + 0] = x;
         positions[i * 4 + 1] = y;
         positions[i * 4 + 2] = z;
-        positions[i * 4 + 3] = (i % 5) / 5;
+        positions[i * 4 + 3] = (i % 8) / 9;
     }
 
     vfgeometry.setAttribute(
@@ -273,6 +271,64 @@
     vfmaterial.transparent = true;
     vfmaterial.opacity = 0.2;
 </script>
+
+{#if showObject && a && b}
+    <TransformControls
+        visible={showObject}
+        scale={5}
+        position={objPos}
+        size={0.4}
+        onobjectChange={(evt) => {
+            const object = evt.target.object;
+            if (object) {
+                object.position.x = THREE.MathUtils.clamp(
+                    object.position.x,
+                    -2,
+                    2,
+                );
+                object.position.y = THREE.MathUtils.clamp(
+                    object.position.y,
+                    -1,
+                    1,
+                );
+                object.position.z = THREE.MathUtils.clamp(
+                    object.position.z,
+                    -2,
+                    2,
+                );
+            }
+            objPos = object.position.toArray();
+        }}
+        mode="translate"
+    />
+{/if}
+
+<T
+    scale={5}
+    position={objPos}
+    visible={showObject}
+    is={a}
+    oncreate={(scene) => {
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const elapsedTime = clock.getElapsedTime();
+
+            scene.traverse((node) => {
+                if (node.isMesh && node.userData.shader) {
+                    node.userData.shader.uniforms.uTime.value = elapsedTime;
+                    node.userData.shader.uniforms.uMotor.value = motor;
+                }
+            });
+
+            vfmaterial.uniforms.uMotor.value = motor;
+            vfmaterial.uniforms.uTime.value = elapsedTime;
+        }
+        animate();
+    }}
+/>
+<T scale={5} position={objPos} visible={showObject} is={b} />
 
 {#if showVectorField}
     <T is={vfmesh} />
@@ -331,6 +387,7 @@
         side={THREE.BackSide}
     />
 </T.Mesh>
+
 <T.Mesh renderOrder={50000}>
     <MeshLineGeometry {points} />
     <MeshLineMaterial
@@ -343,75 +400,6 @@
 </T.Mesh>
 
 <T.DirectionalLight position={[3, 10, 5]} intensity={2} />
-{#if showObject}
-    <TransformControls
-        visible={showObject}
-        scale={5}
-        position={objPos}
-        size={0.4}
-        onobjectChange={(evt) => {
-            const object = evt.target.object;
-            if (object) {
-                object.position.x = THREE.MathUtils.clamp(
-                    object.position.x,
-                    -2,
-                    2,
-                );
-                object.position.y = THREE.MathUtils.clamp(
-                    object.position.y,
-                    -1,
-                    1,
-                );
-                object.position.z = THREE.MathUtils.clamp(
-                    object.position.z,
-                    -2,
-                    2,
-                );
-            }
-            objPos = object.position.toArray();
-        }}
-        mode="translate"
-    />
-{/if}
-
-{#await gltf}
-    <T.Mesh>
-        <T.BoxGeometry args={[0.1, 0.1, 0.1]} />
-        <T.MeshStandardMaterial
-            transparent
-            opacity={0.2}
-            toneMapped={true}
-            color="tomato"
-        />
-    </T.Mesh>
-{:then { a, b }}
-    <T
-        scale={5}
-        position={objPos}
-        visible={showObject}
-        is={a}
-        oncreate={(scene) => {
-            const clock = new THREE.Clock();
-            function animate() {
-                requestAnimationFrame(animate);
-
-                const elapsedTime = clock.getElapsedTime();
-
-                scene.traverse((node) => {
-                    if (node.isMesh && node.userData.shader) {
-                        node.userData.shader.uniforms.uTime.value = elapsedTime;
-                        node.userData.shader.uniforms.uMotor.value = motor;
-                    }
-                });
-
-                vfmaterial.uniforms.uMotor.value = motor;
-                vfmaterial.uniforms.uTime.value = elapsedTime;
-            }
-            animate();
-        }}
-    />
-    <T scale={5} position={objPos} visible={showObject} is={b} />
-{/await}
 
 {#each [...elements, ...(showIntersections && wedged ? [{ el: wedged, color: "red", active: true, passive: true }] : [{ el: cga.scalar(1), color: "red", active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
     {#if cga.isSphere(el)}
