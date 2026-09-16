@@ -188,14 +188,14 @@ export function pointReflection(x, y, z, sign = 1) {
 
 // Point pair
 export function pointPair(a, b) {
-  return wedge(a, b);
+  return normalize(wedge(a, b));
 }
 export function sphere(x, y, z, radius, sign = 1) {
   return scale(
     sign,
     sub(
-      zeroSphere(x, y, z, 1),
       scale(0.5 * Math.sign(radius) * radius * radius, einf),
+      zeroSphere(x, y, z, 1),
     ),
   );
 }
@@ -231,7 +231,7 @@ export function circleFromPoints(a, b, c) {
 export function circle(center, radius, normal) {
   const [x, y, z] = center;
   const nl = Math.hypot(...normal);
-  const n = normal.map((x) => x / nl);
+  const n = normal.map((x) => -x / nl);
 
   const distance = n[0] * x + n[1] * y + n[2] * z;
 
@@ -375,7 +375,7 @@ export function sphereParameters(s) {
   return {
     center: [x, y, z],
     radius: Math.sign(radius2) * Math.sqrt(Math.abs(radius2)),
-    sign: Math.sign(w),
+    sign: -Math.sign(w),
   };
 }
 
@@ -669,6 +669,11 @@ export function planeParameters(p) {
 export function meet(a, b) {
   return wedge(a, b);
 }
+const formatter = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 5,
+  minimumFractionDigits: 5,
+  useGrouping: false,
+});
 export function toString(a, eps = 1e-10) {
   const names = [
     "1", // 00000
@@ -679,30 +684,33 @@ export function toString(a, eps = 1e-10) {
     "e13", // 00101
     "e23", // 00110
     "e123", // 00111
-    "eo", // 01000
-    "e1o", // 01001
-    "e2o", // 01010
-    "e12o", // 01011
-    "e3o", // 01100
-    "e13o", // 01101
-    "e23o", // 01110
-    "e123o", // 01111
-    "e∞", // 10000
-    "e1∞", // 10001
-    "e2∞", // 10010
-    "e12∞", // 10011
-    "e3∞", // 10100
-    "e13∞", // 10101
-    "e23∞", // 10110
-    "e123∞", // 10111
-    "eo∞", // 11000
-    "e1o∞", // 11001
-    "e2o∞", // 11010
-    "e12o∞", // 11011
-    "e3o∞", // 11100
-    "e13o∞", // 11101
-    "e23o∞", // 11110
-    "e123o∞", // 11111
+
+    "ep", // 01000
+    "e1p", // 01001
+    "e2p", // 01010
+    "e12p", // 01011
+    "e3p", // 01100
+    "e13p", // 01101
+    "e23p", // 01110
+    "e123p", // 01111
+
+    "em", // 10000
+    "e1m", // 10001
+    "e2m", // 10010
+    "e12m", // 10011
+    "e3m", // 10100
+    "e13m", // 10101
+    "e23m", // 10110
+    "e123m", // 10111
+
+    "epm", // 11000
+    "e1pm", // 11001
+    "e2pm", // 11010
+    "e12pm", // 11011
+    "e3pm", // 11100
+    "e13pm", // 11101
+    "e23pm", // 11110
+    "e123pm", // 11111
   ];
 
   const terms = [];
@@ -715,12 +723,20 @@ export function toString(a, eps = 1e-10) {
     const name = names[i];
 
     if (terms.length === 0) {
-      terms.push(name === "1" ? `${x}` : `${x}${name}`);
+      terms.push(
+        name === "1"
+          ? `${formatter.format(x)}`
+          : `${formatter.format(x)}${name}`,
+      );
     } else {
       const sign = x < 0 ? " - " : " + ";
       const value = Math.abs(x);
 
-      terms.push(name === "1" ? `${sign}${value}` : `${sign}${value}${name}`);
+      terms.push(
+        name === "1"
+          ? `${sign}${formatter.format(value)}`
+          : `${sign}${formatter.format(value)}${name}`,
+      );
     }
   }
 

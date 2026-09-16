@@ -145,6 +145,16 @@ export function generateGP() {
 
         return r;
     }
+    MV scalar(float s) {
+           MV r;
+
+           for (int i = 0; i < 32; i++)
+               r.c[i] = 0.0;
+
+           r.c[31] = s;
+
+           return r;
+       }
     MV motorSqrt(MV M) {
         MV X = add(M, scale(-1.0, identity()));
 
@@ -215,6 +225,12 @@ export function generateGP() {
         result = scale(pow(2.0, float(k)), result);
 
         return result;
+    }
+    MV motorExpSimple(MV B, float t) {
+        return add(
+            scalar(cos(t)),
+            scale(sin(t), B)
+        );
     }
     MV motorExp(MV B) {
         MV I;
