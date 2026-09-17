@@ -20,6 +20,54 @@ function scalar(x) {
   return a;
 }
 
+export const basisIndex = {
+  scalar: 0b00000,
+  e1: 0b00001,
+  e2: 0b00010,
+  e12: 0b00011,
+  e3: 0b00100,
+  e13: 0b00101,
+  e23: 0b00110,
+  e123: 0b00111,
+
+  ep: 0b01000,
+  e1p: 0b01001,
+  e2p: 0b01010,
+  e12p: 0b01011,
+  e3p: 0b01100,
+  e13p: 0b01101,
+  e23p: 0b01110,
+  e123p: 0b01111,
+
+  em: 0b10000,
+  e1m: 0b10001,
+  e2m: 0b10010,
+  e12m: 0b10011,
+  e3m: 0b10100,
+  e13m: 0b10101,
+  e23m: 0b10110,
+  e123m: 0b10111,
+
+  epm: 0b11000,
+  e1pm: 0b11001,
+  e2pm: 0b11010,
+  e12pm: 0b11011,
+  e3pm: 0b11100,
+  e13pm: 0b11101,
+  e23pm: 0b11110,
+  e123pm: 0b11111,
+};
+
+export function setBasis(mv, b, v) {
+  const r = new Float64Array(32);
+
+  for (let i = 0; i < 32; i++) {
+    r[i] = mv[i];
+  }
+  r[b] = v;
+  return r;
+}
+
 function basis(i) {
   const a = ZERO();
   a[1 << i] = 1;

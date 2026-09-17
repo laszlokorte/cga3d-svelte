@@ -38,7 +38,15 @@
                 node.renderOrder = 200000;
                 const material = node.material;
                 material.transparent = true;
-                material.side = THREE.DoubleSide;
+                const hsl = {};
+                material.color.getHSL(hsl);
+
+                hsl.s *= 0.5; // 50% less saturation
+                hsl.l *= 0.1; // 50% less saturation
+
+                material.color.setHSL(hsl.h, hsl.s, hsl.l);
+                material.transparent = true;
+                material.opacity = 0.8;
 
                 material.onBeforeCompile = (shader) => {
                     // Add custom uniforms if needed
@@ -53,10 +61,10 @@
                         .replace(
                             "#include <begin_vertex>",
                             /* glsl */ `
-              #include <begin_vertex>
-              // Modify transformed vertex position (e.g., wave effect)
-              transformed.y += sin(position.x*40.0 + uTime * 3.0) * 0.005 + cos(position.z*15.0 + uTime * 3.0) * 0.005;
-              `,
+                            #include <begin_vertex>
+                            // Modify transformed vertex position (e.g., wave effect)
+                            transformed *= 1.015+sin(position.x*40.0 + uTime * 3.0) * 0.005 + cos(position.z*15.0 + uTime * 3.0) * 0.005;
+                            `,
                         )
                         .replace(
                             "#include <project_vertex>",
@@ -461,7 +469,7 @@
                 sphCoords.center[1],
                 sphCoords.center[2],
             ]}
-            renderOrder={40000 + eli * 100}
+            renderOrder={passive ? 999999 : 40000 + eli * 100}
         >
             <T.SphereGeometry args={[1, 32, 16]} />
             <T.MeshStandardMaterial
@@ -535,7 +543,7 @@
                 sphCoords.center[1],
                 sphCoords.center[2],
             ]}
-            renderOrder={40000 + eli * 100}
+            renderOrder={passive ? 999999 : 40000 + eli * 100}
         >
             <T.SphereGeometry args={[1, 32, 16]} />
             <T.MeshStandardMaterial
@@ -559,12 +567,56 @@
                 plnParams?.normal[2],
             ).normalize(),
         )}
+
+        <TransformControls
+            quaternion={rot.toArray()}
+            position={new THREE.Vector3(0, 0, plnParams?.distance)
+                .applyQuaternion(rot)
+                .toArray()}
+            size={active ? 0.8 : 0}
+            clippingPlanes={planes}
+            space="local"
+            showX={false}
+            showY={false}
+            onobjectChange={(evt) => {
+                const object = evt.target.object;
+
+                const normal = new THREE.Vector3(
+                    object.position.x,
+                    object.position.y,
+                    object.position.z,
+                ).normalize();
+
+                const pivot = object.position.clone();
+
+                let distance = Math.max(0, Math.min(2, normal.dot(pivot)));
+
+                const rev = normal.dot(
+                    new THREE.Vector3(
+                        plnParams?.normal[0],
+                        plnParams?.normal[1],
+                        plnParams?.normal[2],
+                    ),
+                );
+                if (rev < 0) {
+                    distance *= -1;
+                    normal.negate();
+                }
+                if (distance == 0) {
+                    return;
+                }
+
+                elements[eli].el = cga.plane(normal, distance);
+            }}
+            mode={"translate"}
+        />
+
         <T.Group quaternion={rot.toArray()}>
             <T.Group position={[0, 0, plnParams?.distance]}>
                 <T.Mesh
                     position={[0, 0, 0.05 / 2]}
                     rotation={[Math.PI / 2, 0, 0]}
-                    renderOrder={20000 + eli * 100}
+                    renderOrder={passive ? 999999 : 20000 + eli * 100}
                 >
                     <T.ConeGeometry args={[0.02, 0.05, 32]} />
                     <T.MeshStandardMaterial
@@ -578,7 +630,9 @@
                 {#each { length: 4 } as _, r}
                     {#each { length: 12 } as _, a}
                         <T.Mesh
-                            renderOrder={20000 + eli * 100 + r * 12 + a}
+                            renderOrder={passive
+                                ? 999999
+                                : 20000 + eli * 100 + r * 12 + a}
                             position={[
                                 (r / 2 + 0.5) *
                                     Math.sin(((Math.PI * 2) / 12) * a),
@@ -599,7 +653,11 @@
                         </T.Mesh>
                     {/each}
                 {/each}
-                <T.Mesh renderOrder={20000 + eli * 100 + 4 * 12 + 1}>
+                <T.Mesh
+                    renderOrder={passive
+                        ? 999999
+                        : 20000 + eli * 100 + 4 * 12 + 1}
+                >
                     <T.PlaneGeometry args={[16, 16]} />
                     <T.MeshStandardMaterial
                         toneMapped={false}
@@ -629,7 +687,7 @@
                 <T.Mesh
                     position={[0, 0, 0.05 / 2]}
                     rotation={[Math.PI / 2, 0, 0]}
-                    renderOrder={20000 + eli * 100}
+                    renderOrder={passive ? 999999 : 20000 + eli * 100}
                 >
                     <T.ConeGeometry args={[0.02, 0.05, 32]} />
                     <T.MeshStandardMaterial
@@ -643,7 +701,9 @@
                 {#each { length: 4 } as _, r}
                     {#each { length: 12 } as _, a}
                         <T.Mesh
-                            renderOrder={20000 + eli * 100 + r * 12 + a}
+                            renderOrder={passive
+                                ? 999999
+                                : 20000 + eli * 100 + r * 12 + a}
                             position={[
                                 (r / 2 + 0.5) *
                                     Math.sin(((Math.PI * 2) / 12) * a),
@@ -664,7 +724,11 @@
                         </T.Mesh>
                     {/each}
                 {/each}
-                <T.Mesh renderOrder={20000 + eli * 100 + 4 * 12 + 1}>
+                <T.Mesh
+                    renderOrder={passive
+                        ? 999999
+                        : 20000 + eli * 100 + 4 * 12 + 1}
+                >
                     <T.PlaneGeometry args={[16, 16]} />
                     <T.MeshStandardMaterial
                         toneMapped={false}
@@ -888,7 +952,7 @@
         {/if}
         <T.Mesh
             position={[a.x, a.y, a.z]}
-            renderOrder={20000 + eli * 100 + 4 * 12 + 1}
+            renderOrder={passive ? 999999 : 20000 + eli * 100 + 4 * 12 + 1}
             rotation={[0, 0, 0]}
         >
             <T.SphereGeometry args={[0.08, 32, 16]} />
@@ -944,7 +1008,7 @@
         <T.Mesh
             position={[b.x, b.y, b.z]}
             rotation={[0, 0, 0]}
-            renderOrder={20000 + eli * 100 + 4 * 12 + 1}
+            renderOrder={passive ? 999999 : 20000 + eli * 100 + 4 * 12 + 1}
         >
             <T.SphereGeometry args={[0.08, 32, 16]} />
             <T.MeshBasicMaterial
@@ -1000,7 +1064,7 @@
         {/if}
         <T.Mesh
             position={[a.x, a.y, a.z]}
-            renderOrder={20000 + eli * 100 + 4 * 12 + 1}
+            renderOrder={passive ? 999999 : 20000 + eli * 100 + 4 * 12 + 1}
             rotation={[0, 0, 0]}
         >
             <T.SphereGeometry args={[0.08, 32, 16]} />
@@ -1057,7 +1121,7 @@
         <T.Mesh
             position={[b.x, b.y, b.z]}
             rotation={[0, 0, 0]}
-            renderOrder={20000 + eli * 100 + 4 * 12 + 1}
+            renderOrder={passive ? 999999 : 20000 + eli * 100 + 4 * 12 + 1}
         >
             <T.SphereGeometry args={[0.08, 32, 16]} />
             <T.MeshBasicMaterial
@@ -1113,7 +1177,7 @@
         {/if}
         <T.Mesh
             position={[p.x, p.y, p.z]}
-            renderOrder={20000 + eli * 100 + 4 * 12 + 1}
+            renderOrder={passive ? 999999 : 20000 + eli * 100 + 4 * 12 + 1}
             rotation={[0, 0, 0]}
         >
             <T.SphereGeometry args={[0.08, 32, 16]} />
@@ -1169,7 +1233,7 @@
             />
         {/if}
         <T.Mesh
-            renderOrder={20000 + eli * 100 + 4 * 12 + 1}
+            renderOrder={passive ? 999999 : 20000 + eli * 100 + 4 * 12 + 1}
             rotation={[0, 0, 0]}
         >
             <T.SphereGeometry args={[0.08, 32, 16]} />
