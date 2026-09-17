@@ -236,9 +236,11 @@
                     MV motorResult = sandwich(p, partialMotor);
                     vec3 coords = pointCoords(motorResult);
 
-                    skip = 1.0;
+                    MV motorResult2 = sandwich(p, motor);
+                                        vec3 coords2 = pointCoords(motorResult2);
+                    skip =sign(max(0.0, abs(length(coords2 - aPosition.xyz)) - 0.01));
 
-                    vec4 worldPos = modelMatrix * vec4(position * vec3(1.0,0.0,1.0) + coords, 1.0);
+                    vec4 worldPos = skip * modelMatrix * vec4(position * vec3(1.0,0.0,1.0) + coords, 1.0);
                     vec4 mvPosition = modelViewMatrix *
                        worldPos ;
                             #include <clipping_planes_vertex>
@@ -577,48 +579,50 @@
             ).normalize(),
         )}
 
-        <TransformControls
-            quaternion={rot.toArray()}
-            position={new THREE.Vector3(0, 0, plnParams?.distance)
-                .applyQuaternion(rot)
-                .toArray()}
-            size={active ? 0.8 : 0}
-            clippingPlanes={planes}
-            space="local"
-            showX={false}
-            showY={false}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
+        {#if active && !passive}
+            <TransformControls
+                quaternion={rot.toArray()}
+                position={new THREE.Vector3(0, 0, plnParams?.distance)
+                    .applyQuaternion(rot)
+                    .toArray()}
+                size={active ? 0.8 : 0}
+                clippingPlanes={planes}
+                space="local"
+                showX={false}
+                showY={false}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
 
-                const normal = new THREE.Vector3(
-                    object.position.x,
-                    object.position.y,
-                    object.position.z,
-                ).normalize();
+                    const normal = new THREE.Vector3(
+                        object.position.x,
+                        object.position.y,
+                        object.position.z,
+                    ).normalize();
 
-                const pivot = object.position.clone();
+                    const pivot = object.position.clone();
 
-                let distance = Math.max(0, Math.min(2, normal.dot(pivot)));
+                    let distance = Math.max(0, Math.min(2, normal.dot(pivot)));
 
-                const rev = normal.dot(
-                    new THREE.Vector3(
-                        plnParams?.normal[0],
-                        plnParams?.normal[1],
-                        plnParams?.normal[2],
-                    ),
-                );
-                if (rev < 0) {
-                    distance *= -1;
-                    normal.negate();
-                }
-                if (distance == 0) {
-                    return;
-                }
+                    const rev = normal.dot(
+                        new THREE.Vector3(
+                            plnParams?.normal[0],
+                            plnParams?.normal[1],
+                            plnParams?.normal[2],
+                        ),
+                    );
+                    if (rev < 0) {
+                        distance *= -1;
+                        normal.negate();
+                    }
+                    if (distance == 0) {
+                        return;
+                    }
 
-                elements[eli].el = cga.plane(normal, distance);
-            }}
-            mode={"translate"}
-        />
+                    elements[eli].el = cga.plane(normal, distance);
+                }}
+                mode={"translate"}
+            />
+        {/if}
 
         <T.Group quaternion={rot.toArray()}>
             <T.Group position={[0, 0, plnParams?.distance]}>
@@ -692,48 +696,51 @@
                 plnParams?.normal[2],
             ).normalize(),
         )}
-        <TransformControls
-            quaternion={rot.toArray()}
-            position={new THREE.Vector3(0, 0, plnParams?.distance)
-                .applyQuaternion(rot)
-                .toArray()}
-            size={active ? 0.8 : 0}
-            clippingPlanes={planes}
-            space="local"
-            showX={false}
-            showY={false}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
 
-                const normal = new THREE.Vector3(
-                    object.position.x,
-                    object.position.y,
-                    object.position.z,
-                ).normalize();
+        {#if active && !passive}
+            <TransformControls
+                quaternion={rot.toArray()}
+                position={new THREE.Vector3(0, 0, plnParams?.distance)
+                    .applyQuaternion(rot)
+                    .toArray()}
+                size={active ? 0.8 : 0}
+                clippingPlanes={planes}
+                space="local"
+                showX={false}
+                showY={false}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
 
-                const pivot = object.position.clone();
+                    const normal = new THREE.Vector3(
+                        object.position.x,
+                        object.position.y,
+                        object.position.z,
+                    ).normalize();
 
-                let distance = Math.max(0, Math.min(2, normal.dot(pivot)));
+                    const pivot = object.position.clone();
 
-                const rev = normal.dot(
-                    new THREE.Vector3(
-                        plnParams?.normal[0],
-                        plnParams?.normal[1],
-                        plnParams?.normal[2],
-                    ),
-                );
-                if (rev < 0) {
-                    distance *= -1;
-                    normal.negate();
-                }
-                if (distance == 0) {
-                    return;
-                }
+                    let distance = Math.max(0, Math.min(2, normal.dot(pivot)));
 
-                elements[eli].el = cga.undual(cga.plane(normal, distance));
-            }}
-            mode={"translate"}
-        />
+                    const rev = normal.dot(
+                        new THREE.Vector3(
+                            plnParams?.normal[0],
+                            plnParams?.normal[1],
+                            plnParams?.normal[2],
+                        ),
+                    );
+                    if (rev < 0) {
+                        distance *= -1;
+                        normal.negate();
+                    }
+                    if (distance == 0) {
+                        return;
+                    }
+
+                    elements[eli].el = cga.undual(cga.plane(normal, distance));
+                }}
+                mode={"translate"}
+            />
+        {/if}
         <T.Group quaternion={rot.toArray()}>
             <T.Group position={[0, 0, plnParams?.distance]}>
                 <T.Mesh

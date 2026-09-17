@@ -88,6 +88,7 @@
         },
         {
             name: "Line",
+            showVectorField: true,
             elements: [
                 {
                     active: true,
