@@ -483,7 +483,8 @@
                 color={active ? color : "gray"}
             />
         </T.Mesh>
-    {:else if cga.isSphere(cga.dual(el))}
+    {/if}
+    {#if cga.isSphere(cga.dual(el))}
         {@const sphCoords = cga.sphereParameters(cga.dual(el))}
 
         {#if active && !passive}
@@ -557,7 +558,8 @@
                 color={active ? color : "gray"}
             />
         </T.Mesh>
-    {:else if cga.isPlane(el)}
+    {/if}
+    {#if cga.isPlane(el)}
         {@const plnParams = cga.planeParameters(el)}
         {@const rot = new THREE.Quaternion().setFromUnitVectors(
             new THREE.Vector3(0, 0, 1),
@@ -672,7 +674,8 @@
                 </T.Mesh>
             </T.Group>
         </T.Group>
-    {:else if cga.isPlane(cga.dual(el))}
+    {/if}
+    {#if cga.isPlane(cga.dual(el))}
         {@const plnParams = cga.planeParameters(cga.dual(el))}
         {@const rot = new THREE.Quaternion().setFromUnitVectors(
             new THREE.Vector3(0, 0, 1),
@@ -682,6 +685,48 @@
                 plnParams?.normal[2],
             ).normalize(),
         )}
+        <TransformControls
+            quaternion={rot.toArray()}
+            position={new THREE.Vector3(0, 0, plnParams?.distance)
+                .applyQuaternion(rot)
+                .toArray()}
+            size={active ? 0.8 : 0}
+            clippingPlanes={planes}
+            space="local"
+            showX={false}
+            showY={false}
+            onobjectChange={(evt) => {
+                const object = evt.target.object;
+
+                const normal = new THREE.Vector3(
+                    object.position.x,
+                    object.position.y,
+                    object.position.z,
+                ).normalize();
+
+                const pivot = object.position.clone();
+
+                let distance = Math.max(0, Math.min(2, normal.dot(pivot)));
+
+                const rev = normal.dot(
+                    new THREE.Vector3(
+                        plnParams?.normal[0],
+                        plnParams?.normal[1],
+                        plnParams?.normal[2],
+                    ),
+                );
+                if (rev < 0) {
+                    distance *= -1;
+                    normal.negate();
+                }
+                if (distance == 0) {
+                    return;
+                }
+
+                elements[eli].el = cga.undual(cga.plane(normal, distance));
+            }}
+            mode={"translate"}
+        />
         <T.Group quaternion={rot.toArray()}>
             <T.Group position={[0, 0, plnParams?.distance]}>
                 <T.Mesh
@@ -743,7 +788,8 @@
                 </T.Mesh>
             </T.Group>
         </T.Group>
-    {:else if cga.isCircle(el)}
+    {/if}
+    {#if cga.isCircle(el)}
         {@const cirParams = cga.circleParameters(el)}
         {@const rot = new THREE.Quaternion().setFromUnitVectors(
             new THREE.Vector3(0, 0, 1),
@@ -803,7 +849,8 @@
                 color={active ? color : "gray"}
             />
         </T.Mesh>
-    {:else if cga.isCircle(cga.dual(el))}
+    {/if}
+    {#if cga.isCircle(cga.dual(el))}
         {@const cirParams = cga.circleParameters(cga.dual(el))}
         {@const rot = new THREE.Quaternion().setFromUnitVectors(
             new THREE.Vector3(0, 0, 1),
@@ -865,7 +912,8 @@
                 color={active ? color : "gray"}
             />
         </T.Mesh>
-    {:else if cga.isLine(el)}
+    {/if}
+    {#if cga.isLine(el)}
         {@const lineParams = cga.lineParameters(el)}
         {@const rot = new THREE.Quaternion().setFromUnitVectors(
             new THREE.Vector3(0, 1, 0),
@@ -887,7 +935,8 @@
                 color={active ? color : "gray"}
             />
         </T.Mesh>
-    {:else if cga.isLine(cga.dual(el))}
+    {/if}
+    {#if cga.isLine(cga.dual(el))}
         {@const lineParams = cga.lineParameters(cga.dual(el))}
         {@const rot = new THREE.Quaternion().setFromUnitVectors(
             new THREE.Vector3(0, 1, 0),
@@ -909,7 +958,8 @@
                 color={active ? color : "gray"}
             />
         </T.Mesh>
-    {:else if cga.isPointPair(el)}
+    {/if}
+    {#if cga.isPointPair(el)}
         {@const [a, b] = cga.pointPairCoords(el)}
 
         {#if active && !passive}
@@ -1021,7 +1071,8 @@
                 color={active ? color : "gray"}
             />
         </T.Mesh>
-    {:else if cga.isPointPair(cga.dual(el))}
+    {/if}
+    {#if cga.isPointPair(cga.dual(el))}
         {@const [a, b] = cga.pointPairCoords(cga.dual(el))}
         {#if active && !passive}
             <TransformControls
@@ -1134,7 +1185,8 @@
                 color={active ? color : "gray"}
             />
         </T.Mesh>
-    {:else if cga.isEuclideanPoint(el)}
+    {/if}
+    {#if cga.isEuclideanPoint(el)}
         {@const p = cga.pointParameters(el)}
         {#if active && !passive}
             <TransformControls
@@ -1165,11 +1217,7 @@
                             object.position.z,
                             p.sign,
                         );
-                        if (
-                            cga.isEuclideanPoint(np) &&
-                            !cga.isPointPair(cga.dual(np))
-                        )
-                            elements[eli].el = np;
+                        if (cga.isEuclideanPoint(np)) elements[eli].el = np;
                     }
                 }}
                 mode="translate"
@@ -1191,7 +1239,8 @@
                 color={active ? color : "gray"}
             />
         </T.Mesh>
-    {:else if cga.isEuclideanPoint(cga.dual(el))}
+    {/if}
+    {#if cga.isEuclideanPoint(cga.dual(el))}
         {@const p = cga.pointParameters(cga.dual(el))}
         {#if active && !passive}
             <TransformControls
@@ -1222,10 +1271,7 @@
                             object.position.z,
                             p.sign,
                         );
-                        if (
-                            cga.isEuclideanPoint(np) &&
-                            !cga.isPointPair(cga.undual(np))
-                        )
+                        if (cga.isEuclideanPoint(np))
                             elements[eli].el = cga.undual(np);
                     }
                 }}
@@ -1233,6 +1279,7 @@
             />
         {/if}
         <T.Mesh
+            position={[p.x, p.y, p.z]}
             renderOrder={passive ? 999999 : 20000 + eli * 100 + 4 * 12 + 1}
             rotation={[0, 0, 0]}
         >

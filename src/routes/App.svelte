@@ -810,87 +810,6 @@
                 </div>
             </fieldset>
         </fieldset>
-        <fieldset class="fieldset-mini">
-            <legend>All</legend>
-            <div class="button-row">
-                <button
-                    disabled={elements.length == 0}
-                    onclick={(evt) => {
-                        while (elements.length) {
-                            freeColors.push(elements.pop().color);
-                        }
-                    }}>Clear</button
-                >
-                <button
-                    disabled={elements.length == 0}
-                    onclick={(evt) => {
-                        elements = elements.map((e) => {
-                            return { ...e, el: cga.dual(e.el) };
-                        });
-                    }}>Dual all</button
-                >
-                <button
-                    disabled={elements.length == 0}
-                    onclick={(evt) => {
-                        elements = elements.map((e) => {
-                            return { ...e, el: cga.scale(-1, e.el) };
-                        });
-                    }}
-                    >Negate all
-                </button>
-                <button
-                    disabled={elements.length < 2}
-                    onclick={(evt) => {
-                        elements = elements.toReversed();
-                    }}>Reverse</button
-                >
-
-                <button
-                    disabled={elements.length == 1 ||
-                        !combinedMotor ||
-                        !cga.isVersor(combinedMotor)}
-                    onclick={(evt) => {
-                        const cmb = combinedMotor;
-                        while (elements.length) {
-                            freeColors.push(elements.pop().color);
-                        }
-                        elements.push({
-                            active: true,
-                            color: freeColors.pop(),
-                            el: cmb,
-                        });
-                    }}>gp all</button
-                >
-                <button
-                    disabled={!wedgedMotor || !cga.isVersor(wedgedMotor)}
-                    onclick={(evt) => {
-                        const cmb = wedgedMotor;
-                        while (elements.length) {
-                            freeColors.push(elements.pop().color);
-                        }
-                        elements.push({
-                            active: true,
-                            color: freeColors.pop(),
-                            el: cmb,
-                        });
-                    }}>&wedge; all</button
-                >
-                <button
-                    disabled={!summedMotor}
-                    onclick={(evt) => {
-                        const cmb = summedMotor;
-                        while (elements.length) {
-                            freeColors.push(elements.pop().color);
-                        }
-                        elements.push({
-                            active: true,
-                            color: freeColors.pop(),
-                            el: cmb,
-                        });
-                    }}>sum all</button
-                >
-            </div>
-        </fieldset>
     </div>
     <div class="menu">
         <header>
@@ -985,6 +904,77 @@
                             }
                         }}>Clear</button
                     >
+                    <button
+                        disabled={elements.length == 0}
+                        onclick={(evt) => {
+                            elements = elements.map((e) => {
+                                return { ...e, el: cga.dual(e.el) };
+                            });
+                        }}
+                    >
+                        ★
+                    </button>
+                    <button
+                        disabled={elements.length == 0}
+                        onclick={(evt) => {
+                            elements = elements.map((e) => {
+                                return { ...e, el: cga.scale(-1, e.el) };
+                            });
+                        }}
+                        >-
+                    </button>
+                    <button
+                        disabled={elements.length < 2}
+                        onclick={(evt) => {
+                            elements = elements.toReversed();
+                        }}>⇋</button
+                    >
+
+                    <button
+                        disabled={elements.length == 1 ||
+                            !combinedMotor ||
+                            !cga.isVersor(combinedMotor)}
+                        onclick={(evt) => {
+                            const cmb = combinedMotor;
+                            while (elements.length) {
+                                freeColors.push(elements.pop().color);
+                            }
+                            elements.push({
+                                active: true,
+                                color: freeColors.pop(),
+                                el: cmb,
+                            });
+                        }}>&prod;</button
+                    >
+                    <button
+                        disabled={!wedgedMotor || !cga.isVersor(wedgedMotor)}
+                        onclick={(evt) => {
+                            const cmb = wedgedMotor;
+                            while (elements.length) {
+                                freeColors.push(elements.pop().color);
+                            }
+                            elements.push({
+                                active: true,
+                                color: freeColors.pop(),
+                                el: cmb,
+                            });
+                        }}>&wedge;</button
+                    >
+                    <button
+                        disabled={!summedMotor}
+                        onclick={(evt) => {
+                            const cmb = summedMotor;
+                            while (elements.length) {
+                                freeColors.push(elements.pop().color);
+                            }
+                            elements.push({
+                                active: true,
+                                color: freeColors.pop(),
+                                el: cmb,
+                            });
+                        }}
+                        >&sum;
+                    </button>
                 </div>
             </fieldset>
         </div>
@@ -1135,7 +1125,7 @@
                                 elements[eli].el = cga.dual(elements[eli].el);
                             }}
                         >
-                            Dual
+                            ★
                         </button>
                         <button
                             class="element-button"
@@ -1143,7 +1133,7 @@
                                 elements[eli].el = cga.undual(elements[eli].el);
                             }}
                         >
-                            Undual
+                            ✩
                         </button>
                         <button
                             class="element-button"
@@ -1154,7 +1144,7 @@
                                 );
                             }}
                         >
-                            Negate
+                            -
                         </button>
                         <button
                             class="element-button"
@@ -1164,119 +1154,122 @@
                                 );
                             }}
                         >
-                            Normalize
+                            ||
                         </button>
+                        <fieldset class="gridset">
+                            <legend>Binary</legend>
 
-                        <div
-                            class="element-button"
-                            role="button"
-                            tabindex="-1"
-                            draggable="true"
-                            ondragstart={(evt) => {
-                                evt.dataTransfer.setData(
-                                    "text/plain",
-                                    JSON.stringify({
-                                        type: "cga-sum",
-                                        index: eli,
-                                    }),
-                                );
-                                dragging = eli;
-                            }}
-                            ondragend={(evt) => {
-                                dragging = null;
-                                over = null;
-                            }}
-                        >
-                            +
-                        </div>
-                        <div
-                            class="element-button"
-                            role="button"
-                            tabindex="-1"
-                            draggable="true"
-                            ondragstart={(evt) => {
-                                evt.dataTransfer.setData(
-                                    "text/plain",
-                                    JSON.stringify({
-                                        type: "cga-sub",
-                                        index: eli,
-                                    }),
-                                );
-                                dragging = eli;
-                            }}
-                            ondragend={(evt) => {
-                                dragging = null;
-                                over = null;
-                            }}
-                        >
-                            -
-                        </div>
-                        <div
-                            class="element-button"
-                            role="button"
-                            tabindex="-1"
-                            draggable="true"
-                            ondragstart={(evt) => {
-                                evt.dataTransfer.setData(
-                                    "text/plain",
-                                    JSON.stringify({
-                                        type: "cga-gp",
-                                        index: eli,
-                                    }),
-                                );
-                                dragging = eli;
-                            }}
-                            ondragend={(evt) => {
-                                dragging = null;
-                                over = null;
-                            }}
-                        >
-                            gp
-                        </div>
-                        <div
-                            class="element-button"
-                            role="button"
-                            tabindex="-1"
-                            draggable="true"
-                            ondragstart={(evt) => {
-                                evt.dataTransfer.setData(
-                                    "text/plain",
-                                    JSON.stringify({
-                                        type: "cga-wedge",
-                                        index: eli,
-                                    }),
-                                );
-                                dragging = eli;
-                            }}
-                            ondragend={(evt) => {
-                                dragging = null;
-                                over = null;
-                            }}
-                        >
-                            &wedge;
-                        </div>
-                        <div
-                            class="element-button"
-                            role="button"
-                            tabindex="-1"
-                            draggable="true"
-                            ondragstart={(evt) => {
-                                evt.dataTransfer.setData(
-                                    "text/plain",
-                                    JSON.stringify({
-                                        type: "cga-meet",
-                                        index: eli,
-                                    }),
-                                );
-                                dragging = eli;
-                            }}
-                            ondragend={(evt) => {
-                                dragging = null;
-                                over = null;
-                            }}
-                        >
-                            meet
-                        </div>
+                            <div
+                                class="element-button"
+                                role="button"
+                                tabindex="-1"
+                                draggable="true"
+                                ondragstart={(evt) => {
+                                    evt.dataTransfer.setData(
+                                        "text/plain",
+                                        JSON.stringify({
+                                            type: "cga-sum",
+                                            index: eli,
+                                        }),
+                                    );
+                                    dragging = eli;
+                                }}
+                                ondragend={(evt) => {
+                                    dragging = null;
+                                    over = null;
+                                }}
+                            >
+                                +
+                            </div>
+                            <div
+                                class="element-button"
+                                role="button"
+                                tabindex="-1"
+                                draggable="true"
+                                ondragstart={(evt) => {
+                                    evt.dataTransfer.setData(
+                                        "text/plain",
+                                        JSON.stringify({
+                                            type: "cga-sub",
+                                            index: eli,
+                                        }),
+                                    );
+                                    dragging = eli;
+                                }}
+                                ondragend={(evt) => {
+                                    dragging = null;
+                                    over = null;
+                                }}
+                            >
+                                -
+                            </div>
+                            <div
+                                class="element-button"
+                                role="button"
+                                tabindex="-1"
+                                draggable="true"
+                                ondragstart={(evt) => {
+                                    evt.dataTransfer.setData(
+                                        "text/plain",
+                                        JSON.stringify({
+                                            type: "cga-gp",
+                                            index: eli,
+                                        }),
+                                    );
+                                    dragging = eli;
+                                }}
+                                ondragend={(evt) => {
+                                    dragging = null;
+                                    over = null;
+                                }}
+                            >
+                                gp
+                            </div>
+                            <div
+                                class="element-button"
+                                role="button"
+                                tabindex="-1"
+                                draggable="true"
+                                ondragstart={(evt) => {
+                                    evt.dataTransfer.setData(
+                                        "text/plain",
+                                        JSON.stringify({
+                                            type: "cga-wedge",
+                                            index: eli,
+                                        }),
+                                    );
+                                    dragging = eli;
+                                }}
+                                ondragend={(evt) => {
+                                    dragging = null;
+                                    over = null;
+                                }}
+                            >
+                                &wedge;
+                            </div>
+                            <div
+                                class="element-button"
+                                role="button"
+                                tabindex="-1"
+                                draggable="true"
+                                ondragstart={(evt) => {
+                                    evt.dataTransfer.setData(
+                                        "text/plain",
+                                        JSON.stringify({
+                                            type: "cga-meet",
+                                            index: eli,
+                                        }),
+                                    );
+                                    dragging = eli;
+                                }}
+                                ondragend={(evt) => {
+                                    dragging = null;
+                                    over = null;
+                                }}
+                            >
+                                meet
+                            </div>
+                        </fieldset>
                     </div>
                     <div class="element-head">
                         <label class="form-row">
@@ -1385,7 +1378,8 @@
                                             />
                                         </label>
                                     </form>
-                                {:else if cga.isSphere(cga.dual(el))}
+                                {/if}
+                                {#if cga.isSphere(cga.dual(el))}
                                     <strong>Sphere (Directing)</strong>
                                     {@const sphCoords = cga.sphereParameters(
                                         cga.dual(el),
@@ -1467,7 +1461,8 @@
                                             />
                                         </label>
                                     </form>
-                                {:else if cga.isPlane(el)}
+                                {/if}
+                                {#if cga.isPlane(el)}
                                     <strong>Plane (Reflecting)</strong>
                                     {@const plnParams = cga.planeParameters(el)}
                                     <form
@@ -1528,7 +1523,8 @@
                                             />
                                         </label>
                                     </form>
-                                {:else if cga.isPlane(cga.dual(el))}
+                                {/if}
+                                {#if cga.isPlane(cga.dual(el))}
                                     <strong>Plane (Directing)</strong>
                                     {@const plnParams = cga.planeParameters(
                                         cga.dual(el),
@@ -1597,7 +1593,8 @@
                                             />
                                         </label>
                                     </form>
-                                {:else if cga.isPointPair(el)}
+                                {/if}
+                                {#if cga.isPointPair(el)}
                                     <strong>Point Pair</strong>
                                     {@const [a, b] = cga.pointPairCoords(el)}
                                     <div
@@ -1720,7 +1717,8 @@
                                             </label>
                                         </form>
                                     </div>
-                                {:else if cga.isPointPair(cga.dual(el))}
+                                {/if}
+                                {#if cga.isPointPair(cga.dual(el))}
                                     <strong>Point Pair (Dual)</strong>
                                     {@const [b, a] = cga.pointPairCoords(
                                         cga.dual(el),
@@ -1741,13 +1739,11 @@
                                                         b.x,
                                                         b.y,
                                                         b.z,
-                                                        b.sign,
                                                     ),
                                                     cga.zeroSphere(
                                                         fd.x,
                                                         fd.y,
                                                         fd.z,
-                                                        1 * fd.sign,
                                                     ),
                                                 );
                                                 if (cga.isPointPair(npp))
@@ -1788,20 +1784,6 @@
                                                     step="0.01"
                                                 />
                                             </label>
-                                            <input
-                                                type="hidden"
-                                                name="sign"
-                                                value="1"
-                                            />
-                                            <label class="form-row">
-                                                negative:
-                                                <input
-                                                    type="checkbox"
-                                                    name="sign"
-                                                    value="-1"
-                                                    checked={a.sign < 0}
-                                                />
-                                            </label>
                                         </form>
                                         <form
                                             oninput={(evt) => {
@@ -1816,13 +1798,11 @@
                                                         fd.x,
                                                         fd.y,
                                                         fd.z,
-                                                        fd.sign,
                                                     ),
                                                     cga.zeroSphere(
                                                         a.x,
                                                         a.y,
                                                         a.z,
-                                                        a.sign,
                                                     ),
                                                 );
                                                 if (cga.isPointPair(npp))
@@ -1863,23 +1843,10 @@
                                                     step="0.01"
                                                 />
                                             </label>
-                                            <input
-                                                type="hidden"
-                                                name="sign"
-                                                value="1"
-                                            />
-                                            <label class="form-row">
-                                                negative:
-                                                <input
-                                                    type="checkbox"
-                                                    name="sign"
-                                                    value="-1"
-                                                    checked={b.sign < 0}
-                                                />
-                                            </label>
                                         </form>
                                     </div>
-                                {:else if cga.isCircle(el)}
+                                {/if}
+                                {#if cga.isCircle(el)}
                                     <strong>Circle</strong>
                                     {@const cirParams =
                                         cga.circleParameters(el)}
@@ -2012,7 +1979,8 @@
                                             </div>
                                         </div>
                                     </form>
-                                {:else if cga.isCircle(cga.dual(el))}
+                                {/if}
+                                {#if cga.isCircle(cga.dual(el))}
                                     <strong>Circle (Direct)</strong>
                                     {@const cirParams = cga.circleParameters(
                                         cga.dual(el),
@@ -2146,7 +2114,8 @@
                                             </div>
                                         </div>
                                     </form>
-                                {:else if cga.isLine(el)}
+                                {/if}
+                                {#if cga.isLine(el)}
                                     <strong>Line</strong>
                                     {@const lineParams = cga.lineParameters(el)}
                                     <form
@@ -2239,7 +2208,8 @@
                                             </div>
                                         </div>
                                     </form>
-                                {:else if cga.isLine(cga.dual(el))}
+                                {/if}
+                                {#if cga.isLine(cga.dual(el))}
                                     <strong>Line (Dual)</strong>
                                     {@const lineParams = cga.lineParameters(
                                         cga.dual(el),
@@ -2334,7 +2304,8 @@
                                             </div>
                                         </div>
                                     </form>
-                                {:else if cga.isEuclideanPoint(el)}
+                                {/if}
+                                {#if cga.isEuclideanPoint(el)}
                                     {@const p = cga.pointParameters(el)}
                                     <strong>Point</strong>
                                     <form
@@ -2348,10 +2319,7 @@
                                                 fd.z,
                                                 1 * fd.sign,
                                             );
-                                            if (
-                                                cga.isEuclideanPoint(np) &&
-                                                !cga.isPointPair(cga.dual(np))
-                                            )
+                                            if (cga.isEuclideanPoint(np))
                                                 elements[eli].el = np;
                                         }}
                                     >
@@ -2403,7 +2371,8 @@
                                             />
                                         </label>
                                     </form>
-                                {:else if cga.isEuclideanPoint(cga.dual(el))}
+                                {/if}
+                                {#if cga.isEuclideanPoint(cga.dual(el))}
                                     {@const p = cga.pointParameters(
                                         cga.dual(el),
                                     )}
@@ -2419,10 +2388,7 @@
                                                 fd.z,
                                                 1 * fd.sign,
                                             );
-                                            if (
-                                                cga.isEuclideanPoint(np) &&
-                                                !cga.isPointPair(cga.dual(np))
-                                            )
+                                            if (cga.isEuclideanPoint(np))
                                                 elements[eli].el =
                                                     cga.undual(np);
                                         }}
@@ -2475,8 +2441,6 @@
                                             />
                                         </label>
                                     </form>
-                                {:else}
-                                    <strong>Unknown</strong>
                                 {/if}
                                 <textarea
                                     class="serialized"
@@ -2494,8 +2458,8 @@
                                     value={elements[eli].el[
                                         cga.basisIndex[basis]
                                     ]}
-                                    min={-1}
-                                    max={1}
+                                    min={-2}
+                                    max={2}
                                     step={0.01}
                                     oninput={(evt) => {
                                         elements[eli].el = cga.setBasis(
@@ -2536,6 +2500,103 @@
                                     <legend>Grade 2</legend>
                                     {@render basisSlider(eli, "ep")}
                                     {@render basisSlider(eli, "em")}
+                                    <label
+                                        style="display: flex; flex-direction: column;"
+                                    >
+                                        <span style:white-space="nowrap"
+                                            >(ep + em) / 2</span
+                                        >
+                                        <input
+                                            type="range"
+                                            value={(elements[eli].el[
+                                                cga.basisIndex.ep
+                                            ] +
+                                                elements[eli].el[
+                                                    cga.basisIndex.em
+                                                ]) /
+                                                2}
+                                            min={-2}
+                                            max={2}
+                                            step={0.01}
+                                            oninput={(evt) => {
+                                                const old =
+                                                    (elements[eli].el[
+                                                        cga.basisIndex.ep
+                                                    ] +
+                                                        elements[eli].el[
+                                                            cga.basisIndex.em
+                                                        ]) /
+                                                    2;
+                                                const dep =
+                                                    elements[eli].el[
+                                                        cga.basisIndex.ep
+                                                    ] - old;
+                                                const dem =
+                                                    elements[eli].el[
+                                                        cga.basisIndex.em
+                                                    ] - old;
+
+                                                elements[eli].el = cga.setBasis(
+                                                    cga.setBasis(
+                                                        elements[eli].el,
+                                                        cga.basisIndex.ep,
+                                                        evt.currentTarget
+                                                            .valueAsNumber +
+                                                            dep,
+                                                    ),
+                                                    cga.basisIndex.em,
+                                                    evt.currentTarget
+                                                        .valueAsNumber + dem,
+                                                );
+                                            }}
+                                        />
+                                    </label>
+                                    <label
+                                        style="display: flex; flex-direction: column;"
+                                    >
+                                        <span style:white-space="nowrap"
+                                            >(ep - em)</span
+                                        >
+                                        <br />
+                                        <input
+                                            type="range"
+                                            value={elements[eli].el[
+                                                cga.basisIndex.ep
+                                            ] -
+                                                elements[eli].el[
+                                                    cga.basisIndex.em
+                                                ]}
+                                            min={-5}
+                                            max={5}
+                                            step={0.01}
+                                            oninput={(evt) => {
+                                                const old =
+                                                    (elements[eli].el[
+                                                        cga.basisIndex.ep
+                                                    ] +
+                                                        elements[eli].el[
+                                                            cga.basisIndex.em
+                                                        ]) /
+                                                    2;
+
+                                                elements[eli].el = cga.setBasis(
+                                                    cga.setBasis(
+                                                        elements[eli].el,
+                                                        cga.basisIndex.ep,
+                                                        old +
+                                                            evt.currentTarget
+                                                                .valueAsNumber /
+                                                                2,
+                                                    ),
+                                                    cga.basisIndex.em,
+                                                    old -
+                                                        evt.currentTarget
+                                                            .valueAsNumber /
+                                                            2,
+                                                );
+                                            }}
+                                        />
+                                    </label>
                                 </fieldset>
                                 <fieldset>
                                     <legend>Grade 4</legend>
@@ -2636,6 +2697,7 @@
         grid-area: toolbar;
         z-index: 100;
         display: flex;
+        gap: 1ex;
 
         color: #fff;
         padding: 1ex;
@@ -2696,7 +2758,9 @@
         gap: 1ex;
     }
     .element-side {
-        display: flex;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-auto-rows: 2em;
         flex-direction: column;
         gap: 2px;
         text-align: center;
@@ -2818,6 +2882,8 @@
         justify-content: center;
         padding: 1ex;
         display: flex;
+        box-sizing: border-box;
+        align-items: center;
     }
     .serialized {
         opacity: 1;
@@ -2842,6 +2908,7 @@
     fieldset {
         border: 1px solid #333;
         padding: 0.5ex;
+        margin: 0;
     }
     details {
         width: 100%;
@@ -2871,5 +2938,26 @@
     }
     .accordeon-item:open::details-content {
         padding: 1ex;
+    }
+    .gridset {
+        border: none;
+        padding: 0;
+        display: grid;
+        margin: 0;
+        grid-column: 1 / span 2;
+        grid-template-columns: subgrid;
+        gap: 2px;
+    }
+    .gridset legend {
+        grid-column: 1 / -1;
+        display: block;
+        justify-self: center;
+        position: static;
+        width: 100%;
+        margin: 0;
+        inset: none;
+        box-sizing: border-box;
+        border: none;
+        margin-bottom: 2px;
     }
 </style>

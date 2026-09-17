@@ -259,7 +259,7 @@ export function plane(normal, distance) {
   const [x, y, z] = normal;
   const len = Math.hypot(x, y, z);
 
-  if (len < 1e-10) throw new Error("plane normal must not be zero");
+  if (len < 1e-5) throw new Error("plane normal must not be zero");
 
   const nx = x / len;
   const ny = y / len;
@@ -374,7 +374,7 @@ export function undual(a) {
   return gp(a, I);
 }
 
-export function circleParameters(CC, eps = 1e-10) {
+export function circleParameters(CC, eps = 1e-5) {
   const C = dual(CC);
   const q = gp(gp(C, einf), C);
 
@@ -427,16 +427,16 @@ export function sphereParameters(s) {
   };
 }
 
-export function isSphere(s, eps = 1e-10) {
+export function isSphere(s, eps = 1e-5) {
   const w = s[16] - s[8];
 
   return Math.abs(w) > eps;
 }
-export function isPlane(a, eps = 1e-10) {
+export function isPlane(a, eps = 1e-5) {
   // Plane has only grade-1 components
   return isGrade(a, 1, eps) && Math.abs(a[16] - a[8]) < eps;
 }
-export function spinorNorm(a, eps = 1e-10) {
+export function spinorNorm(a, eps = 1e-5) {
   const n = gp(a, reverse(a));
 
   // Must be scalar
@@ -446,33 +446,34 @@ export function spinorNorm(a, eps = 1e-10) {
 
   return n[0];
 }
-export function isEuclideanPoint(a, eps = 1e-10) {
+export function isEuclideanPoint(a, eps = 1e-6) {
   if (!isGrade(a, 3, eps)) return false;
 
-  if (Math.abs(a[7]) < eps) return false;
+  const scale = Math.max(1, Math.hypot(...a));
 
-  const allowed = new Set([
-    7, // e123
-    11, // e12o
-    13, // e13o
-    14, // e23o
-    19, // e12∞
-    21, // e13∞
-    22, // e23∞
-  ]);
+  // Euclidean point must have e123 component.
+  if (Math.abs(a[7]) <= eps * scale) return false;
+
+  // Only these components are allowed.
+  const allowed = [7, 11, 13, 14, 19, 21, 22];
 
   for (let i = 0; i < 32; i++) {
-    if (!allowed.has(i) && Math.abs(a[i]) >= eps) {
+    if (!allowed.includes(i) && Math.abs(a[i]) > eps * scale) {
       return false;
     }
   }
 
+  // p/m representation must have matching coefficients.
+  if (Math.abs(a[11] - a[19]) > eps * scale) return false;
+  if (Math.abs(a[13] - a[21]) > eps * scale) return false;
+  if (Math.abs(a[14] - a[22]) > eps * scale) return false;
+
   return true;
 }
-export function isPointPair(a, eps = 1e-10) {
+export function isPointPair(a, eps = 1e-5) {
   if (!isGrade(a, 2, eps)) return false;
-  if (isCircle(a, eps)) return false;
-  if (isLine(a, eps)) return false;
+  if (isEuclideanPoint(a, eps)) return false;
+  if (isEuclideanPoint(dual(a), eps)) return false;
 
   const points = pointPairCoords(a, eps);
 
@@ -487,7 +488,7 @@ export function isPointPair(a, eps = 1e-10) {
   );
 }
 
-export function isCircle(aa, eps = 1e-10) {
+export function isCircle(aa, eps = 1e-5) {
   const a = dual(aa);
   if (!isGrade(a, 3, eps)) return false;
 
@@ -499,11 +500,9 @@ export function isCircle(aa, eps = 1e-10) {
 
   return Math.abs(w) >= eps;
 }
-export function isLine(a, eps = 1e-10) {
+export function isLine(a, eps = 1e-5) {
   if (!isGrade(a, 3, eps)) return false;
-  if (isCircle(a, eps)) {
-    return false;
-  }
+
   const n = spinorNorm(a, eps);
   if (n === null || n >= -eps) return false;
 
@@ -512,7 +511,7 @@ export function isLine(a, eps = 1e-10) {
 
   return Math.abs(w) < eps;
 }
-export function lineParameters(L, eps = 1e-10) {
+export function lineParameters(L, eps = 1e-5) {
   if (!isLine(L, eps)) return null;
 
   const direction = [
@@ -548,7 +547,7 @@ export function lineParameters(L, eps = 1e-10) {
     direction: d,
   };
 }
-export function pointPairCoords(b, eps = 1e-10) {
+export function pointPairCoords(b, eps = 1e-5) {
   const result = splitPointPair(b, eps);
 
   if (result === null) {
@@ -561,7 +560,7 @@ export function pointPairCoords(b, eps = 1e-10) {
 
   return [pointCoords(result.p2), pointCoords(result.p1)];
 }
-export function pointParameters(P, eps = 1e-10) {
+export function pointParameters(P, eps = 1e-5) {
   const w = P[7]; // e123
 
   if (Math.abs(w) < eps) {
@@ -575,7 +574,7 @@ export function pointParameters(P, eps = 1e-10) {
     sign: Math.sign(w),
   };
 }
-export function splitPointPair(b, eps = 1e-10) {
+export function splitPointPair(b, eps = 1e-5) {
   let bb = scalarProduct(b, b);
 
   if (Math.abs(bb) < eps) {
@@ -657,7 +656,7 @@ export function dot(a, b) {
   return result;
 }
 
-export function isGrade(a, grade, eps = 1e-10) {
+export function isGrade(a, grade, eps = 1e-5) {
   if (a.every((x) => Math.abs(x) < eps)) return false;
   for (let i = 0; i < 32; i++) {
     if (popcount(i) === grade) {
@@ -707,7 +706,7 @@ export function planeParameters(p) {
 
   const len = Math.hypot(nx, ny, nz);
 
-  if (len < 1e-10) return null;
+  if (len < 1e-5) return null;
 
   return {
     normal: [nx / len, ny / len, nz / len],
@@ -722,7 +721,7 @@ const formatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 5,
   useGrouping: false,
 });
-export function toString(a, eps = 1e-10) {
+export function toString(a, eps = 1e-5) {
   const names = [
     "1", // 00000
     "e1", // 00001
@@ -823,7 +822,7 @@ export function motorSqrt(m) {
   return result;
 }
 
-export function motorLog(M, eps = 1e-10) {
+export function motorLog(M, eps = 1e-5) {
   const I = identity();
 
   // X = M - 1
@@ -914,7 +913,7 @@ export function rotorLog(M) {
 
   const sinTheta = Math.sqrt(Math.max(0, 1 - s * s));
 
-  if (sinTheta < 1e-8) {
+  if (sinTheta < 1e-5) {
     return B;
   }
 
@@ -922,7 +921,7 @@ export function rotorLog(M) {
 
   return scale(theta / sinTheta, B);
 }
-export function normalize(a, eps = 1e-10) {
+export function normalize(a, eps = 1e-5) {
   let n = 0;
 
   for (let i = 0; i < a.length; i++) {
@@ -938,7 +937,7 @@ export function normalize(a, eps = 1e-10) {
   return scale(1 / n, a);
 }
 
-export function isVersor(V, eps = 1e-10) {
+export function isVersor(V, eps = 1e-5) {
   const Vinv = inverse(V, eps);
   if (!Vinv) return false;
 
