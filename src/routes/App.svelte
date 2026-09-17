@@ -500,13 +500,23 @@
                             });
                         }}>e123m</button
                     >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.undual(cga.sphere(0, 0, 0, 0)),
+                            });
+                        }}>e123p - e123m</button
+                    >
                 </div>
             </fieldset>
         </fieldset>
         <fieldset class="fieldset-mini">
             <legend>Add Line</legend>
             <fieldset class="fieldset-sub">
-                <legend>Grade 4 (Reflecting)</legend>
+                <legend>Grade 2 (Reflecting)</legend>
                 <div class="button-row">
                     <button
                         disabled={freeColors.length < 1}
@@ -811,6 +821,41 @@
                 </div>
             </fieldset>
         </fieldset>
+        <fieldset class="fieldset-mini">
+            <legend>Other</legend>
+            <div class="button-row">
+                <button
+                    disabled={freeColors.length < 1}
+                    onclick={(evt) => {
+                        elements.push({
+                            color: freeColors.pop(),
+                            active: true,
+                            el: cga.scalar(1),
+                        });
+                    }}>1</button
+                >
+                <button
+                    disabled={freeColors.length < 1}
+                    onclick={(evt) => {
+                        elements.push({
+                            color: freeColors.pop(),
+                            active: true,
+                            el: cga.undual(cga.scalar(1)),
+                        });
+                    }}>I</button
+                >
+                <button
+                    disabled={freeColors.length < 1}
+                    onclick={(evt) => {
+                        elements.push({
+                            color: freeColors.pop(),
+                            active: true,
+                            el: cga.undual(cga.einf),
+                        });
+                    }}>einf</button
+                >
+            </div>
+        </fieldset>
     </div>
     <div class="menu">
         <header>
@@ -1070,6 +1115,21 @@
                                 color: freeColors.pop(),
                                 active: true,
                             });
+                        } else if (
+                            from.type == "cga-wedgeinf" &&
+                            freeColors.length
+                        ) {
+                            elements.push({
+                                el: cga.wedge(
+                                    cga.wedge(
+                                        cga.normalize(elements[to].el),
+                                        cga.normalize(elements[fromIndex].el),
+                                    ),
+                                    cga.einf,
+                                ),
+                                color: freeColors.pop(),
+                                active: true,
+                            });
                         }
 
                         dragging = null;
@@ -1120,6 +1180,7 @@
                         >
                             ☰
                         </div>
+
                         <button
                             class="element-button"
                             onclick={(evt) => {
@@ -1270,6 +1331,28 @@
                             >
                                 meet
                             </div>
+                            <div
+                                class="element-button"
+                                role="button"
+                                tabindex="-1"
+                                draggable="true"
+                                ondragstart={(evt) => {
+                                    evt.dataTransfer.setData(
+                                        "text/plain",
+                                        JSON.stringify({
+                                            type: "cga-wedgeinf",
+                                            index: eli,
+                                        }),
+                                    );
+                                    dragging = eli;
+                                }}
+                                ondragend={(evt) => {
+                                    dragging = null;
+                                    over = null;
+                                }}
+                            >
+                                &wedge;&infin;
+                            </div>
                         </fieldset>
                     </div>
                     <div class="element-head">
@@ -1297,7 +1380,7 @@
                         </label>
                     </div>
                     <div class="accordeon">
-                        <details class="accordeon-item">
+                        <details open class="accordeon-item">
                             <summary>Old</summary>
                             <div>
                                 {#if cga.isSphere(el)}
@@ -2124,6 +2207,13 @@
                                             const fd = Object.fromEntries(
                                                 new FormData(evt.currentTarget),
                                             );
+                                            const nl = cga.line(
+                                                [fd.px, fd.py, fd.pz],
+                                                [fd.dx, fd.dy, fd.dz],
+                                            );
+                                            if (cga.isLine(nl)) {
+                                                elements[eli].el = nl;
+                                            }
                                         }}
                                     >
                                         <div
@@ -2220,6 +2310,14 @@
                                             const fd = Object.fromEntries(
                                                 new FormData(evt.currentTarget),
                                             );
+                                            const nl = cga.line(
+                                                [fd.px, fd.py, fd.pz],
+                                                [fd.dx, fd.dy, fd.dz],
+                                            );
+                                            if (cga.isLine(nl)) {
+                                                elements[eli].el =
+                                                    cga.undual(nl);
+                                            }
                                         }}
                                     >
                                         <div

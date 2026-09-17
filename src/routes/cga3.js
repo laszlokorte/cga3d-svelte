@@ -248,10 +248,12 @@ export function sphere(x, y, z, radius, sign = 1) {
   );
 }
 
-// Line through two points
-export function line(a, b) {
-  // OPNS line = A ^ B ^ einf
-  return wedge(wedge(a, b), einf);
+export function line([x, y, z], [dx, dy, dz]) {
+  const P = zeroSphere(x, y, z);
+
+  const D = add(scale(dx, e1), add(scale(dy, e2), scale(dz, e3)));
+
+  return undual(wedge(wedge(P, D), einf));
 }
 
 // Plane through three points
@@ -433,8 +435,13 @@ export function isSphere(s, eps = 1e-5) {
   return Math.abs(w) > eps;
 }
 export function isPlane(a, eps = 1e-5) {
-  // Plane has only grade-1 components
-  return isGrade(a, 1, eps) && Math.abs(a[16] - a[8]) < eps;
+  if (!isGrade(a, 1, eps)) return false;
+
+  // Plane must have zero eo component.
+  if (Math.abs(a[16] - a[8]) > eps) return false;
+
+  // And must have a nonzero Euclidean normal.
+  return Math.abs(a[1]) > eps || Math.abs(a[2]) > eps || Math.abs(a[4]) > eps;
 }
 export function spinorNorm(a, eps = 1e-5) {
   const n = gp(a, reverse(a));
@@ -500,7 +507,8 @@ export function isCircle(aa, eps = 1e-5) {
 
   return Math.abs(w) >= eps;
 }
-export function isLine(a, eps = 1e-5) {
+export function isLine(aa, eps = 1e-5) {
+  const a = dual(aa);
   if (!isGrade(a, 3, eps)) return false;
 
   const n = spinorNorm(a, eps);
@@ -511,8 +519,9 @@ export function isLine(a, eps = 1e-5) {
 
   return Math.abs(w) < eps;
 }
-export function lineParameters(L, eps = 1e-5) {
-  if (!isLine(L, eps)) return null;
+export function lineParameters(LL, eps = 1e-5) {
+  if (!isLine(LL, eps)) return null;
+  const L = dual(LL);
 
   const direction = [
     L[25], // e1o∞
@@ -525,7 +534,7 @@ export function lineParameters(L, eps = 1e-5) {
   if (len2 < eps * eps) return null;
 
   const len = Math.sqrt(len2);
-  const d = direction.map((x) => x / len);
+  const d = direction;
 
   // Plücker moment
   const m = [
@@ -537,9 +546,9 @@ export function lineParameters(L, eps = 1e-5) {
   // Point on line closest to origin:
   // p = m × d / |d|²
   const point = [
-    (m[1] * d[2] - m[2] * d[1]) / len,
-    (m[2] * d[0] - m[0] * d[2]) / len,
-    (m[0] * d[1] - m[1] * d[0]) / len,
+    (m[1] * d[2] - m[2] * d[1]) / len2,
+    (m[2] * d[0] - m[0] * d[2]) / len2,
+    (m[0] * d[1] - m[1] * d[0]) / len2,
   ];
 
   return {
