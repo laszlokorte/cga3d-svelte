@@ -122,32 +122,38 @@
     let objPos = $state([1, 0, 0]);
     renderer.localClippingEnabled = true;
 
+    const cubeW = 2.05;
+    const cubeD = 2.05;
+    const cubeH = 1.05;
+    const cubeW_ = 2.03;
+    const cubeD_ = 2.03;
+    const cubeH_ = 1.03;
     let group = $state();
     let camera = $state();
     const planes = [
         new THREE.Plane(
             new THREE.Vector3(1, 0, 0), // normal
-            2, // distance
+            cubeW_, // distance
         ),
         new THREE.Plane(
             new THREE.Vector3(-1, 0, 0), // normal
-            2, // distance
+            cubeW_, // distance
         ),
         new THREE.Plane(
             new THREE.Vector3(0, 1, 0), // normal
-            1, // distance
+            cubeH_, // distance
         ),
         new THREE.Plane(
             new THREE.Vector3(0, -1, 0), // normal
-            1, // distance
+            cubeH_, // distance
         ),
         new THREE.Plane(
             new THREE.Vector3(0, 0, 1), // normal
-            2, // distance
+            cubeD_, // distance
         ),
         new THREE.Plane(
             new THREE.Vector3(0, 0, -1), // normal
-            2, // distance
+            cubeD_, // distance
         ),
     ];
 
@@ -170,30 +176,31 @@
 
         camera.updateProjectionMatrix();
     }
+
     const points = [
-        new THREE.Vector3(-2, 1, -2),
-        new THREE.Vector3(2, 1, -2),
-        new THREE.Vector3(2, 1, -2),
-        new THREE.Vector3(2, 1, 2),
-        new THREE.Vector3(2, 1, 2),
-        new THREE.Vector3(-2, 1, 2),
-        new THREE.Vector3(-2, 1, 2),
-        new THREE.Vector3(-2, 1, -2),
-        new THREE.Vector3(-2, -1, -2),
-        new THREE.Vector3(-2, -1, -2),
-        new THREE.Vector3(2, -1, -2),
-        new THREE.Vector3(2, 1, -2),
-        new THREE.Vector3(2, -1, -2),
-        new THREE.Vector3(2, -1, -2),
-        new THREE.Vector3(2, -1, 2),
-        new THREE.Vector3(2, 1, 2),
-        new THREE.Vector3(2, -1, 2),
-        new THREE.Vector3(2, -1, 2),
-        new THREE.Vector3(-2, -1, 2),
-        new THREE.Vector3(-2, -1, 2),
-        new THREE.Vector3(-2, 1, 2),
-        new THREE.Vector3(-2, -1, 2),
-        new THREE.Vector3(-2, -1, -2),
+        new THREE.Vector3(-cubeW, cubeH, -cubeD),
+        new THREE.Vector3(cubeW, cubeH, -cubeD),
+        new THREE.Vector3(cubeW, cubeH, -cubeD),
+        new THREE.Vector3(cubeW, cubeH, cubeD),
+        new THREE.Vector3(cubeW, cubeH, cubeD),
+        new THREE.Vector3(-cubeW, cubeH, cubeD),
+        new THREE.Vector3(-cubeW, cubeH, cubeD),
+        new THREE.Vector3(-cubeW, cubeH, -cubeD),
+        new THREE.Vector3(-cubeW, -cubeH, -cubeD),
+        new THREE.Vector3(-cubeW, -cubeH, -cubeD),
+        new THREE.Vector3(cubeW, -cubeH, -cubeD),
+        new THREE.Vector3(cubeW, cubeH, -cubeD),
+        new THREE.Vector3(cubeW, -cubeH, -cubeD),
+        new THREE.Vector3(cubeW, -cubeH, -cubeD),
+        new THREE.Vector3(cubeW, -cubeH, cubeD),
+        new THREE.Vector3(cubeW, cubeH, cubeD),
+        new THREE.Vector3(cubeW, -cubeH, cubeD),
+        new THREE.Vector3(cubeW, -cubeH, cubeD),
+        new THREE.Vector3(-cubeW, -cubeH, cubeD),
+        new THREE.Vector3(-cubeW, -cubeH, cubeD),
+        new THREE.Vector3(-cubeW, cubeH, cubeD),
+        new THREE.Vector3(-cubeW, -cubeH, cubeD),
+        new THREE.Vector3(-cubeW, -cubeH, -cubeD),
     ];
     const vfcount = 10 * 10 * 5;
 
@@ -388,7 +395,7 @@
 </T.PerspectiveCamera>
 <Sky renderOrder={-2} elevation={90} rayleigh={0.2} turbidity={2} />
 <T.Mesh>
-    <T.BoxGeometry args={[4, 2, 4]} />
+    <T.BoxGeometry args={[2 * cubeW, 2 * cubeH, 2 * cubeD]} />
     <T.MeshStandardMaterial
         toneMapped={true}
         color="#111"
