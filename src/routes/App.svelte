@@ -12,6 +12,25 @@
         "limegreen",
         "royalblue",
     ]);
+    const formatter = new Intl.NumberFormat("en-US", {
+        maximumFractionDigits: 3,
+        minimumFractionDigits: 3,
+        useGrouping: false,
+    });
+
+    let accordeons = {
+        export: false,
+        expression: false,
+        interpreation: true,
+        planelike: false,
+        spherelike: false,
+        linelike: false,
+        pointlike: false,
+        pointpairlike: false,
+        circlelike: false,
+        identitylike: false,
+        antipodallike: false,
+    };
 
     $effect(() => {
         if (scene) {
@@ -387,6 +406,39 @@
     </div>
     <div bind:this={viewport} class="viewport"></div>
     <div class="toolbar">
+        <fieldset class="fieldset-mini">
+            <legend>Identity</legend>
+            <fieldset class="fieldset-sub">
+                <legend>Grade 0 <br />(Identity/Scalar)</legend>
+                <div class="button-row">
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.scalar(1),
+                            });
+                        }}>1</button
+                    >
+                </div>
+            </fieldset>
+            <fieldset class="fieldset-sub">
+                <legend>Grade 5<br /> (Pseudoscalar) </legend>
+                <div class="button-row">
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.undual(cga.scalar(1)),
+                            });
+                        }}>I</button
+                    >
+                </div>
+            </fieldset>
+        </fieldset>
         <fieldset class="fieldset-mini">
             <legend>Add Plane</legend>
             <fieldset class="fieldset-sub">
@@ -822,46 +874,44 @@
             </fieldset>
         </fieldset>
         <fieldset class="fieldset-mini">
-            <legend>Other</legend>
-            <div class="button-row">
-                <button
-                    disabled={freeColors.length < 1}
-                    onclick={(evt) => {
-                        elements.push({
-                            color: freeColors.pop(),
-                            active: true,
-                            el: cga.scalar(1),
-                        });
-                    }}>1</button
-                >
-                <button
-                    disabled={freeColors.length < 1}
-                    onclick={(evt) => {
-                        elements.push({
-                            color: freeColors.pop(),
-                            active: true,
-                            el: cga.undual(cga.scalar(1)),
-                        });
-                    }}>I</button
-                >
-                <button
-                    disabled={freeColors.length < 1}
-                    onclick={(evt) => {
-                        elements.push({
-                            color: freeColors.pop(),
-                            active: true,
-                            el: cga.undual(cga.einf),
-                        });
-                    }}>einf</button
-                >
-            </div>
+            <legend>Add Antipodality</legend>
+            <fieldset class="fieldset-sub">
+                <legend>Grade 4 (Reflecting)</legend>
+                <div class="button-row">
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.wedge(cga.e123, cga.ep),
+                            });
+                        }}>e123p</button
+                    >
+                </div>
+            </fieldset>
+            <fieldset class="fieldset-sub">
+                <legend>Grade 1 (Directing)</legend>
+                <div class="button-row">
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.pop(),
+                                active: true,
+                                el: cga.em,
+                            });
+                        }}>em</button
+                    >
+                </div>
+            </fieldset>
         </fieldset>
     </div>
     <div class="menu">
         <header>
             <h1>3D Conformal Transformations (WIP)</h1>
             <p style:font-size="smaller">
-                inspired by
+                based on and inspired by
                 <a
                     href="https://www.youtube.com/watch?v=q3as9SGmDdw"
                     target="_blank">Hamish Todd's Funhouse Mirror</a
@@ -902,30 +952,30 @@
             </div>
 
             <fieldset class="fieldset-mini">
-                <legend>Options</legend>
+                <legend>Show</legend>
                 <div class="button-row">
                     <div class="button-row">
                         <label
                             ><input
                                 type="checkbox"
                                 bind:checked={showVectorField}
-                            /> Show Vector Field</label
+                            /> Vector Field</label
                         >
                         <label
                             ><input
                                 type="checkbox"
                                 bind:checked={showIntersections}
-                            /> Show Intersections</label
+                            /> Wedge/Intersect</label
                         >
                         <label
-                            ><input type="checkbox" bind:checked={showObject} /> Show
+                            ><input type="checkbox" bind:checked={showObject} />
                             Example Object</label
                         >
                     </div>
                 </div>
             </fieldset>
 
-            <details>
+            <details bind:open={accordeons.export}>
                 <summary>Export</summary>
                 <textarea class="serialized" readonly
                     >{JSON.stringify(elements, (key, value) =>
@@ -948,7 +998,7 @@
                             while (elements.length) {
                                 freeColors.push(elements.pop().color);
                             }
-                        }}>Clear</button
+                        }}>Delete all</button
                     >
                     <button
                         disabled={elements.length == 0}
@@ -957,10 +1007,12 @@
                                 return { ...e, el: cga.dual(e.el) };
                             });
                         }}
+                        title="Dual all"
                     >
                         ★
                     </button>
                     <button
+                        title="Negate all"
                         disabled={elements.length == 0}
                         onclick={(evt) => {
                             elements = elements.map((e) => {
@@ -970,6 +1022,7 @@
                         >-
                     </button>
                     <button
+                        title="Reverse order"
                         disabled={elements.length < 2}
                         onclick={(evt) => {
                             elements = elements.toReversed();
@@ -977,6 +1030,7 @@
                     >
 
                     <button
+                        title="Geometric Product multiply all"
                         disabled={elements.length == 1 ||
                             !combinedMotor ||
                             !cga.isVersor(combinedMotor)}
@@ -993,6 +1047,7 @@
                         }}>&prod;</button
                     >
                     <button
+                        title="Wedge all"
                         disabled={!wedgedMotor || !cga.isVersor(wedgedMotor)}
                         onclick={(evt) => {
                             const cmb = wedgedMotor;
@@ -1007,6 +1062,7 @@
                         }}>&wedge;</button
                     >
                     <button
+                        title="Sum all"
                         disabled={!summedMotor}
                         onclick={(evt) => {
                             const cmb = summedMotor;
@@ -1149,14 +1205,26 @@
                     style:--color={color}
                 >
                     <div class="element-side">
+                        <label
+                            style:grid-column="span 2"
+                            style:justify-content="center"
+                            class="form-checkbox"
+                        >
+                            <input
+                                type="checkbox"
+                                bind:checked={elements[eli].active}
+                            />
+                            Active
+                        </label>
                         <button
                             class="element-button"
                             onclick={(evt) => {
                                 freeColors.push(color);
                                 elements = elements.filter((_, i) => i !== eli);
                             }}
+                            title="Delete"
                         >
-                            &cross;
+                            🗑
                         </button>
                         <div
                             class="element-button"
@@ -1177,6 +1245,7 @@
                                 dragging = null;
                                 over = null;
                             }}
+                            title="Reorder"
                         >
                             ☰
                         </div>
@@ -1186,6 +1255,7 @@
                             onclick={(evt) => {
                                 elements[eli].el = cga.dual(elements[eli].el);
                             }}
+                            title="Dual"
                         >
                             ★
                         </button>
@@ -1194,6 +1264,7 @@
                             onclick={(evt) => {
                                 elements[eli].el = cga.undual(elements[eli].el);
                             }}
+                            title="Undual"
                         >
                             ✩
                         </button>
@@ -1205,6 +1276,7 @@
                                     elements[eli].el,
                                 );
                             }}
+                            title="Negate"
                         >
                             -
                         </button>
@@ -1215,6 +1287,7 @@
                                     elements[eli].el,
                                 );
                             }}
+                            title="Normalize"
                         >
                             ||
                         </button>
@@ -1226,6 +1299,7 @@
                                 role="button"
                                 tabindex="-1"
                                 draggable="true"
+                                title="Binary Addition (Drag onto other)"
                                 ondragstart={(evt) => {
                                     evt.dataTransfer.setData(
                                         "text/plain",
@@ -1244,6 +1318,7 @@
                                 +
                             </div>
                             <div
+                                title="Binary Subtraction (Drag onto other)"
                                 class="element-button"
                                 role="button"
                                 tabindex="-1"
@@ -1270,6 +1345,7 @@
                                 role="button"
                                 tabindex="-1"
                                 draggable="true"
+                                title="Geometric Product (Drag onto other)"
                                 ondragstart={(evt) => {
                                     evt.dataTransfer.setData(
                                         "text/plain",
@@ -1292,6 +1368,7 @@
                                 role="button"
                                 tabindex="-1"
                                 draggable="true"
+                                title="Wedge Product (Drag onto other)"
                                 ondragstart={(evt) => {
                                     evt.dataTransfer.setData(
                                         "text/plain",
@@ -1314,6 +1391,7 @@
                                 role="button"
                                 tabindex="-1"
                                 draggable="true"
+                                title="Meet (Drag onto other)"
                                 ondragstart={(evt) => {
                                     evt.dataTransfer.setData(
                                         "text/plain",
@@ -1336,6 +1414,7 @@
                                 role="button"
                                 tabindex="-1"
                                 draggable="true"
+                                title="Binary Wedge Product with other and e_inf (Drag onto other)"
                                 ondragstart={(evt) => {
                                     evt.dataTransfer.setData(
                                         "text/plain",
@@ -1366,22 +1445,46 @@
                                 type="text"
                                 bind:value={elements[eli].color}
                             />
-                            <span
-                                >SpinorNorm:
-                                {Math.sign(cga.spinorNorm(el))}
-                            </span>
-                        </label>
-                        <label class="form-checkbox">
-                            <input
-                                type="checkbox"
-                                bind:checked={elements[eli].active}
-                            />
-                            Active
                         </label>
                     </div>
                     <div class="accordeon">
-                        <details open class="accordeon-item">
-                            <summary>Old</summary>
+                        <details
+                            bind:open={accordeons.expression}
+                            class="accordeon-item"
+                        >
+                            <summary>Algebraic Expression</summary>
+                            <textarea
+                                class="serialized"
+                                readonly
+                                style:user-select="all"
+                                >{cga.toString(el)}</textarea
+                            >
+                        </details>
+                        <details
+                            bind:open={accordeons.interpreation}
+                            class="accordeon-item"
+                        >
+                            <summary
+                                >Interpretation,
+                                <span
+                                    >Spinor Norm:
+                                    <code>
+                                        {{
+                                            "1": "+",
+                                            "-1": "-",
+                                            "0": 0,
+                                        }[Math.sign(cga.spinorNorm(el))]}
+                                    </code>
+                                </span>,
+                                <span
+                                    >Grades:
+                                    <code>
+                                        {[0, 1, 2, 3, 4, 5]
+                                            .filter((g) => cga.hasGrade(el, g))
+                                            .join(", ")}
+                                    </code>
+                                </span>
+                            </summary>
                             <div>
                                 {#if cga.isSphere(el)}
                                     <strong>Sphere (Reflecting)</strong>
@@ -1442,7 +1545,7 @@
                                                 type="range"
                                                 name="radius"
                                                 value={sphCoords.radius}
-                                                min="0"
+                                                min="-4"
                                                 max="4"
                                                 step="0.01"
                                             />
@@ -1462,8 +1565,7 @@
                                             />
                                         </label>
                                     </form>
-                                {/if}
-                                {#if cga.isSphere(cga.dual(el))}
+                                {:else if cga.isSphere(cga.dual(el))}
                                     <strong>Sphere (Directing)</strong>
                                     {@const sphCoords = cga.sphereParameters(
                                         cga.dual(el),
@@ -1525,7 +1627,7 @@
                                                 type="range"
                                                 name="radius"
                                                 value={sphCoords.radius}
-                                                min="0"
+                                                min="-4"
                                                 max="4"
                                                 step="0.01"
                                             />
@@ -1545,8 +1647,7 @@
                                             />
                                         </label>
                                     </form>
-                                {/if}
-                                {#if cga.isPlane(el)}
+                                {:else if cga.isPlane(el)}
                                     <strong>Plane (Reflecting)</strong>
                                     {@const plnParams = cga.planeParameters(el)}
                                     <form
@@ -1607,8 +1708,7 @@
                                             />
                                         </label>
                                     </form>
-                                {/if}
-                                {#if cga.isPlane(cga.dual(el))}
+                                {:else if cga.isPlane(cga.dual(el))}
                                     <strong>Plane (Directing)</strong>
                                     {@const plnParams = cga.planeParameters(
                                         cga.dual(el),
@@ -1677,8 +1777,7 @@
                                             />
                                         </label>
                                     </form>
-                                {/if}
-                                {#if cga.isPointPair(el)}
+                                {:else if cga.isPointPair(el)}
                                     <strong>Point Pair</strong>
                                     {@const [a, b] = cga.pointPairCoords(el)}
                                     <div
@@ -1801,8 +1900,7 @@
                                             </label>
                                         </form>
                                     </div>
-                                {/if}
-                                {#if cga.isPointPair(cga.dual(el))}
+                                {:else if cga.isPointPair(cga.dual(el))}
                                     <strong>Point Pair (Dual)</strong>
                                     {@const [b, a] = cga.pointPairCoords(
                                         cga.dual(el),
@@ -1929,8 +2027,7 @@
                                             </label>
                                         </form>
                                     </div>
-                                {/if}
-                                {#if cga.isCircle(el)}
+                                {:else if cga.isCircle(el)}
                                     <strong>Circle</strong>
                                     {@const cirParams =
                                         cga.circleParameters(el)}
@@ -2063,8 +2160,7 @@
                                             </div>
                                         </div>
                                     </form>
-                                {/if}
-                                {#if cga.isCircle(cga.dual(el))}
+                                {:else if cga.isCircle(cga.dual(el))}
                                     <strong>Circle (Direct)</strong>
                                     {@const cirParams = cga.circleParameters(
                                         cga.dual(el),
@@ -2198,8 +2294,7 @@
                                             </div>
                                         </div>
                                     </form>
-                                {/if}
-                                {#if cga.isLine(el)}
+                                {:else if cga.isLine(el)}
                                     <strong>Line</strong>
                                     {@const lineParams = cga.lineParameters(el)}
                                     <form
@@ -2299,8 +2394,7 @@
                                             </div>
                                         </div>
                                     </form>
-                                {/if}
-                                {#if cga.isLine(cga.dual(el))}
+                                {:else if cga.isLine(cga.dual(el))}
                                     <strong>Line (Dual)</strong>
                                     {@const lineParams = cga.lineParameters(
                                         cga.dual(el),
@@ -2403,8 +2497,7 @@
                                             </div>
                                         </div>
                                     </form>
-                                {/if}
-                                {#if cga.isEuclideanPoint(el)}
+                                {:else if cga.isEuclideanPoint(el)}
                                     {@const p = cga.pointParameters(el)}
                                     <strong>Point</strong>
                                     <form
@@ -2470,8 +2563,7 @@
                                             />
                                         </label>
                                     </form>
-                                {/if}
-                                {#if cga.isEuclideanPoint(cga.dual(el))}
+                                {:else if cga.isEuclideanPoint(cga.dual(el))}
                                     {@const p = cga.pointParameters(
                                         cga.dual(el),
                                     )}
@@ -2540,18 +2632,23 @@
                                             />
                                         </label>
                                     </form>
+                                {:else}
+                                    <strong>None</strong>
+                                    <p>
+                                        This element does not have a simple
+                                        interpretation.
+                                    </p>
+                                    <p>
+                                        Not every element CGA can be interpreted
+                                        as a simple geometric shape acting as a
+                                        reflector.
+                                    </p>
                                 {/if}
-                                <textarea
-                                    class="serialized"
-                                    readonly
-                                    style:user-select="all"
-                                    >{cga.toString(el)}</textarea
-                                >
                             </div>
                         </details>
                         {#snippet basisSlider(eli, basis)}
-                            <label>
-                                {basis}
+                            <label class="slider-with-value">
+                                <span>{basis}</span>
                                 <input
                                     type="range"
                                     value={elements[eli].el[
@@ -2568,11 +2665,19 @@
                                         );
                                     }}
                                 />
+                                <output>
+                                    {formatter.format(
+                                        elements[eli].el[cga.basisIndex[basis]],
+                                    )}
+                                </output>
                             </label>
                         {/snippet}
 
-                        <details class="accordeon-item" open>
-                            <summary>Plane</summary>
+                        <details
+                            class="accordeon-item"
+                            bind:open={accordeons.planelike}
+                        >
+                            <summary>Plane-like components</summary>
                             <div
                                 style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
                             >
@@ -2583,20 +2688,23 @@
                                     {@render basisSlider(eli, "e3")}
                                 </fieldset>
                                 <fieldset>
-                                    <legend>Grade 2</legend>
+                                    <legend>Grade 4</legend>
                                     {@render basisSlider(eli, "e23pm")}
                                     {@render basisSlider(eli, "e13pm")}
                                     {@render basisSlider(eli, "e12pm")}
                                 </fieldset>
                             </div>
                         </details>
-                        <details class="accordeon-item" open>
-                            <summary>Sphere</summary>
+                        <details
+                            class="accordeon-item"
+                            bind:open={accordeons.spherelike}
+                        >
+                            <summary>Sphere-like components</summary>
                             <div
                                 style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
                             >
                                 <fieldset>
-                                    <legend>Grade 2</legend>
+                                    <legend>Grade 1</legend>
                                     {@render basisSlider(eli, "ep")}
                                     {@render basisSlider(eli, "em")}
                                     <label
@@ -2703,8 +2811,11 @@
                                 </fieldset>
                             </div>
                         </details>
-                        <details class="accordeon-item" open>
-                            <summary>Line</summary>
+                        <details
+                            class="accordeon-item"
+                            bind:open={accordeons.linelike}
+                        >
+                            <summary>Line-line components</summary>
                             <div
                                 style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
                             >
@@ -2722,14 +2833,17 @@
                                 </fieldset>
                             </div>
                         </details>
-                        <details class="accordeon-item" open>
-                            <summary>Point</summary>
+                        <details
+                            class="accordeon-item"
+                            bind:open={accordeons.pointlike}
+                        >
+                            <summary>Point-like components</summary>
                             <div
                                 style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
                             >
                                 <fieldset>
                                     <legend>Grade 3</legend>
-                                    {@render basisSlider(eli, "123")}
+                                    {@render basisSlider(eli, "e123")}
                                 </fieldset>
                                 <fieldset>
                                     <legend>Grade 2</legend>
@@ -2737,8 +2851,11 @@
                                 </fieldset>
                             </div>
                         </details>
-                        <details class="accordeon-item" open>
-                            <summary>Point Pair</summary>
+                        <details
+                            class="accordeon-item"
+                            bind:open={accordeons.pointpairlike}
+                        >
+                            <summary>Point Pair-like components</summary>
                             <div
                                 style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
                             >
@@ -2756,8 +2873,11 @@
                                 </fieldset>
                             </div>
                         </details>
-                        <details class="accordeon-item" open>
-                            <summary>Circle</summary>
+                        <details
+                            class="accordeon-item"
+                            bind:open={accordeons.circlelike}
+                        >
+                            <summary>Circle-like components</summary>
                             <div
                                 style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
                             >
@@ -2775,7 +2895,82 @@
                                 </fieldset>
                             </div>
                         </details>
+                        <details
+                            class="accordeon-item"
+                            bind:open={accordeons.identitylike}
+                        >
+                            <summary>Identity-like components</summary>
+                            <div
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
+                            >
+                                <fieldset>
+                                    <legend>Grade 0</legend>
+                                    {@render basisSlider(eli, "scalar")}
+                                </fieldset>
+                                <fieldset>
+                                    <legend>Grade 5</legend>
+                                    {@render basisSlider(eli, "e123pm")}
+                                </fieldset>
+                            </div>
+                        </details>
                     </div>
+                </div>
+            {:else}
+                <div class="empty-box">
+                    <strong>No transformations added yet.</strong>
+
+                    <p>You have created any transformations yet.</p>
+                    <p>
+                        Add some element (eg. a reflection plane) to observe how
+                        the 3d object on the right gets transformed.
+                    </p>
+                    <p>
+                        The simplest transformations are plane and sphere
+                        reflections. More complex transformations can be
+                        composed from simpler ones.
+                    </p>
+                    <p>
+                        Any possible transformation can be encoded as a tuple of <code
+                        >
+                            32</code
+                        >
+                        (ie. 2<sup>5</sup>) elements.
+                    </p>
+                    <p>
+                        <a href="https://bivector.net/tools.html?p=4&q=1&r=0"
+                            >Conformal Geometric Algebra</a
+                        > defines rules for how these tuples are to be combined via
+                        addition and multiplication to achieve the desired geometric
+                        transformation.
+                    </p>
+
+                    <fieldset class="fieldset-sub">
+                        <legend>Add your first transformation</legend>
+                        <div class="button-row centered">
+                            <button
+                                disabled={freeColors.length < 1}
+                                onclick={(evt) => {
+                                    elements.push({
+                                        color: freeColors.pop(),
+                                        active: true,
+                                        el: cga.plane([1, 0, 0], 0),
+                                    });
+                                }}
+                                >reflection at the <code>e1</code> plane</button
+                            >
+                            <button
+                                disabled={freeColors.length < 1}
+                                onclick={(evt) => {
+                                    elements.push({
+                                        color: freeColors.pop(),
+                                        active: true,
+                                        el: cga.ep,
+                                    });
+                                }}
+                                >reflection at the <code>ep</code> unit sphere</button
+                            >
+                        </div>
+                    </fieldset>
                 </div>
             {/each}
         </div>
@@ -2799,9 +2994,10 @@
         gap: 1ex;
 
         color: #fff;
+        font-size: 0.7rem;
         padding: 1ex;
         background-color: #0008;
-        font-size: smaller;
+        overflow: auto;
     }
     .menu {
         user-select: none;
@@ -2970,6 +3166,7 @@
         margin: auto;
         background-color: transparent;
         color: #fff;
+        text-align: center;
     }
     .fieldset-sub {
         margin-top: 1ex;
@@ -2986,6 +3183,7 @@
     }
     .serialized {
         opacity: 1;
+        outline: none;
         background-color: #fff;
         border: 1px solid #333;
         width: 100%;
@@ -3017,6 +3215,7 @@
         background-color: #111;
         color: #fff;
         padding: 1ex;
+        font-size: smaller;
 
         box-sizing: border-box;
     }
@@ -3029,6 +3228,8 @@
     label:has(input[type="checkbox"]) {
         display: flex;
         align-items: center;
+        background-color: #333a;
+        padding: 0.5ex;
     }
     .accordeon {
         display: flex;
@@ -3058,5 +3259,39 @@
         box-sizing: border-box;
         border: none;
         margin-bottom: 2px;
+    }
+    textarea {
+        padding: 1ex;
+    }
+    .empty-box {
+        padding: 1ex;
+        border: 2px solid #333a;
+        background-color: #3333;
+    }
+    .centered {
+        justify-content: center;
+    }
+    button code {
+        font-weight: bold;
+        font-size: inherit;
+        font: inherit;
+    }
+    .slider-with-value {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+    }
+    .slider-with-value span {
+        grid-row: 1 / span 1;
+        grid-column: 1 / span 1;
+    }
+    .slider-with-value input {
+        grid-column: 1 / -1;
+        grid-row: 2 / span 1;
+    }
+    .slider-with-value output {
+        grid-column: 2 / -1;
+        grid-row: 1 / span 1;
+        justify-self: end;
     }
 </style>

@@ -679,6 +679,16 @@ export function isGrade(a, grade, eps = 1e-5) {
 
   return true;
 }
+export function hasGrade(a, grade, eps = 1e-5) {
+  if (a.every((x) => Math.abs(x) < eps)) return false;
+  for (let i = 0; i < 32; i++) {
+    if (popcount(i) === grade && Math.abs(a[i]) >= eps) {
+      return true;
+    }
+  }
+
+  return false;
+}
 function gpBlade(a, b) {
   let sign = 1;
 
