@@ -370,6 +370,190 @@
         <Gizmo placement="top-right" />
     </OrbitControls>
     <T.Group bind:ref={group}>
+        {#each [...elements, ...(showIntersections && wedged ? [{ el: wedged, color: "red", active: true, passive: true }] : [{ el: cga.scalar(1), color: "red", active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
+            {#if cga.isPlane(el)}
+                {@const plnParams = cga.planeParameters(el)}
+                {@const rot = new THREE.Quaternion().setFromUnitVectors(
+                    new THREE.Vector3(0, 0, 1),
+                    new THREE.Vector3(
+                        plnParams?.normal[0],
+                        plnParams?.normal[1],
+                        plnParams?.normal[2],
+                    ).normalize(),
+                )}
+
+                <T.Mesh renderOrder={-1} quaternion={rot.toArray()}>
+                    <T.TorusGeometry args={[1, 0.001, 32, 64]} />
+                    <T.MeshBasicMaterial
+                        toneMapped={false}
+                        depthTest={false}
+                        depthWrite={false}
+                        color={active ? color : "gray"}
+                    />
+                </T.Mesh>
+            {/if}
+            {#if cga.isPlane(cga.dual(el))}
+                {@const plnParams = cga.planeParameters(cga.dual(el))}
+                {@const rot = new THREE.Quaternion().setFromUnitVectors(
+                    new THREE.Vector3(0, 0, 1),
+                    new THREE.Vector3(
+                        plnParams?.normal[0],
+                        plnParams?.normal[1],
+                        plnParams?.normal[2],
+                    ).normalize(),
+                )}
+
+                <T.Mesh renderOrder={-1} quaternion={rot.toArray()}>
+                    <T.TorusGeometry args={[1, 0.001, 32, 64]} />
+                    <T.MeshBasicMaterial
+                        toneMapped={false}
+                        depthTest={false}
+                        depthWrite={false}
+                        color={active ? color : "gray"}
+                    />
+                </T.Mesh>
+            {/if}
+            {#if cga.isCircle(el)}
+                {@const cirParams = cga.circleParameters(el)}
+                {@const rot = new THREE.Quaternion().setFromUnitVectors(
+                    new THREE.Vector3(0, 0, 1),
+                    new THREE.Vector3(
+                        cirParams?.normal[0],
+                        cirParams?.normal[1],
+                        cirParams?.normal[2],
+                    ).normalize(),
+                )}
+
+                <T.Group quaternion={rot.toArray()}>
+                    <T.Mesh renderOrder={-1} position={[0, 0, 1]}>
+                        <T.SphereGeometry args={[0.01, 32, 16]} />
+                        <T.MeshBasicMaterial
+                            toneMapped={false}
+                            depthTest={false}
+                            depthWrite={false}
+                            {color}
+                        />
+                    </T.Mesh>
+                    <T.Mesh renderOrder={-1} position={[0, 0, -1]}>
+                        <T.SphereGeometry args={[0.01, 32, 16]} />
+                        <T.MeshBasicMaterial
+                            toneMapped={false}
+                            depthTest={false}
+                            depthWrite={false}
+                            {color}
+                        />
+                    </T.Mesh>
+                </T.Group>
+            {/if}
+            {#if cga.isCircle(cga.dual(el))}
+                {@const cirParams = cga.circleParameters(cga.dual(el))}
+                {@const rot = new THREE.Quaternion().setFromUnitVectors(
+                    new THREE.Vector3(0, 0, 1),
+                    new THREE.Vector3(
+                        cirParams?.normal[0],
+                        cirParams?.normal[1],
+                        cirParams?.normal[2],
+                    ).normalize(),
+                )}
+
+                <T.Group quaternion={rot.toArray()}>
+                    <T.Mesh renderOrder={-1} position={[0, 0, 1]}>
+                        <T.SphereGeometry args={[0.01, 32, 16]} />
+                        <T.MeshBasicMaterial
+                            toneMapped={false}
+                            depthTest={false}
+                            depthWrite={false}
+                            {color}
+                        />
+                    </T.Mesh>
+                    <T.Mesh renderOrder={-1} position={[0, 0, -1]}>
+                        <T.SphereGeometry args={[0.01, 32, 16]} />
+                        <T.MeshBasicMaterial
+                            toneMapped={false}
+                            depthTest={false}
+                            depthWrite={false}
+                            {color}
+                        />
+                    </T.Mesh>
+                </T.Group>
+            {/if}
+            {#if cga.isLine(el)}
+                {@const lineParams = cga.lineParameters(el)}
+                {@const rot = new THREE.Quaternion().setFromUnitVectors(
+                    new THREE.Vector3(0, 1, 0),
+                    new THREE.Vector3(
+                        lineParams?.direction[0],
+                        lineParams?.direction[1],
+                        lineParams?.direction[2],
+                    ).normalize(),
+                )}
+                <T.Group quaternion={rot.toArray()}>
+                    <T.Mesh renderOrder={-1} position={[0, 1, 0]}>
+                        <T.SphereGeometry args={[0.01, 32, 16]} />
+                        <T.MeshBasicMaterial
+                            toneMapped={false}
+                            depthTest={false}
+                            depthWrite={false}
+                            {color}
+                        />
+                    </T.Mesh>
+                    <T.Mesh renderOrder={-1} position={[0, -1, 0]}>
+                        <T.SphereGeometry args={[0.01, 32, 16]} />
+                        <T.MeshBasicMaterial
+                            toneMapped={false}
+                            depthTest={false}
+                            depthWrite={false}
+                            {color}
+                        />
+                    </T.Mesh>
+                </T.Group>
+            {/if}
+            {#if cga.isLine(cga.dual(el))}
+                {@const lineParams = cga.lineParameters(cga.dual(el))}
+                {@const rot = new THREE.Quaternion().setFromUnitVectors(
+                    new THREE.Vector3(0, 1, 0),
+                    new THREE.Vector3(
+                        lineParams?.direction[0],
+                        lineParams?.direction[1],
+                        lineParams?.direction[2],
+                    ).normalize(),
+                )}
+                <T.Group quaternion={rot.toArray()}>
+                    <T.Mesh renderOrder={-1} position={[0, 1, 0]}>
+                        <T.SphereGeometry args={[0.01, 32, 16]} />
+                        <T.MeshBasicMaterial
+                            toneMapped={false}
+                            depthTest={false}
+                            depthWrite={false}
+                            {color}
+                        />
+                    </T.Mesh>
+                    <T.Mesh renderOrder={-1} position={[0, -1, 0]}>
+                        <T.SphereGeometry args={[0.01, 32, 16]} />
+                        <T.MeshBasicMaterial
+                            toneMapped={false}
+                            depthTest={false}
+                            depthWrite={false}
+                            {color}
+                        />
+                    </T.Mesh>
+                </T.Group>
+            {/if}
+            {#if cga.isPointPair(el)}
+
+            {/if}
+            {#if cga.isPointPair(cga.dual(el))}
+
+            {/if}
+            {#if cga.isEuclideanPoint(el)}
+
+            {/if}
+            {#if cga.isEuclideanPoint(cga.dual(el))}
+
+            {/if}
+        {/each}
+    </T.Group>
+    <T.Group visible={false}>
         {#each [{ rot: [Math.PI / 2, 0, 0], color: "magenta" }, { rot: [0, Math.PI / 2, 0], color: "cyan" }, { rot: [0, 0, 0], color: "yellow" }] as t}
             <T.Mesh renderOrder={-1} rotation={t.rot}>
                 <T.TorusGeometry args={[1, 0.001, 32, 64]} />
