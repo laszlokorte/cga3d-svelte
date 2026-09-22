@@ -341,11 +341,12 @@
             elements: [
                 {
                     active: true,
-                    color: "royalblue",
+                    color: "tomato",
                     el: [
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7071067811865475, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0.7071067811865475, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.4292353662388484, 0,
+                        0.497570556478928, 0, 0, 0, 0, 0, 0.6862411572508823, 0,
+                        -0.31185511987142633, 0, 0, 0, 1.2900288747990865e-16,
+                        0, 0, 0, 0, 0, 0, 0,
                     ],
                 },
             ],
@@ -2663,7 +2664,7 @@
                                 {/if}
                             </div>
                         </details>
-                        {#snippet basisSlider(eli, basis)}
+                        {#snippet basisSlider(eli, basis, range = 2)}
                             <label class="slider-with-value">
                                 <span>{basis}</span>
                                 <input
@@ -2671,8 +2672,8 @@
                                     value={elements[eli].el[
                                         cga.basisIndex[basis]
                                     ]}
-                                    min={-2}
-                                    max={2}
+                                    min={-range}
+                                    max={range}
                                     step={0.01}
                                     oninput={(evt) => {
                                         elements[eli].el = cga.setBasis(
@@ -2922,7 +2923,7 @@
                             >
                                 <fieldset>
                                     <legend>Grade 0</legend>
-                                    {@render basisSlider(eli, "scalar")}
+                                    {@render basisSlider(eli, "scalar", 7)}
                                 </fieldset>
                                 <fieldset>
                                     <legend>Grade 5</legend>

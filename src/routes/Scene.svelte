@@ -203,9 +203,10 @@
         new THREE.Vector3(-cubeW, -cubeH, cubeD),
         new THREE.Vector3(-cubeW, -cubeH, -cubeD),
     ];
-    const vfcount = 10 * 10 * 5;
+    const vfcount = 5 * 10;
 
-    const vfgeometry = new THREE.CylinderGeometry(0.005, 0.01, 1, 10, 128);
+    const vfgeometry = new THREE.CylinderGeometry(0.005, 0.01, 2, 4, 32);
+    const vfgeometry2 = new THREE.CylinderGeometry(0.005, 0.01, 8, 4, 256);
     const vfmaterial = new THREE.ShaderMaterial({
         uniforms: {
             uTime: { value: 0 },
@@ -231,15 +232,15 @@
                     for (int i = 0; i < 32; i++)
                         motor.c[i] = uMotor[i];
 
-                    float interp  =  (position.y*0.5)  + mod(uTime * 0.2+ aPosition.w * 2.0, 1.0);
+                    float interp  = (position.y) + mod(uTime*0.3 + aPosition.w * 2.0 , 4.0);
                     MV p = point(aPosition.xyz * vec3(1.0,1.0,1.0));
-                    MV partialMotor = motorExp(scale(interp, motor));
+                    MV partialMotor = motorExp(scale(3.141 / 4.0 * interp, motor));
                     MV motorResult = sandwich(p, partialMotor);
                     vec3 coords = pointCoords(motorResult);
 
                     MV motorResult2 = sandwich(p, motor);
                                         vec3 coords2 = pointCoords(motorResult2);
-                    skip =sign(max(0.0, abs(length(coords2 - aPosition.xyz)) - 0.01));
+                    skip = 1.0;
 
                     vec4 worldPos = skip * modelMatrix * vec4(position * vec3(1.0,0.0,1.0) + coords, 1.0);
                     vec4 mvPosition = modelViewMatrix *
@@ -264,6 +265,7 @@
     });
 
     const vfmesh = new THREE.InstancedMesh(vfgeometry, vfmaterial, vfcount);
+    const vfmesh2 = new THREE.InstancedMesh(vfgeometry2, vfmaterial, vfcount);
 
     const positions = new Float32Array(vfcount * 4);
 
@@ -282,8 +284,13 @@
         "aPosition",
         new THREE.InstancedBufferAttribute(positions, 4),
     );
+    vfgeometry2.setAttribute(
+        "aPosition",
+        new THREE.InstancedBufferAttribute(positions, 4),
+    );
 
     vfmesh.instanceMatrix.needsUpdate = true;
+    vfmesh2.instanceMatrix.needsUpdate = true;
     vfmaterial.clippingPlanes = planes;
     vfmaterial.clipping = true;
     vfmaterial.transparent = true;
@@ -293,7 +300,7 @@
 
     {
         const ctx = checkerCanvas.getContext("2d");
-        ctx.fillStyle = "#ddd";
+        ctx.fillStyle = "#eee";
         ctx.fillRect(0, 0, 128, 128);
         ctx.fillStyle = "#fff";
         ctx.fillRect(0, 0, 64, 64);
@@ -367,6 +374,9 @@
 
 {#if showVectorField}
     <T is={vfmesh} />
+    {#if Math.abs(Math.sign(cga.spinorNorm(motor))) != 1}
+        <T is={vfmesh2} />
+    {/if}
 {/if}
 
 <T.PerspectiveCamera

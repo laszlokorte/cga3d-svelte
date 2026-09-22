@@ -232,31 +232,43 @@ export function generateGP() {
             scale(sin(t), B)
         );
     }
+    float mvNorm(MV a)
+    {
+        float s = 0.0;
+
+        for (int i = 0; i < 32; i++)
+            s += a.c[i] * a.c[i];
+
+        return sqrt(s);
+    }
     MV motorExp(MV B) {
-        MV I;
-        I.c[0] = 1.0;
+    float n = mvNorm(B);
 
-        float b2 = scalarPart(gp(B, B));
+       if (n < 1e-6)
+           return add(scalar(1.0), B);
 
-        if (abs(b2) < 1e-8) {
-            return add(I, B);
-        }
+       // Choose s = 2^k such that |B/s| is small.
+       float s = max(1.0, ceil(log2(n)));
 
-        if (b2 < 0.0) {
-            float a = sqrt(-b2);
+       float invS = exp2(-s);
+       MV X = scale(invS, B);
 
-            return add(
-                scale(cos(a), I),
-                scale(sin(a) / a, B)
-            );
-        }
+       // Taylor series
+       MV result = scalar(1.0);
+       MV term   = scalar(1.0);
 
-        float a = sqrt(b2);
+       for (int k = 1; k <= 12; k++) {
+           term = scale(1.0 / float(k), gp(term, X));
+           result = add(result, term);
+       }
 
-        return add(
-            scale(cosh(a), I),
-            scale(sinh(a) / a, B)
-        );
+       // exp(B) = exp(B / 2^s)^(2^s)
+       int squarings = int(s);
+
+       for (int i = 0; i < squarings; i++)
+           result = gp(result, result);
+
+       return result;
     }
 
     vec3 pointCoords(MV p) {
