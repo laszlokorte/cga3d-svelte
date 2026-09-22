@@ -6,11 +6,12 @@
     let viewport = $state();
     let scene = $state();
     let freeColors = $state([
-        "gold",
         "tomato",
-        "teal",
         "limegreen",
         "royalblue",
+        "gold",
+        "teal",
+        "limegreen",
     ]);
     const formatter = new Intl.NumberFormat("en-US", {
         maximumFractionDigits: 3,
@@ -18,7 +19,7 @@
         useGrouping: false,
     });
 
-    let accordeons = {
+    let accordeons = $state({
         export: false,
         expression: false,
         interpreation: true,
@@ -30,7 +31,7 @@
         circlelike: false,
         identitylike: false,
         antipodallike: false,
-    };
+    });
 
     $effect(() => {
         if (scene) {
@@ -73,12 +74,16 @@
     );
     const wedgedMotor = $derived(
         cga.normalize(
-            elements.reduce((a, b) => cga.wedge(b.el, a), cga.scalar(1)),
+            elements
+                .filter((e) => e.active)
+                .reduce((a, b) => cga.wedge(b.el, a), cga.scalar(1)),
         ),
     );
     const summedMotor = $derived(
         cga.normalize(
-            elements.reduce((a, b) => cga.add(b.el, a), cga.scalar(0)),
+            elements
+                .filter((e) => e.active)
+                .reduce((a, b) => cga.add(b.el, a), cga.scalar(0)),
         ),
     );
 
@@ -353,7 +358,7 @@
             return;
         }
         while (elements.length) {
-            freeColors.push(elements.pop().color);
+            freeColors.unshift(elements.pop().color);
         }
         for (let e = 0; e < ex.elements.length; e++) {
             elements.push({
@@ -363,7 +368,7 @@
                         .sort((a, b) => a - b)
                         .map((k) => ex.elements[e].el[k]),
                 ),
-                color: freeColors.pop() || ex.elements[e].color,
+                color: freeColors.shift() || ex.elements[e].color,
             });
         }
         showVectorField = ex.showVectorField;
@@ -415,7 +420,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.scalar(1),
                             });
@@ -430,7 +435,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.undual(cga.scalar(1)),
                             });
@@ -448,7 +453,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.plane([1, 0, 0], 0),
                             });
@@ -458,7 +463,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.plane([0, 1, 0], 0),
                             });
@@ -468,7 +473,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.plane([0, 0, 1], 0),
                             });
@@ -483,7 +488,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.dual(cga.plane([-1, 0, 0], 0)),
                             });
@@ -493,7 +498,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.dual(cga.plane([0, 1, 0], 0)),
                             });
@@ -503,7 +508,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.dual(cga.plane([0, 0, -1], 0)),
                             });
@@ -521,7 +526,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.sphere(0, 0, 0, 1),
                             });
@@ -531,11 +536,21 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.sphere(0, 0, 0, 0),
                             });
                         }}>ep - em</button
+                    >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.shift(),
+                                active: true,
+                                el: cga.add(cga.ep, cga.em),
+                            });
+                        }}>ep + em</button
                     >
                 </div>
             </fieldset>
@@ -546,7 +561,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.dual(cga.sphere(0, 0, 0, 1)),
                             });
@@ -556,7 +571,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.undual(cga.sphere(0, 0, 0, 0)),
                             });
@@ -574,7 +589,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.gp(
                                     cga.plane([1, 0, 0], 0),
@@ -587,7 +602,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.gp(
                                     cga.plane([0, 1, 0], 0),
@@ -600,7 +615,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.gp(
                                     cga.plane([1, 0, 0], 0),
@@ -618,7 +633,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.dual(
                                     cga.gp(
@@ -633,7 +648,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.dual(
                                     cga.gp(
@@ -648,7 +663,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.dual(
                                     cga.gp(
@@ -671,7 +686,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.pointReflection(0, 0.0, 0.0),
                             });
@@ -686,7 +701,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.dual(cga.pointReflection(0, 0.0, 0.0)),
                             });
@@ -705,7 +720,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.pointPair(
                                     cga.zeroSphere(1, 0.0, 0.0),
@@ -718,7 +733,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.pointPair(
                                     cga.zeroSphere(0.0, 1, 0.0),
@@ -731,7 +746,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.pointPair(
                                     cga.zeroSphere(0.0, 0.0, 1),
@@ -749,7 +764,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.dual(
                                     cga.pointPair(
@@ -764,7 +779,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.dual(
                                     cga.pointPair(
@@ -779,7 +794,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.dual(
                                     cga.pointPair(
@@ -802,7 +817,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.circle([0, 0, 0], 1, [1, 0, 0]),
                             });
@@ -812,7 +827,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.circle([0, 0, 0], 1, [0, 1, 0]),
                             });
@@ -822,7 +837,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.circle([0, 0, 0], 1, [0, 0, 1]),
                             });
@@ -838,7 +853,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.dual(
                                     cga.circle([0, 0, 0], 1, [1, 0, 0]),
@@ -850,7 +865,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.dual(
                                     cga.circle([0, 0, 0], 1, [0, -1, 0]),
@@ -862,7 +877,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.dual(
                                     cga.circle([0, 0, 0], 1, [0, 0, 1]),
@@ -882,7 +897,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.wedge(cga.e123, cga.ep),
                             });
@@ -897,7 +912,7 @@
                         disabled={freeColors.length < 1}
                         onclick={(evt) => {
                             elements.push({
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                                 el: cga.em,
                             });
@@ -996,7 +1011,7 @@
                         disabled={elements.length == 0}
                         onclick={(evt) => {
                             while (elements.length) {
-                                freeColors.push(elements.pop().color);
+                                freeColors.unshift(elements.pop().color);
                             }
                         }}>Delete all</button
                     >
@@ -1037,11 +1052,11 @@
                         onclick={(evt) => {
                             const cmb = combinedMotor;
                             while (elements.length) {
-                                freeColors.push(elements.pop().color);
+                                freeColors.unshift(elements.pop().color);
                             }
                             elements.push({
                                 active: true,
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 el: cmb,
                             });
                         }}>&prod;</button
@@ -1052,11 +1067,11 @@
                         onclick={(evt) => {
                             const cmb = wedgedMotor;
                             while (elements.length) {
-                                freeColors.push(elements.pop().color);
+                                freeColors.unshift(elements.pop().color);
                             }
                             elements.push({
                                 active: true,
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 el: cmb,
                             });
                         }}>&wedge;</button
@@ -1067,11 +1082,11 @@
                         onclick={(evt) => {
                             const cmb = summedMotor;
                             while (elements.length) {
-                                freeColors.push(elements.pop().color);
+                                freeColors.unshift(elements.pop().color);
                             }
                             elements.push({
                                 active: true,
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 el: cmb,
                             });
                         }}
@@ -1121,7 +1136,7 @@
                             if (cga.isVersor(sum)) {
                                 elements.push({
                                     el: sum,
-                                    color: freeColors.pop(),
+                                    color: freeColors.shift(),
                                     active: false,
                                 });
                             }
@@ -1134,7 +1149,7 @@
                                     elements[to].el,
                                     elements[fromIndex].el,
                                 ),
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: false,
                             });
                         } else if (from.type == "cga-gp" && freeColors.length) {
@@ -1144,7 +1159,7 @@
                                     elements[fromIndex].el,
                                 ),
 
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                             });
                         } else if (
@@ -1156,7 +1171,7 @@
                                     cga.normalize(elements[to].el),
                                     cga.normalize(elements[fromIndex].el),
                                 ),
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                             });
                         } else if (
@@ -1168,7 +1183,7 @@
                                     cga.normalize(elements[to].el),
                                     cga.normalize(elements[fromIndex].el),
                                 ),
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                             });
                         } else if (
@@ -1183,7 +1198,7 @@
                                     ),
                                     cga.einf,
                                 ),
-                                color: freeColors.pop(),
+                                color: freeColors.shift(),
                                 active: true,
                             });
                         }
@@ -1219,7 +1234,7 @@
                         <button
                             class="element-button"
                             onclick={(evt) => {
-                                freeColors.push(color);
+                                freeColors.unshift(color);
                                 elements = elements.filter((_, i) => i !== eli);
                             }}
                             title="Delete"
@@ -1486,7 +1501,9 @@
                                 </span>
                             </summary>
                             <div>
-                                {#if cga.isSphere(el)}
+                                {#if cga.isSphereAtInfinity(el)}
+                                    <strong>Sphere at Infinity</strong>
+                                {:else if cga.isSphere(el)}
                                     <strong>Sphere (Reflecting)</strong>
                                     {@const sphCoords =
                                         cga.sphereParameters(el)}
@@ -2951,7 +2968,7 @@
                                 disabled={freeColors.length < 1}
                                 onclick={(evt) => {
                                     elements.push({
-                                        color: freeColors.pop(),
+                                        color: freeColors.shift(),
                                         active: true,
                                         el: cga.plane([1, 0, 0], 0),
                                     });
@@ -2962,7 +2979,7 @@
                                 disabled={freeColors.length < 1}
                                 onclick={(evt) => {
                                     elements.push({
-                                        color: freeColors.pop(),
+                                        color: freeColors.shift(),
                                         active: true,
                                         el: cga.ep,
                                     });

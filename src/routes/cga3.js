@@ -434,6 +434,35 @@ export function isSphere(s, eps = 1e-5) {
 
   return Math.abs(w) > eps;
 }
+function isProportional(a, b, eps = 1e-10) {
+  let scale = null;
+
+  for (let i = 0; i < 32; i++) {
+    const x = a[i];
+    const y = b[i];
+
+    if (Math.abs(y) > eps) {
+      const s = x / y;
+
+      if (scale === null) {
+        scale = s;
+      } else if (Math.abs(x - scale * y) > eps) {
+        return false;
+      }
+    } else if (Math.abs(x) > eps) {
+      return false;
+    }
+  }
+
+  return scale !== null;
+}
+export function isSphereAtInfinity(a, eps = 1e-10) {
+  // Must be grade 1
+  if (!isGrade(a, 1, eps)) return false;
+
+  // a = λ (ep + em)
+  return !isPlane(a, eps) && isProportional(a, einf, eps);
+}
 export function isPlane(a, eps = 1e-5) {
   if (!isGrade(a, 1, eps)) return false;
 
