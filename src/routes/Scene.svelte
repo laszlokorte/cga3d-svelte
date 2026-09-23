@@ -203,7 +203,7 @@
         new THREE.Vector3(-cubeW, -cubeH, cubeD),
         new THREE.Vector3(-cubeW, -cubeH, -cubeD),
     ];
-    const vfcount = 5 * 10;
+    const vfcount = 10 * 10;
 
     const vfgeometry = new THREE.CylinderGeometry(0.005, 0.01, 2, 4, 32);
     const vfgeometry2 = new THREE.CylinderGeometry(0.005, 0.01, 8, 4, 256);
@@ -232,7 +232,7 @@
                     for (int i = 0; i < 32; i++)
                         motor.c[i] = uMotor[i];
 
-                    float interp  = (position.y) + mod(uTime*0.3 + aPosition.w * 2.0 , 4.0);
+                    float interp  = (position.y + 1.0) + mod(uTime*0.5 + aPosition.w * 4.0, 4.0);
                     MV p = point(aPosition.xyz * vec3(1.0,1.0,1.0));
                     MV partialMotor = motorExp(scale(3.141 / 4.0 * interp, motor));
                     MV motorResult = sandwich(p, partialMotor);
