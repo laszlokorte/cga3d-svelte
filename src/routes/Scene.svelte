@@ -27,7 +27,9 @@
             node.frustumCulled = false;
             if (node.isMesh) {
                 node.renderOrder = 200000;
+
                 const material = node.material;
+                material.side = THREE.DoubleSide;
                 material.transparent = true;
             }
         });
@@ -40,6 +42,7 @@
                 material.transparent = true;
                 const hsl = {};
                 material.color.getHSL(hsl);
+                material.side = THREE.DoubleSide;
 
                 hsl.s *= 0.5; // 50% less saturation
                 hsl.l *= 0.1; // 50% less saturation
@@ -115,7 +118,9 @@
         showVectorField = false,
         motor = cga.scalar(0),
         wedged,
-        wedgeColor = "rebeccapurple",
+        wedgeColor = "gray",
+        showMotor = false,
+        motorColor = "rebeccapurple",
         showIntersections,
         showObject,
     } = $props();
@@ -211,7 +216,7 @@
         uniforms: {
             uTime: { value: 0 },
             uMotor: { value: cga.scalar(0) },
-            uOpacity: { value: 0.4 },
+            uOpacity: { value: 0.5 },
         },
 
         vertexShader: /* glsl */ `
@@ -259,7 +264,7 @@
                void main() {
                    #include <clipping_planes_fragment>
 
-                   gl_FragColor = vec4(1.0,0.8,0.1,uOpacity * skip);
+                   gl_FragColor = vec4(1.0,0.8,0.1,1.0* uOpacity * skip) ;
                }
            `,
     });
@@ -289,12 +294,17 @@
         new THREE.InstancedBufferAttribute(positions, 4),
     );
 
+    vfmesh.renderOrder = 99999;
+    vfmesh2.renderOrder = 99999;
     vfmesh.instanceMatrix.needsUpdate = true;
     vfmesh2.instanceMatrix.needsUpdate = true;
     vfmaterial.clippingPlanes = planes;
     vfmaterial.clipping = true;
+    vfmaterial.depthTest = true;
+    vfmaterial.depthWrite = true;
+    vfmaterial.clipping = true;
     vfmaterial.transparent = true;
-    vfmaterial.opacity = 0.2;
+    vfmaterial.toneMapped = false;
     const checkerCanvas = document.createElement("canvas");
     checkerCanvas.width = checkerCanvas.height = 128;
 
@@ -398,7 +408,7 @@
         <Gizmo placement="top-right" />
     </OrbitControls>
     <T.Group bind:ref={group}>
-        {#each [...elements, ...(showIntersections && wedged ? [{ el: wedged, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
+        {#each [...elements, ...(showMotor && motor ? [{ el: motor, color: motorColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: motorColor, active: true, passive: true }]), ...(showIntersections && wedged ? [{ el: wedged, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
             {#if cga.isSphereAtInfinity(el)}
                 <T.Mesh renderOrder={-5} scale={1}>
                     <T.SphereGeometry args={[1, 16, 8]} />
@@ -660,7 +670,7 @@
 
 <T.DirectionalLight position={[3, 10, 5]} intensity={2} />
 
-{#each [...elements, ...(showIntersections && wedged ? [{ el: wedged, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
+{#each [...elements, ...(showMotor && motor ? [{ el: motor, color: motorColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: motorColor, active: true, passive: true }]), ...(showIntersections && wedged ? [{ el: wedged, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
     {#if cga.isSphere(el)}
         {@const sphCoords = cga.sphereParameters(el)}
 
@@ -902,7 +912,8 @@
                                 depthWrite={false}
                                 transparent={true}
                                 premultipliedAlpha={true}
-                                color={active ? color : "gray"}
+                                {color}
+                                opacity={active ? 0.6 : 0.1}
                                 clippingPlanes={planes}
                             />
                         </T.Mesh>
@@ -922,7 +933,7 @@
                         transparent={true}
                         premultipliedAlpha={true}
                         clippingPlanes={planes}
-                        color={active ? color : "gray"}
+                        {color}
                         map={textureChecker}
                     />
                 </T.Mesh>
@@ -995,7 +1006,8 @@
                         depthWrite={false}
                         transparent={true}
                         premultipliedAlpha={true}
-                        color={active ? color : "gray"}
+                        {color}
+                        opacity={active ? 0.6 : 0.1}
                         clippingPlanes={planes}
                     />
                 </T.Mesh>
@@ -1019,7 +1031,8 @@
                                 depthWrite={false}
                                 transparent={true}
                                 premultipliedAlpha={true}
-                                color={active ? color : "gray"}
+                                {color}
+                                opacity={active ? 0.6 : 0.1}
                                 clippingPlanes={planes}
                             />
                         </T.Mesh>

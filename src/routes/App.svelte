@@ -63,7 +63,7 @@
     let showVectorField = $state(false);
     let showIntersections = $state(true);
     let showObject = $state(true);
-    const combinedMotor = $derived(
+    const productMotor = $derived(
         cga.normalize(
             elements
                 .filter((e) => e.active)
@@ -83,7 +83,21 @@
         cga.normalize(
             elements
                 .filter((e) => e.active)
-                .reduce((a, b) => cga.add(b.el, a), cga.scalar(0)),
+                .reduce(
+                    (a, b) => cga.add(cga.scale(b.weight ?? 1, b.el), a),
+                    cga.scalar(0),
+                ),
+        ),
+    );
+
+    let combination = $state("product");
+    const combinedMotor = $derived(
+        cga.normalize(
+            {
+                product: productMotor,
+                sum: summedMotor,
+                wedge: wedgedMotor,
+            }[combination],
         ),
     );
 
@@ -275,16 +289,23 @@
             showVectorField: true,
             elements: [
                 {
+                    color: "limegreen",
                     active: true,
-                    color: "royalblue",
                     el: [
-                        0, 0, 0, 0, 0, 0.5773502691896258, 0, 0,
-                        0.5773502691896258, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0.5773502691896258, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0,
+                        0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "tomato",
+                    active: true,
+                    el: [
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     ],
                 },
             ],
+            combine: "sum",
         },
         {
             name: "Double Rotation",
@@ -320,15 +341,23 @@
         {
             name: "Double Circle",
             showVectorField: true,
+            combine: "sum",
             elements: [
                 {
+                    color: "limegreen",
                     active: true,
-                    color: "tomato",
                     el: [
-                        0, 0, 0, 0, 0, 0, -0.6324555320336759, 0, 0,
-                        0.6324555320336759, 0.31622776601683794, 0, 0, 0, 0, 0,
-                        0, 0, -0.31622776601683794, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0,
+                        0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 0,
+                        -0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                    weight: 1,
+                },
+                {
+                    color: "tomato",
+                    active: true,
+                    el: [
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     ],
                 },
             ],
@@ -338,16 +367,65 @@
             name: "Smoke Rings",
 
             showVectorField: true,
+            combine: "sum",
             elements: [
                 {
+                    color: "tomato",
                     active: true,
-                    color: "limegreen",
                     el: [
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -20, 0, 20, 0, 0, 0, 0, 0,
-                        5, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.3692855091958195, 0, 0,
+                        0, 0, 0, 0, 0, 0.9293113212432799, 0, 0, 0, 0, 0,
+                        -0.0029463379055976453, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                    weight: 0.3,
+                },
+                {
+                    color: "limegreen",
+                    active: true,
+                    el: [
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7184605000000001,
+                        0, 0, 0, 0, 0, 0, 0, -0.28153949999999994, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0,
+                    ],
+                    weight: 1,
+                },
+            ],
+        },
+        {
+            name: "Circle by 3 points",
+            elements: [
+                {
+                    color: "tomato",
+                    active: true,
+                    el: [
+                        0, -0.5207901944863929, 0, 0, -1.154312473905208, 0, 0,
+                        0, 0.301829857043161, 0, 0, 0, 0, 0, 0, 0,
+                        1.301829857043161, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0,
+                    ],
+                },
+                {
+                    color: "limegreen",
+                    active: true,
+                    el: [
+                        0, -0.34083936208654997, -0.09763886953275219, 0,
+                        0.4652970109954009, 0, 0, 0, -0.3288969359837732, 0, 0,
+                        0, 0, 0, 0, 0, 0.6711030640162269, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "royalblue",
+                    active: true,
+                    el: [
+                        0, -0.558292190869982, 0.9374125120608835, 0, 0, 0, 0,
+                        0, 0.09521619407734916, 0, 0, 0, 0, 0, 0, 0,
+                        1.0952161940773493, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0,
                     ],
                 },
             ],
+            combine: "wedge",
         },
     ];
 
@@ -370,6 +448,7 @@
                 color: freeColors.shift() || ex.elements[e].color,
             });
         }
+        combination = ex.combine ?? "product";
         showVectorField = ex.showVectorField;
     }
 </script>
@@ -384,10 +463,13 @@
             <Canvas dpr={Math.max(window ? window.devicePixelRatio : 1, 2)}>
                 <Scene
                     {showVectorField}
-                    {showIntersections}
+                    showIntersections={showIntersections &&
+                        combination != "sum"}
                     {showObject}
                     bind:elements
-                    wedged={elements.length > 1 &&
+                    showMotor={elements.filter((e) => e.active).length > 1 &&
+                        combination == "sum"}
+                    wedged={elements.filter((e) => e.active).length > 1 &&
                     wedgedMotor &&
                     cga.isVersor(wedgedMotor)
                         ? wedgedMotor
@@ -626,7 +708,7 @@
                 </div>
             </fieldset>
             <fieldset class="fieldset-sub">
-                <legend>Grade 4 (Directing)</legend>
+                <legend>Grade 3 (Directing)</legend>
                 <div class="button-row">
                     <button
                         disabled={freeColors.length < 1}
@@ -672,137 +754,6 @@
                                 ),
                             });
                         }}>e1pm</button
-                    >
-                </div>
-            </fieldset>
-        </fieldset>
-        <fieldset class="fieldset-mini">
-            <legend>Add Point</legend>
-            <fieldset class="fieldset-sub">
-                <legend>Grade 3 (Reflecting)</legend>
-                <div class="button-row">
-                    <button
-                        disabled={freeColors.length < 1}
-                        onclick={(evt) => {
-                            elements.push({
-                                color: freeColors.shift(),
-                                active: true,
-                                el: cga.pointReflection(0, 0.0, 0.0),
-                            });
-                        }}>e123</button
-                    >
-                </div>
-            </fieldset>
-            <fieldset class="fieldset-sub">
-                <legend>Grade 2 (Directing)</legend>
-                <div class="button-row">
-                    <button
-                        disabled={freeColors.length < 1}
-                        onclick={(evt) => {
-                            elements.push({
-                                color: freeColors.shift(),
-                                active: true,
-                                el: cga.dual(cga.pointReflection(0, 0.0, 0.0)),
-                            });
-                        }}>epm</button
-                    >
-                </div>
-            </fieldset>
-        </fieldset>
-
-        <fieldset class="fieldset-mini">
-            <legend>Add Point Pair</legend>
-            <fieldset class="fieldset-sub">
-                <legend>Grade 2 (Directing)</legend>
-                <div class="button-row">
-                    <button
-                        disabled={freeColors.length < 1}
-                        onclick={(evt) => {
-                            elements.push({
-                                color: freeColors.shift(),
-                                active: true,
-                                el: cga.pointPair(
-                                    cga.zeroSphere(1, 0.0, 0.0),
-                                    cga.zeroSphere(-1, 0.0, 0.0),
-                                ),
-                            });
-                        }}>e1m</button
-                    >
-                    <button
-                        disabled={freeColors.length < 1}
-                        onclick={(evt) => {
-                            elements.push({
-                                color: freeColors.shift(),
-                                active: true,
-                                el: cga.pointPair(
-                                    cga.zeroSphere(0.0, 1, 0.0),
-                                    cga.zeroSphere(0.0, -1, 0.0),
-                                ),
-                            });
-                        }}>e2m</button
-                    >
-                    <button
-                        disabled={freeColors.length < 1}
-                        onclick={(evt) => {
-                            elements.push({
-                                color: freeColors.shift(),
-                                active: true,
-                                el: cga.pointPair(
-                                    cga.zeroSphere(0.0, 0.0, 1),
-                                    cga.zeroSphere(0.0, 0.0, -1),
-                                ),
-                            });
-                        }}>e3m</button
-                    >
-                </div>
-            </fieldset>
-            <fieldset class="fieldset-sub">
-                <legend>Grade 3 (Reflecting)</legend>
-                <div class="button-row">
-                    <button
-                        disabled={freeColors.length < 1}
-                        onclick={(evt) => {
-                            elements.push({
-                                color: freeColors.shift(),
-                                active: true,
-                                el: cga.dual(
-                                    cga.pointPair(
-                                        cga.zeroSphere(1, 0.0, 0.0),
-                                        cga.zeroSphere(-1, 0.0, 0.0),
-                                    ),
-                                ),
-                            });
-                        }}>e23p</button
-                    >
-                    <button
-                        disabled={freeColors.length < 1}
-                        onclick={(evt) => {
-                            elements.push({
-                                color: freeColors.shift(),
-                                active: true,
-                                el: cga.dual(
-                                    cga.pointPair(
-                                        cga.zeroSphere(0.0, -1, 0.0),
-                                        cga.zeroSphere(0.0, 1, 0.0),
-                                    ),
-                                ),
-                            });
-                        }}>e13p</button
-                    >
-                    <button
-                        disabled={freeColors.length < 1}
-                        onclick={(evt) => {
-                            elements.push({
-                                color: freeColors.shift(),
-                                active: true,
-                                el: cga.dual(
-                                    cga.pointPair(
-                                        cga.zeroSphere(0.0, 0.0, 1),
-                                        cga.zeroSphere(0.0, 0.0, -1),
-                                    ),
-                                ),
-                            });
-                        }}>e12p</button
                     >
                 </div>
             </fieldset>
@@ -887,6 +838,139 @@
                 </div>
             </fieldset>
         </fieldset>
+        <fieldset class="fieldset-mini">
+            <legend>Add Point</legend>
+            <fieldset class="fieldset-sub">
+                <legend>Grade 3 (Reflecting)</legend>
+                <div class="button-row">
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.shift(),
+                                active: true,
+                                el: cga.pointReflection(0, 0.0, 0.0),
+                            });
+                        }}>e123</button
+                    >
+                </div>
+            </fieldset>
+            <fieldset class="fieldset-sub">
+                <legend>Grade 2 (Directing)</legend>
+                <div class="button-row">
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.shift(),
+                                active: true,
+                                el: cga.dual(cga.pointReflection(0, 0.0, 0.0)),
+                            });
+                        }}>epm</button
+                    >
+                </div>
+            </fieldset>
+        </fieldset>
+
+        <fieldset class="fieldset-mini">
+            <legend>Add Point Pair</legend>
+
+            <fieldset class="fieldset-sub">
+                <legend>Grade 3 (Reflecting)</legend>
+                <div class="button-row">
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.shift(),
+                                active: true,
+                                el: cga.dual(
+                                    cga.pointPair(
+                                        cga.zeroSphere(1, 0.0, 0.0),
+                                        cga.zeroSphere(-1, 0.0, 0.0),
+                                    ),
+                                ),
+                            });
+                        }}>e23p</button
+                    >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.shift(),
+                                active: true,
+                                el: cga.dual(
+                                    cga.pointPair(
+                                        cga.zeroSphere(0.0, -1, 0.0),
+                                        cga.zeroSphere(0.0, 1, 0.0),
+                                    ),
+                                ),
+                            });
+                        }}>e13p</button
+                    >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.shift(),
+                                active: true,
+                                el: cga.dual(
+                                    cga.pointPair(
+                                        cga.zeroSphere(0.0, 0.0, 1),
+                                        cga.zeroSphere(0.0, 0.0, -1),
+                                    ),
+                                ),
+                            });
+                        }}>e12p</button
+                    >
+                </div>
+            </fieldset>
+            <fieldset class="fieldset-sub">
+                <legend>Grade 2 (Directing)</legend>
+                <div class="button-row">
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.shift(),
+                                active: true,
+                                el: cga.pointPair(
+                                    cga.zeroSphere(1, 0.0, 0.0),
+                                    cga.zeroSphere(-1, 0.0, 0.0),
+                                ),
+                            });
+                        }}>e1m</button
+                    >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.shift(),
+                                active: true,
+                                el: cga.pointPair(
+                                    cga.zeroSphere(0.0, 1, 0.0),
+                                    cga.zeroSphere(0.0, -1, 0.0),
+                                ),
+                            });
+                        }}>e2m</button
+                    >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.shift(),
+                                active: true,
+                                el: cga.pointPair(
+                                    cga.zeroSphere(0.0, 0.0, 1),
+                                    cga.zeroSphere(0.0, 0.0, -1),
+                                ),
+                            });
+                        }}>e3m</button
+                    >
+                </div>
+            </fieldset>
+        </fieldset>
+
         <fieldset class="fieldset-mini">
             <legend>Add Antipodality</legend>
             <fieldset class="fieldset-sub">
@@ -992,19 +1076,51 @@
             <details bind:open={accordeons.export}>
                 <summary>Export</summary>
                 <textarea class="serialized" readonly
-                    >{JSON.stringify(elements, (key, value) =>
-                        value instanceof Float64Array
-                            ? Array.from(value)
-                            : value,
+                    >{JSON.stringify(
+                        { elements, combine: combination },
+                        (key, value) =>
+                            value instanceof Float64Array
+                                ? Array.from(value)
+                                : value,
                     )}</textarea
                 >
             </details>
             <fieldset class="fieldset-mini">
                 <legend
-                    >All (SN: {Math.sign(
+                    >Combine (SN: {Math.sign(
                         cga.spinorNorm(combinedMotor),
                     )})</legend
                 >
+                <div class="button-row">
+                    {#each ["product", "sum", "wedge"] as comb}
+                        <label
+                            ><input
+                                type="radio"
+                                value={comb}
+                                bind:group={combination}
+                            />
+                            {comb}</label
+                        >
+                    {/each}
+                    <button
+                        title="Apply, combine into single transformation"
+                        disabled={elements.length < 2}
+                        onclick={(evt) => {
+                            const cmb = combinedMotor;
+                            while (elements.length) {
+                                freeColors.unshift(elements.pop().color);
+                            }
+                            elements.push({
+                                active: true,
+                                color: freeColors.shift(),
+                                el: cmb,
+                            });
+                        }}>Apply</button
+                    >
+                </div>
+            </fieldset>
+            <fieldset class="fieldset-mini">
+                <legend>All</legend>
                 <div class="button-row">
                     <button
                         disabled={elements.length == 0}
@@ -1042,55 +1158,6 @@
                             elements = elements.toReversed();
                         }}>⇋</button
                     >
-
-                    <button
-                        title="Geometric Product multiply all"
-                        disabled={elements.length == 1 ||
-                            !combinedMotor ||
-                            !cga.isVersor(combinedMotor)}
-                        onclick={(evt) => {
-                            const cmb = combinedMotor;
-                            while (elements.length) {
-                                freeColors.unshift(elements.pop().color);
-                            }
-                            elements.push({
-                                active: true,
-                                color: freeColors.shift(),
-                                el: cmb,
-                            });
-                        }}>&prod;</button
-                    >
-                    <button
-                        title="Wedge all"
-                        disabled={!wedgedMotor || !cga.isVersor(wedgedMotor)}
-                        onclick={(evt) => {
-                            const cmb = wedgedMotor;
-                            while (elements.length) {
-                                freeColors.unshift(elements.pop().color);
-                            }
-                            elements.push({
-                                active: true,
-                                color: freeColors.shift(),
-                                el: cmb,
-                            });
-                        }}>&wedge;</button
-                    >
-                    <button
-                        title="Sum all"
-                        disabled={!summedMotor}
-                        onclick={(evt) => {
-                            const cmb = summedMotor;
-                            while (elements.length) {
-                                freeColors.unshift(elements.pop().color);
-                            }
-                            elements.push({
-                                active: true,
-                                color: freeColors.shift(),
-                                el: cmb,
-                            });
-                        }}
-                        >&sum;
-                    </button>
                 </div>
             </fieldset>
         </div>
@@ -1461,7 +1528,27 @@
                             />
                         </label>
                     </div>
+
                     <div class="accordeon">
+                        <label style="display: flex; flex-direction: column;">
+                            <span style:white-space="nowrap"
+                                >Summation Weight ({formatter.format(
+                                    elements[eli].weight ?? 1,
+                                )}):
+                            </span>
+                            <input
+                                disabled={combination != "sum"}
+                                type="range"
+                                min={-2}
+                                max={2}
+                                step={0.1}
+                                value={elements[eli].weight ?? 1}
+                                oninput={(evt) => {
+                                    elements[eli].weight =
+                                        evt.currentTarget.valueAsNumber;
+                                }}
+                            />
+                        </label>
                         <details
                             bind:open={accordeons.expression}
                             class="accordeon-item"
@@ -1499,6 +1586,7 @@
                                     </code>
                                 </span>
                             </summary>
+
                             <div>
                                 {#if cga.isSphereAtInfinity(el)}
                                     <strong>Sphere at Infinity</strong>
@@ -3241,11 +3329,19 @@
         height: 1em;
         vertical-align: center;
     }
-    label:has(input[type="checkbox"]) {
+    input[type="radio"],
+    input[type="checkbox"] {
+        margin: 0;
+        padding: 0;
+    }
+    label:has(input[type="checkbox"]),
+    label:has(input[type="radio"]) {
         display: flex;
         align-items: center;
+        line-height: 1em;
         background-color: #333a;
-        padding: 0.5ex;
+        gap: 1ex;
+        padding: 1ex;
     }
     .accordeon {
         display: flex;
