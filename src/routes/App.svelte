@@ -648,16 +648,6 @@
                             });
                         }}>e123m</button
                     >
-                    <button
-                        disabled={freeColors.length < 1}
-                        onclick={(evt) => {
-                            elements.push({
-                                color: freeColors.shift(),
-                                active: true,
-                                el: cga.undual(cga.sphere(0, 0, 0, 0)),
-                            });
-                        }}>e123p - e123m</button
-                    >
                 </div>
             </fieldset>
         </fieldset>
@@ -985,6 +975,29 @@
                                 el: cga.wedge(cga.e123, cga.ep),
                             });
                         }}>e123p</button
+                    >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.shift(),
+                                active: true,
+                                el: cga.undual(cga.sphere(0, 0, 0, 0)),
+                            });
+                        }}>e123p - e123m</button
+                    >
+                    <button
+                        disabled={freeColors.length < 1}
+                        onclick={(evt) => {
+                            elements.push({
+                                color: freeColors.shift(),
+                                active: true,
+                                el: cga.add(
+                                    cga.wedge(cga.e123, cga.ep),
+                                    cga.wedge(cga.e123, cga.em),
+                                ),
+                            });
+                        }}>e123p + e123m</button
                     >
                 </div>
             </fieldset>
@@ -1593,7 +1606,13 @@
 
                             <div>
                                 {#if cga.isSphereAtInfinity(el)}
-                                    <strong>Sphere at Infinity</strong>
+                                    <strong
+                                        >Sphere at Infinity (Reflecting)</strong
+                                    >
+                                {:else if cga.isSphereAtInfinity(cga.dual(el))}
+                                    <strong
+                                        >Sphere at Infinity (Directing)</strong
+                                    >
                                 {:else if cga.isSphere(el)}
                                     <strong>Sphere (Reflecting)</strong>
                                     {@const sphCoords =
@@ -2755,30 +2774,43 @@
                             </div>
                         </details>
                         {#snippet basisSlider(eli, basis, range = 2)}
-                            <label class="slider-with-value">
-                                <span>{basis}</span>
-                                <input
-                                    type="range"
-                                    value={elements[eli].el[
-                                        cga.basisIndex[basis]
-                                    ]}
-                                    min={-range}
-                                    max={range}
-                                    step={0.01}
-                                    oninput={(evt) => {
-                                        elements[eli].el = cga.setBasis(
-                                            elements[eli].el,
-                                            cga.basisIndex[basis],
-                                            evt.currentTarget.valueAsNumber,
-                                        );
-                                    }}
-                                />
+                            <span class="slider-with-value">
+                                <label
+                                    ><span>{basis}</span>
+                                    <input
+                                        type="range"
+                                        value={elements[eli].el[
+                                            cga.basisIndex[basis]
+                                        ]}
+                                        min={-range}
+                                        max={range}
+                                        step={0.01}
+                                        oninput={(evt) => {
+                                            elements[eli].el = cga.setBasis(
+                                                elements[eli].el,
+                                                cga.basisIndex[basis],
+                                                evt.currentTarget.valueAsNumber,
+                                            );
+                                        }}
+                                    />
+                                </label>
                                 <output>
                                     {formatter.format(
                                         elements[eli].el[cga.basisIndex[basis]],
                                     )}
                                 </output>
-                            </label>
+                                <button
+                                    onclick={(evt) => {
+                                        evt.preventDefault();
+
+                                        elements[eli].el = cga.setBasis(
+                                            elements[eli].el,
+                                            cga.basisIndex[basis],
+                                            0.0,
+                                        );
+                                    }}>&cross;</button
+                                >
+                            </span>
                         {/snippet}
 
                         <details
@@ -2814,104 +2846,134 @@
                                 <fieldset>
                                     <legend>Grade 1</legend>
                                     {@render basisSlider(eli, "ep")}
-                                    {@render basisSlider(eli, "em")}
-                                    <label
-                                        style="display: flex; flex-direction: column;"
-                                    >
-                                        <span style:white-space="nowrap"
-                                            >(ep + em) / 2</span
-                                        >
-                                        <input
-                                            type="range"
-                                            value={(elements[eli].el[
-                                                cga.basisIndex.ep
-                                            ] +
-                                                elements[eli].el[
-                                                    cga.basisIndex.em
-                                                ]) /
-                                                2}
-                                            min={-2}
-                                            max={2}
-                                            step={0.01}
-                                            oninput={(evt) => {
-                                                const old =
-                                                    (elements[eli].el[
-                                                        cga.basisIndex.ep
-                                                    ] +
-                                                        elements[eli].el[
-                                                            cga.basisIndex.em
-                                                        ]) /
-                                                    2;
-                                                const dep =
-                                                    elements[eli].el[
-                                                        cga.basisIndex.ep
-                                                    ] - old;
-                                                const dem =
+                                    <span class="slider-with-value">
+                                        <label>
+                                            <span style:white-space="nowrap"
+                                                >(ep + em) / 2</span
+                                            >
+                                            <input
+                                                type="range"
+                                                value={(elements[eli].el[
+                                                    cga.basisIndex.ep
+                                                ] +
                                                     elements[eli].el[
                                                         cga.basisIndex.em
-                                                    ] - old;
-
-                                                elements[eli].el = cga.setBasis(
-                                                    cga.setBasis(
-                                                        elements[eli].el,
-                                                        cga.basisIndex.ep,
-                                                        evt.currentTarget
-                                                            .valueAsNumber +
-                                                            dep,
-                                                    ),
-                                                    cga.basisIndex.em,
-                                                    evt.currentTarget
-                                                        .valueAsNumber + dem,
-                                                );
-                                            }}
-                                        />
-                                    </label>
-                                    <label
-                                        style="display: flex; flex-direction: column;"
-                                    >
-                                        <span style:white-space="nowrap"
-                                            >(ep - em)</span
-                                        >
-                                        <br />
-                                        <input
-                                            type="range"
-                                            value={elements[eli].el[
-                                                cga.basisIndex.ep
-                                            ] -
-                                                elements[eli].el[
-                                                    cga.basisIndex.em
-                                                ]}
-                                            min={-5}
-                                            max={5}
-                                            step={0.01}
-                                            oninput={(evt) => {
-                                                const old =
-                                                    (elements[eli].el[
-                                                        cga.basisIndex.ep
-                                                    ] +
+                                                    ]) /
+                                                    2}
+                                                min={-2}
+                                                max={2}
+                                                step={0.01}
+                                                oninput={(evt) => {
+                                                    const old =
+                                                        (elements[eli].el[
+                                                            cga.basisIndex.ep
+                                                        ] +
+                                                            elements[eli].el[
+                                                                cga.basisIndex
+                                                                    .em
+                                                            ]) /
+                                                        2;
+                                                    const dep =
+                                                        elements[eli].el[
+                                                            cga.basisIndex.ep
+                                                        ] - old;
+                                                    const dem =
                                                         elements[eli].el[
                                                             cga.basisIndex.em
-                                                        ]) /
-                                                    2;
+                                                        ] - old;
 
-                                                elements[eli].el = cga.setBasis(
-                                                    cga.setBasis(
-                                                        elements[eli].el,
-                                                        cga.basisIndex.ep,
-                                                        old +
+                                                    elements[eli].el =
+                                                        cga.setBasis(
+                                                            cga.setBasis(
+                                                                elements[eli]
+                                                                    .el,
+                                                                cga.basisIndex
+                                                                    .ep,
+                                                                evt
+                                                                    .currentTarget
+                                                                    .valueAsNumber +
+                                                                    dep,
+                                                            ),
+                                                            cga.basisIndex.em,
                                                             evt.currentTarget
-                                                                .valueAsNumber /
-                                                                2,
-                                                    ),
-                                                    cga.basisIndex.em,
-                                                    old -
-                                                        evt.currentTarget
-                                                            .valueAsNumber /
-                                                            2,
-                                                );
-                                            }}
-                                        />
-                                    </label>
+                                                                .valueAsNumber +
+                                                                dem,
+                                                        );
+                                                }}
+                                            />
+                                        </label>
+                                        <output>
+                                            {formatter.format(
+                                                elements[eli].el[
+                                                    cga.basisIndex.ep
+                                                ] -
+                                                    elements[eli].el[
+                                                        cga.basisIndex.em
+                                                    ],
+                                            )}
+                                        </output>
+                                        <button disabled>&cross;</button>
+                                    </span>
+                                    <span class="slider-with-value">
+                                        <label style:white-space="nowrap"
+                                            >(ep - em)
+                                            <input
+                                                type="range"
+                                                value={elements[eli].el[
+                                                    cga.basisIndex.ep
+                                                ] -
+                                                    elements[eli].el[
+                                                        cga.basisIndex.em
+                                                    ]}
+                                                min={-5}
+                                                max={5}
+                                                step={0.01}
+                                                oninput={(evt) => {
+                                                    const old =
+                                                        (elements[eli].el[
+                                                            cga.basisIndex.ep
+                                                        ] +
+                                                            elements[eli].el[
+                                                                cga.basisIndex
+                                                                    .em
+                                                            ]) /
+                                                        2;
+
+                                                    elements[eli].el =
+                                                        cga.setBasis(
+                                                            cga.setBasis(
+                                                                elements[eli]
+                                                                    .el,
+                                                                cga.basisIndex
+                                                                    .ep,
+                                                                old +
+                                                                    evt
+                                                                        .currentTarget
+                                                                        .valueAsNumber /
+                                                                        2,
+                                                            ),
+                                                            cga.basisIndex.em,
+                                                            old -
+                                                                evt
+                                                                    .currentTarget
+                                                                    .valueAsNumber /
+                                                                    2,
+                                                        );
+                                                }}
+                                            />
+                                        </label>
+                                        <output>
+                                            {formatter.format(
+                                                elements[eli].el[
+                                                    cga.basisIndex.ep
+                                                ] -
+                                                    elements[eli].el[
+                                                        cga.basisIndex.em
+                                                    ],
+                                            )}
+                                        </output>
+                                        <button disabled>&cross;</button>
+                                    </span>
                                 </fieldset>
                                 <fieldset>
                                     <legend>Grade 4</legend>
@@ -2923,7 +2985,7 @@
                             class="accordeon-item"
                             bind:open={accordeons.linelike}
                         >
-                            <summary>Line-line components</summary>
+                            <summary>Line-like components</summary>
                             <div
                                 style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
                             >
@@ -2938,6 +3000,28 @@
                                     {@render basisSlider(eli, "e3pm")}
                                     {@render basisSlider(eli, "e2pm")}
                                     {@render basisSlider(eli, "e1pm")}
+                                </fieldset>
+                            </div>
+                        </details>
+                        <details
+                            class="accordeon-item"
+                            bind:open={accordeons.circlelike}
+                        >
+                            <summary>Circle-like components</summary>
+                            <div
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
+                            >
+                                <fieldset>
+                                    <legend>Grade 2</legend>
+                                    {@render basisSlider(eli, "e1p")}
+                                    {@render basisSlider(eli, "e2p")}
+                                    {@render basisSlider(eli, "e3p")}
+                                </fieldset>
+                                <fieldset>
+                                    <legend>Grade 3</legend>
+                                    {@render basisSlider(eli, "e23m")}
+                                    {@render basisSlider(eli, "e13m")}
+                                    {@render basisSlider(eli, "e12m")}
                                 </fieldset>
                             </div>
                         </details>
@@ -2981,25 +3065,155 @@
                                 </fieldset>
                             </div>
                         </details>
+
                         <details
                             class="accordeon-item"
-                            bind:open={accordeons.circlelike}
+                            bind:open={accordeons.antipodallike}
                         >
-                            <summary>Circle-like components</summary>
+                            <summary>Antipodality-like components</summary>
                             <div
                                 style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
                             >
                                 <fieldset>
-                                    <legend>Grade 2</legend>
-                                    {@render basisSlider(eli, "e1p")}
-                                    {@render basisSlider(eli, "e2p")}
-                                    {@render basisSlider(eli, "e3p")}
+                                    <legend>Grade 4</legend>
+                                    {@render basisSlider(eli, "e123p")}
+                                    <span class="slider-with-value">
+                                        <label>
+                                            <span style:white-space="nowrap"
+                                                >(e123p + e123m)/2</span
+                                            >
+                                            <input
+                                                type="range"
+                                                value={(elements[eli].el[
+                                                    cga.basisIndex.e123p
+                                                ] +
+                                                    elements[eli].el[
+                                                        cga.basisIndex.e123m
+                                                    ]) /
+                                                    2}
+                                                min={-2}
+                                                max={2}
+                                                step={0.01}
+                                                oninput={(evt) => {
+                                                    const old =
+                                                        (elements[eli].el[
+                                                            cga.basisIndex.e123p
+                                                        ] +
+                                                            elements[eli].el[
+                                                                cga.basisIndex
+                                                                    .e123m
+                                                            ]) /
+                                                        2;
+                                                    const dep =
+                                                        elements[eli].el[
+                                                            cga.basisIndex.e123p
+                                                        ] - old;
+                                                    const dem =
+                                                        elements[eli].el[
+                                                            cga.basisIndex.e123m
+                                                        ] - old;
+
+                                                    elements[eli].el =
+                                                        cga.setBasis(
+                                                            cga.setBasis(
+                                                                elements[eli]
+                                                                    .el,
+                                                                cga.basisIndex
+                                                                    .e123p,
+                                                                evt
+                                                                    .currentTarget
+                                                                    .valueAsNumber +
+                                                                    dep,
+                                                            ),
+                                                            cga.basisIndex
+                                                                .e123m,
+                                                            evt.currentTarget
+                                                                .valueAsNumber +
+                                                                dem,
+                                                        );
+                                                }}
+                                            />
+                                        </label>
+                                        <output>
+                                            {formatter.format(
+                                                (elements[eli].el[
+                                                    cga.basisIndex.e123p
+                                                ] +
+                                                    elements[eli].el[
+                                                        cga.basisIndex.e123m
+                                                    ]) /
+                                                    2,
+                                            )}
+                                        </output>
+                                        <button disabled>&cross;</button>
+                                    </span>
+                                    <span class="slider-with-value">
+                                        <label>
+                                            <span style:white-space="nowrap"
+                                                >(e123p - e123m)</span
+                                            >
+                                            <input
+                                                type="range"
+                                                value={elements[eli].el[
+                                                    cga.basisIndex.e123p
+                                                ] -
+                                                    elements[eli].el[
+                                                        cga.basisIndex.e123m
+                                                    ]}
+                                                min={-5}
+                                                max={5}
+                                                step={0.01}
+                                                oninput={(evt) => {
+                                                    const old =
+                                                        (elements[eli].el[
+                                                            cga.basisIndex.e123p
+                                                        ] +
+                                                            elements[eli].el[
+                                                                cga.basisIndex
+                                                                    .e123m
+                                                            ]) /
+                                                        2;
+
+                                                    elements[eli].el =
+                                                        cga.setBasis(
+                                                            cga.setBasis(
+                                                                elements[eli]
+                                                                    .el,
+                                                                cga.basisIndex
+                                                                    .e123p,
+                                                                old +
+                                                                    evt
+                                                                        .currentTarget
+                                                                        .valueAsNumber /
+                                                                        2,
+                                                            ),
+                                                            cga.basisIndex
+                                                                .e123m,
+                                                            old -
+                                                                evt
+                                                                    .currentTarget
+                                                                    .valueAsNumber /
+                                                                    2,
+                                                        );
+                                                }}
+                                            />
+                                        </label>
+                                        <output>
+                                            {formatter.format(
+                                                elements[eli].el[
+                                                    cga.basisIndex.e123p
+                                                ] -
+                                                    elements[eli].el[
+                                                        cga.basisIndex.e123m
+                                                    ],
+                                            )}
+                                        </output>
+                                        <button disabled>&cross;</button>
+                                    </span>
                                 </fieldset>
                                 <fieldset>
-                                    <legend>Grade 3</legend>
-                                    {@render basisSlider(eli, "e23m")}
-                                    {@render basisSlider(eli, "e13m")}
-                                    {@render basisSlider(eli, "e12m")}
+                                    <legend>Grade 1</legend>
+                                    {@render basisSlider(eli, "em")}
                                 </fieldset>
                             </div>
                         </details>
@@ -3392,10 +3606,14 @@
         font-size: inherit;
         font: inherit;
     }
+    .slider-with-value label {
+        display: contents;
+    }
     .slider-with-value {
         display: grid;
-        grid-template-columns: auto 1fr;
+        grid-template-columns: auto 1fr auto;
         grid-template-rows: auto auto;
+        gap: 0 0.5ex;
     }
     .slider-with-value span {
         grid-row: 1 / span 1;
@@ -3406,9 +3624,23 @@
         grid-row: 2 / span 1;
     }
     .slider-with-value output {
-        grid-column: 2 / -1;
+        grid-column: 2 / -2;
         grid-row: 1 / span 1;
         justify-self: end;
+        align-self: center;
+    }
+    .slider-with-value button {
+        grid-column: 3 / -1;
+        grid-row: 1 / span 1;
+        justify-self: end;
+        align-self: center;
+        padding: 0;
+        width: 1.2em;
+        font-size: 10pt;
+        height: 1.2em;
+        background-color: #333;
+        line-height: 1em;
+        color: #fff;
     }
     .hidden {
         display: none;

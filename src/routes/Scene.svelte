@@ -424,6 +424,21 @@
                         map={textureChecker}
                     />
                 </T.Mesh>
+            {:else if cga.isSphereAtInfinity(cga.dual(el))}
+                <T.Mesh renderOrder={-5} scale={1}>
+                    <T.SphereGeometry args={[1, 16, 8]} />
+                    <T.MeshStandardMaterial
+                        toneMapped={false}
+                        depthTest={false}
+                        depthWrite={false}
+                        opacity={active ? 0.6 : 0.1}
+                        color={active ? color : "gray"}
+                        side={THREE.BackSide}
+                        transparent={true}
+                        premultipliedAlpha={true}
+                        map={textureChecker}
+                    />
+                </T.Mesh>
             {:else if cga.isPlane(el)}
                 {@const plnParams = cga.planeParameters(el)}
                 {@const rot = new THREE.Quaternion().setFromUnitVectors(
