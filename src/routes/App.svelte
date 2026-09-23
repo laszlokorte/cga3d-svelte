@@ -97,6 +97,7 @@
                 product: productMotor,
                 sum: summedMotor,
                 wedge: wedgedMotor,
+                wedgeDual: cga.dual(wedgedMotor),
             }[combination],
         ),
     );
@@ -286,6 +287,8 @@
         },
         {
             name: "Loxodrome",
+
+            showObject: false,
             showVectorField: true,
             elements: [
                 {
@@ -310,37 +313,31 @@
         {
             name: "Double Rotation",
             showVectorField: true,
+            showObject: false,
             elements: [
                 {
-                    color: "limegreen",
                     active: true,
+                    color: "royalblue",
                     el: [
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0,
+                        0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     ],
                 },
                 {
-                    color: "royalblue",
+                    color: "limegreen",
                     active: true,
                     el: [
-                        0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     ],
                 },
-                {
-                    color: "teal",
-                    active: true,
-                    el: [
-                        0, 0.9338567516961642, 0.35764726660704166, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0,
-                    ],
-                },
             ],
+            combine: "sum",
         },
         {
             name: "Double Circle",
             showVectorField: true,
+            showObject: false,
             combine: "sum",
             elements: [
                 {
@@ -366,6 +363,7 @@
         {
             name: "Smoke Rings",
 
+            showObject: false,
             showVectorField: true,
             combine: "sum",
             elements: [
@@ -393,6 +391,8 @@
         },
         {
             name: "Circle by 3 points",
+
+            showVectorField: true,
             elements: [
                 {
                     color: "tomato",
@@ -425,7 +425,7 @@
                     ],
                 },
             ],
-            combine: "wedge",
+            combine: "wedgeDual",
         },
     ];
 
@@ -450,6 +450,8 @@
         }
         combination = ex.combine ?? "product";
         showVectorField = ex.showVectorField;
+
+        showObject = ex.showObject !== false;
     }
 </script>
 
@@ -465,7 +467,8 @@
                     {showVectorField}
                     showIntersections={showIntersections &&
                         combination != "sum"}
-                    {showObject}
+                    showObject={showObject &&
+                        Math.sign(cga.spinorNorm(combinedMotor)) != 0}
                     bind:elements
                     showMotor={elements.filter((e) => e.active).length > 1 &&
                         combination == "sum"}
@@ -1079,6 +1082,11 @@
                             /> Wedge/Intersect</label
                         >
                         <label
+                            class={{
+                                disableHint:
+                                    Math.sign(cga.spinorNorm(combinedMotor)) ==
+                                    0,
+                            }}
                             ><input type="checkbox" bind:checked={showObject} />
                             Example Object</label
                         >
@@ -1105,7 +1113,7 @@
                     )})</legend
                 >
                 <div class="button-row">
-                    {#each ["product", "sum", "wedge"] as comb}
+                    {#each ["product", "sum", "wedge", "wedgeDual"] as comb}
                         <label
                             ><input
                                 type="radio"
@@ -1128,6 +1136,7 @@
                                 color: freeColors.shift(),
                                 el: cmb,
                             });
+                            combination = "product";
                         }}>Apply</button
                     >
                 </div>
@@ -3644,5 +3653,7 @@
     }
     .hidden {
         display: none;
+    }
+    .disableHint {
     }
 </style>

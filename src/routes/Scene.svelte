@@ -210,11 +210,12 @@
     ];
     const vfcount = 10 * 10;
 
-    const vfgeometry = new THREE.CylinderGeometry(0.005, 0.01, 2, 4, 32);
-    const vfgeometry2 = new THREE.CylinderGeometry(0.005, 0.01, 8, 4, 256);
+    const vfgeometry = new THREE.CylinderGeometry(0.005, 0.01, 2, 8, 32);
+    const vfgeometry2 = new THREE.CylinderGeometry(0.005, 0.01, 8, 8, 256);
     const vfmaterial = new THREE.ShaderMaterial({
         uniforms: {
             uTime: { value: 0 },
+            uSpeed: { value: 0.3 },
             uMotor: { value: cga.scalar(0) },
             uOpacity: { value: 0.5 },
         },
@@ -222,39 +223,65 @@
         vertexShader: /* glsl */ `
             #include <clipping_planes_pars_vertex>
 
-               attribute vec4 aPosition;
+            attribute vec4 aPosition;
 
-               uniform float uMotor[32];
-               uniform float uTime;
+            uniform float uMotor[32];
+            uniform float uTime;
+            uniform float uSpeed;
 
-               varying float skip;
+            varying float skip;
 
-               ${generateGP()}
+            ${generateGP()}
 
-               void main() {
-                   MV motor;
+            void main() {
+                MV motor;
 
-                    for (int i = 0; i < 32; i++)
-                        motor.c[i] = uMotor[i];
+                for (int i = 0; i < 32; i++)
+                    motor.c[i] = uMotor[i];
 
-                    float interp  = (position.y + 1.0) + mod(uTime*0.5 + aPosition.w * 4.0, 4.0);
-                    MV p = point(aPosition.xyz * vec3(1.0,1.0,1.0));
-                    MV partialMotor = motorExp(scale(3.141 / 4.0 * interp, motor));
-                    MV motorResult = sandwich(p, partialMotor);
-                    vec3 coords = pointCoords(motorResult);
+                float interp =
+                    (position.y + 1.0) +
+                    mod(uTime * uSpeed + aPosition.w * 4.0, 4.0);
 
-                    MV motorResult2 = sandwich(p, motor);
-                                        vec3 coords2 = pointCoords(motorResult2);
-                    skip = 1.0;
+                MV partialMotor =
+                    motorExp(scale(3.141 / 4.0 * interp, motor));
 
-                    vec4 worldPos = skip * modelMatrix * vec4(position * vec3(1.0,0.0,1.0) + coords, 1.0);
-                    vec4 mvPosition = modelViewMatrix *
-                       worldPos ;
-                            #include <clipping_planes_vertex>
+                // Center of this cylinder slice
+                MV centerP = point(aPosition.xyz);
+                vec3 center =
+                    pointCoords(sandwich(centerP, partialMotor));
 
-                   gl_Position = projectionMatrix * mvPosition;
-               }
-           `,
+                // Two points defining the local X/Z axes of the disk.
+                MV xP = point(aPosition.xyz + vec3(1.0, 0.0, 0.0));
+                MV zP = point(aPosition.xyz + vec3(0.0, 0.0, 1.0));
+
+                // Transform those axes and remove the translation.
+                vec3 x =
+                    pointCoords(sandwich(xP, partialMotor)) - center;
+
+                vec3 z =
+                    pointCoords(sandwich(zP, partialMotor)) - center;
+
+                // Reconstruct the cylinder vertex in the transformed frame.
+                vec3 coords =
+                    center +
+                    position.x * normalize(x) +
+                    position.z * normalize(z);
+
+                skip = 1.0;
+
+                vec4 worldPos =
+                    modelMatrix * vec4(coords, 1.0);
+
+                vec4 mvPosition =
+                    modelViewMatrix * worldPos;
+
+                #include <clipping_planes_vertex>
+
+                gl_Position =
+                    projectionMatrix * mvPosition;
+            }
+        `,
 
         fragmentShader: /* glsl */ `
                #include <clipping_planes_pars_fragment>
@@ -274,11 +301,20 @@
 
     const positions = new Float32Array(vfcount * 4);
 
-    for (let i = 0; i < vfcount; i++) {
-        const x = THREE.MathUtils.randFloat(-2, 2);
-        const y = THREE.MathUtils.randFloat(-1, 1);
-        const z = THREE.MathUtils.randFloat(-2, 2);
+    const nx = 10;
+    const nz = 10;
 
+    for (let i = 0; i < vfcount; i++) {
+        const ix = i % nx;
+        const iz = Math.floor(i / nx);
+
+        const x =
+            ((ix - (nx - 1) / 2 + THREE.MathUtils.randFloat(-0.4, 0.4)) * 4) /
+            nx;
+        const y = THREE.MathUtils.randFloat(-1, 1);
+        const z =
+            ((iz - (nz - 1) / 2 + THREE.MathUtils.randFloat(-0.4, 0.4)) * 4) /
+            nz;
         positions[i * 4 + 0] = x;
         positions[i * 4 + 1] = y;
         positions[i * 4 + 2] = z;
@@ -298,6 +334,8 @@
     vfmesh2.renderOrder = 99999;
     vfmesh.instanceMatrix.needsUpdate = true;
     vfmesh2.instanceMatrix.needsUpdate = true;
+
+    vfmaterial.side = THREE.DoubleSide;
     vfmaterial.clippingPlanes = planes;
     vfmaterial.clipping = true;
     vfmaterial.depthTest = true;
@@ -786,6 +824,7 @@
                         )}
 
                     <T.Mesh
+                        scale={Math.abs(Math.sign(sphCoords.radius))}
                         renderOrder={passive
                             ? 999999
                             : 20000 + eli * 100 + r * 16 + a}
@@ -910,6 +949,7 @@
                         )}
 
                     <T.Mesh
+                        scale={Math.abs(Math.sign(sphCoords.radius))}
                         renderOrder={passive
                             ? 999999
                             : 20000 + eli * 100 + r * 16 + a}
