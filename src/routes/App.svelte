@@ -58,7 +58,6 @@
     });
     let dragging = $state(null);
     let over = $state(null);
-    const ii = 0.5;
     let elements = $state([]);
     let showVectorField = $state(false);
     let showIntersections = $state(true);
@@ -398,30 +397,27 @@
                     color: "tomato",
                     active: true,
                     el: [
-                        0, -0.5207901944863929, 0, 0, -1.154312473905208, 0, 0,
-                        0, 0.301829857043161, 0, 0, 0, 0, 0, 0, 0,
-                        1.301829857043161, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0,
+                        0, -0.52, 0, 0, -1.15, 0, 0, 0, 0.2964499999999999, 0,
+                        0, 0, 0, 0, 0, 0, 1.2964499999999999, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
                     ],
                 },
                 {
                     color: "limegreen",
                     active: true,
                     el: [
-                        0, -0.34083936208654997, -0.09763886953275219, 0,
-                        0.4652970109954009, 0, 0, 0, -0.3288969359837732, 0, 0,
-                        0, 0, 0, 0, 0, 0.6711030640162269, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0,
+                        0, -0.34, -0.1, 0, 0.47, 0, 0, 0, -0.32675, 0, 0, 0, 0,
+                        0, 0, 0, 0.67325, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0,
                     ],
                 },
                 {
                     color: "royalblue",
                     active: true,
                     el: [
-                        0, -0.558292190869982, 0.9374125120608835, 0, 0, 0, 0,
-                        0, 0.09521619407734916, 0, 0, 0, 0, 0, 0, 0,
-                        1.0952161940773493, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0,
+                        0, -0.56, 0.94, 0, 0, 0, 0, 0, 0.09860000000000002, 0,
+                        0, 0, 0, 0, 0, 0, 1.0986, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0,
                     ],
                 },
             ],
@@ -455,11 +451,13 @@
     }
 </script>
 
+<svelte:body />
+
 <svelte:head>
     <title>3d CGA</title>
 </svelte:head>
 
-<div class="app">
+<div class={{ globalDrag: dragging !== null, app: true }}>
     <div class="screen">
         <svelte:boundary>
             <Canvas dpr={Math.max(window ? window.devicePixelRatio : 1, 2)}>
@@ -1047,6 +1045,12 @@
                     >
                 </a>
             </p>
+            <p>
+                3D Model by <a
+                    href="https://www.cgtrader.com/free-3d-models/character/clothing/nike-air-force-shoes-in-studio"
+                    target="_blank">tasnimfth72</a
+                >
+            </p>
         </header>
 
         <div class="button-row">
@@ -1305,6 +1309,11 @@
                             over = eli;
                         }
                     }}
+                    ondragleave={(evt) => {
+                        if (over == eli) {
+                            over = null;
+                        }
+                    }}
                     style:--color={color}
                 >
                     <div class="element-side">
@@ -1395,7 +1404,7 @@
                             ||
                         </button>
                         <fieldset class="gridset">
-                            <legend>Binary</legend>
+                            <legend>Binary <br />(Drag'n'Drop)</legend>
 
                             <div
                                 class="element-button"
@@ -1544,6 +1553,8 @@
                                 bind:value={elements[eli].color}
                             />
                             <input
+                                disabled={dragging !== null}
+                                readonly={dragging !== null}
                                 style:width="8em"
                                 type="text"
                                 bind:value={elements[eli].color}
@@ -3250,7 +3261,7 @@
                 <div class="empty-box">
                     <strong>No transformations added yet.</strong>
 
-                    <p>You have created any transformations yet.</p>
+                    <p>You have not defined any transformations yet.</p>
                     <p>
                         Add some element (eg. a reflection plane) to observe how
                         the 3d object on the right gets transformed.
@@ -3258,7 +3269,7 @@
                     <p>
                         The simplest transformations are plane and sphere
                         reflections. More complex transformations can be
-                        composed from simpler ones.
+                        composed by chaining simpler ones.
                     </p>
                     <p>
                         Any possible transformation can be encoded as a tuple of <code
@@ -3270,8 +3281,8 @@
                     <p>
                         <a href="https://bivector.net/tools.html?p=4&q=1&r=0"
                             >Conformal Geometric Algebra</a
-                        > defines rules for how these tuples are to be combined via
-                        addition and multiplication to achieve the desired geometric
+                        > defines the rules for how these tuples are to be combined
+                        via addition and multiplication to achieve the desired geometric
                         transformation.
                     </p>
 
@@ -3482,6 +3493,15 @@
     }
     .dragging {
         opacity: 0.2;
+        border-style: dashed;
+        pointer-events: none;
+    }
+    .globalDrag .element {
+        height: 10em;
+        overflow: hidden;
+    }
+    .globalDrag .element .accordeon {
+        opacity: 0;
     }
     .hover {
         outline: 3px solid gold;
@@ -3655,5 +3675,8 @@
         display: none;
     }
     .disableHint {
+    }
+    .globalDrag input {
+        pointer-events: none;
     }
 </style>
