@@ -1530,25 +1530,29 @@
                     </div>
 
                     <div class="accordeon">
-                        <label style="display: flex; flex-direction: column;">
-                            <span style:white-space="nowrap"
-                                >Summation Weight ({formatter.format(
-                                    elements[eli].weight ?? 1,
-                                )}):
-                            </span>
-                            <input
-                                disabled={combination != "sum"}
-                                type="range"
-                                min={-2}
-                                max={2}
-                                step={0.1}
-                                value={elements[eli].weight ?? 1}
-                                oninput={(evt) => {
-                                    elements[eli].weight =
-                                        evt.currentTarget.valueAsNumber;
-                                }}
-                            />
-                        </label>
+                        <div class={{ hidden: combination != "sum" }}>
+                            <label
+                                style="display: flex; flex-direction: column;"
+                            >
+                                <span style:white-space="nowrap"
+                                    >Summation Weight ({formatter.format(
+                                        elements[eli].weight ?? 1,
+                                    )}):
+                                </span>
+                                <input
+                                    disabled={combination != "sum"}
+                                    type="range"
+                                    min={-2}
+                                    max={2}
+                                    step={0.1}
+                                    value={elements[eli].weight ?? 1}
+                                    oninput={(evt) => {
+                                        elements[eli].weight =
+                                            evt.currentTarget.valueAsNumber;
+                                    }}
+                                />
+                            </label>
+                        </div>
                         <details
                             bind:open={accordeons.expression}
                             class="accordeon-item"
@@ -3405,5 +3409,8 @@
         grid-column: 2 / -1;
         grid-row: 1 / span 1;
         justify-self: end;
+    }
+    .hidden {
+        display: none;
     }
 </style>

@@ -723,28 +723,77 @@
                 mode={"translate"}
             />
         {/if}
-        <T.Mesh
-            scale={Math.max(Math.abs(sphCoords.radius), 0.1)}
+        <T.Group
             position={[
                 sphCoords.center[0],
                 sphCoords.center[1],
                 sphCoords.center[2],
             ]}
-            renderOrder={passive ? 999999 : 40000 + eli * 100}
         >
-            <T.SphereGeometry args={[1, 32, 16]} />
-            <T.MeshStandardMaterial
-                toneMapped={false}
-                map={textureChecker}
-                side={THREE.DoubleSide}
-                opacity={active ? 0.6 : 0.1}
-                depthWrite={false}
-                transparent={true}
-                premultipliedAlpha={true}
-                clippingPlanes={planes}
-                color={active ? color : "gray"}
-            />
-        </T.Mesh>
+            <T.Mesh
+                scale={Math.max(Math.abs(sphCoords.radius), 0.1)}
+                renderOrder={passive ? 999999 : 40000 + eli * 100}
+            >
+                <T.SphereGeometry args={[1, 32, 16]} />
+                <T.MeshStandardMaterial
+                    toneMapped={false}
+                    map={textureChecker}
+                    side={THREE.DoubleSide}
+                    opacity={active ? 0.6 : 0.1}
+                    depthWrite={false}
+                    transparent={true}
+                    premultipliedAlpha={true}
+                    clippingPlanes={planes}
+                    color={active ? color : "gray"}
+                />
+            </T.Mesh>
+            {#each { length: 8 } as _, r}
+                {#each { length: 8 } as _, a}
+                    {@const phi = (Math.PI * (r + 1)) / 8}
+                    {@const theta = ((Math.PI * 2) / 8) * a}
+                    {@const radius =
+                        1 * Math.max(Math.abs(sphCoords.radius), 0.1) +
+                        0.025 * Math.sign(sphCoords.radius)}
+                    {@const normal = new THREE.Vector3(
+                        Math.sin(phi) * Math.cos(theta),
+                        Math.cos(phi),
+                        Math.sin(phi) * Math.sin(theta),
+                    )}
+
+                    {@const quaternion =
+                        new THREE.Quaternion().setFromUnitVectors(
+                            new THREE.Vector3(
+                                0,
+                                Math.sign(sphCoords.radius),
+                                0,
+                            ),
+                            normal,
+                        )}
+
+                    <T.Mesh
+                        renderOrder={passive
+                            ? 999999
+                            : 20000 + eli * 100 + r * 16 + a}
+                        position={[
+                            radius * Math.sin(phi) * Math.cos(theta),
+                            radius * Math.cos(phi),
+                            radius * Math.sin(phi) * Math.sin(theta),
+                        ]}
+                        quaternion={quaternion.toArray()}
+                    >
+                        <T.ConeGeometry args={[0.02, 0.05, 32]} />
+                        <T.MeshStandardMaterial
+                            depthWrite={false}
+                            transparent={true}
+                            premultipliedAlpha={true}
+                            {color}
+                            opacity={active ? 0.6 : 0.1}
+                            clippingPlanes={planes}
+                        />
+                    </T.Mesh>
+                {/each}
+            {/each}
+        </T.Group>
     {:else if cga.isSphere(cga.dual(el))}
         {@const sphCoords = cga.sphereParameters(cga.dual(el))}
 
@@ -798,28 +847,77 @@
                 mode={"translate"}
             />
         {/if}
-        <T.Mesh
-            scale={Math.max(Math.abs(sphCoords.radius), 0.1)}
+        <T.Group
             position={[
                 sphCoords.center[0],
                 sphCoords.center[1],
                 sphCoords.center[2],
             ]}
-            renderOrder={passive ? 999999 : 40000 + eli * 100}
         >
-            <T.SphereGeometry args={[1, 32, 16]} />
-            <T.MeshStandardMaterial
-                toneMapped={false}
-                map={textureChecker}
-                side={THREE.DoubleSide}
-                opacity={active ? 0.6 : 0.1}
-                depthWrite={false}
-                transparent={true}
-                premultipliedAlpha={true}
-                clippingPlanes={planes}
-                color={active ? color : "gray"}
-            />
-        </T.Mesh>
+            <T.Mesh
+                scale={Math.max(Math.abs(sphCoords.radius), 0.1)}
+                renderOrder={passive ? 999999 : 40000 + eli * 100}
+            >
+                <T.SphereGeometry args={[1, 32, 16]} />
+                <T.MeshStandardMaterial
+                    toneMapped={false}
+                    map={textureChecker}
+                    side={THREE.DoubleSide}
+                    opacity={active ? 0.6 : 0.1}
+                    depthWrite={false}
+                    transparent={true}
+                    premultipliedAlpha={true}
+                    clippingPlanes={planes}
+                    color={active ? color : "gray"}
+                />
+            </T.Mesh>
+            {#each { length: 8 } as _, r}
+                {#each { length: 8 } as _, a}
+                    {@const phi = (Math.PI * (r + 1)) / 8}
+                    {@const theta = ((Math.PI * 2) / 8) * a}
+                    {@const radius =
+                        1 * Math.max(Math.abs(sphCoords.radius), 0.1) +
+                        0.025 * Math.sign(sphCoords.radius)}
+                    {@const normal = new THREE.Vector3(
+                        Math.sin(phi) * Math.cos(theta),
+                        Math.cos(phi),
+                        Math.sin(phi) * Math.sin(theta),
+                    )}
+
+                    {@const quaternion =
+                        new THREE.Quaternion().setFromUnitVectors(
+                            new THREE.Vector3(
+                                0,
+                                Math.sign(sphCoords.radius),
+                                0,
+                            ),
+                            normal,
+                        )}
+
+                    <T.Mesh
+                        renderOrder={passive
+                            ? 999999
+                            : 20000 + eli * 100 + r * 16 + a}
+                        position={[
+                            radius * Math.sin(phi) * Math.cos(theta),
+                            radius * Math.cos(phi),
+                            radius * Math.sin(phi) * Math.sin(theta),
+                        ]}
+                        quaternion={quaternion.toArray()}
+                    >
+                        <T.ConeGeometry args={[0.02, 0.05, 32]} />
+                        <T.MeshStandardMaterial
+                            depthWrite={false}
+                            transparent={true}
+                            premultipliedAlpha={true}
+                            {color}
+                            opacity={active ? 0.6 : 0.1}
+                            clippingPlanes={planes}
+                        />
+                    </T.Mesh>
+                {/each}
+            {/each}
+        </T.Group>
     {:else if cga.isPlane(el)}
         {@const plnParams = cga.planeParameters(el)}
         {@const rot = new THREE.Quaternion().setFromUnitVectors(
