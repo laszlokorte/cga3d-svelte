@@ -1389,18 +1389,67 @@
                 lineParams?.direction[2],
             ).normalize(),
         )}
-        <T.Mesh position={lineParams?.point} quaternion={rot.toArray()}>
-            <T.CylinderGeometry args={[0.015, 0.015, 8, 32]} />
-            <T.MeshBasicMaterial
-                toneMapped={false}
-                side={THREE.DoubleSide}
-                opacity={active ? 0.6 : 0.1}
-                transparent={true}
-                clippingPlanes={planes}
-                premultipliedAlpha={true}
-                color={active ? color : "gray"}
-            />
-        </T.Mesh>
+
+        <TransformControls
+            quaternion={rot.toArray()}
+            enabled={active && !passive}
+            size={active && !passive ? 0.4 : 0}
+            space="local"
+            showY={false}
+            position={lineParams?.point.map(
+                (c, i) => c + lineParams.direction[i] * 0.5,
+            )}
+            onobjectChange={(evt) => {
+                const object = evt.target.object;
+                const p = object.position
+                    .clone()
+                    .sub(new THREE.Vector3(...lineParams.direction));
+                const npp = cga.line(p.toArray(), lineParams?.direction);
+
+                if (cga.isLine(npp)) elements[eli].el = npp;
+            }}
+            mode="translate"
+        />
+        <TransformControls
+            quaternion={rot.toArray()}
+            enabled={active && !passive}
+            size={active && !passive ? 0.4 : 0}
+            space="local"
+            position={lineParams?.point}
+            onmouseUp={(evt) => {
+                const object = evt.target.object;
+                const direction = new THREE.Vector3(0, 1, 0)
+                    .applyQuaternion(object.quaternion)
+                    .normalize();
+
+                const p = new THREE.Vector3(...lineParams.point);
+
+                // Keep p as the fixed rotation pivot during the drag.
+                const npp = cga.line(p.toArray(), direction.toArray());
+                const d1 = cga.sub(npp, elements[eli].el);
+                const d2 = cga.add(npp, elements[eli].el);
+
+                const isSame = Math.min(cga.norm2(d1), cga.norm2(d2)) < 1e-5;
+
+                if (cga.isLine(npp) && !isSame) {
+                    elements[eli].el = npp;
+                }
+            }}
+            mode="rotate"
+        >
+            <T.Mesh>
+                <T.CylinderGeometry args={[0.015, 0.015, 8, 32]} />
+                <T.MeshBasicMaterial
+                    toneMapped={false}
+                    side={THREE.DoubleSide}
+                    opacity={active ? 0.6 : 0.1}
+                    transparent={true}
+                    clippingPlanes={planes}
+                    premultipliedAlpha={true}
+                    color={active ? color : "gray"}
+                />
+            </T.Mesh>
+        </TransformControls>
     {:else if cga.isLine(cga.dual(el))}
         {@const lineParams = cga.lineParameters(cga.dual(el))}
         {@const rot = new THREE.Quaternion().setFromUnitVectors(
@@ -1411,18 +1460,66 @@
                 lineParams?.direction[2],
             ).normalize(),
         )}
-        <T.Mesh position={lineParams?.point} quaternion={rot.toArray()}>
-            <T.CylinderGeometry args={[0.015, 0.015, 8, 32]} />
-            <T.MeshBasicMaterial
-                toneMapped={false}
-                side={THREE.DoubleSide}
-                opacity={active ? 0.6 : 0.1}
-                transparent={true}
-                clippingPlanes={planes}
-                premultipliedAlpha={true}
-                color={active ? color : "gray"}
-            />
-        </T.Mesh>
+        <TransformControls
+            quaternion={rot.toArray()}
+            enabled={active && !passive}
+            size={active && !passive ? 0.4 : 0}
+            space="local"
+            showY={false}
+            position={lineParams?.point.map(
+                (c, i) => c + lineParams.direction[i] * 0.5,
+            )}
+            onobjectChange={(evt) => {
+                const object = evt.target.object;
+                const p = object.position
+                    .clone()
+                    .sub(new THREE.Vector3(...lineParams.direction));
+                const npp = cga.line(p.toArray(), lineParams?.direction);
+
+                if (cga.isLine(npp)) elements[eli].el = cga.undual(npp);
+            }}
+            mode="translate"
+        />
+        <TransformControls
+            quaternion={rot.toArray()}
+            enabled={active && !passive}
+            size={active && !passive ? 0.4 : 0}
+            space="local"
+            position={lineParams?.point}
+            onmouseUp={(evt) => {
+                const object = evt.target.object;
+                const direction = new THREE.Vector3(0, 1, 0)
+                    .applyQuaternion(object.quaternion)
+                    .normalize();
+
+                const p = new THREE.Vector3(...lineParams.point);
+
+                // Keep p as the fixed rotation pivot during the drag.
+                const npp = cga.line(p.toArray(), direction.toArray());
+                const d1 = cga.sub(npp, cga.dual(elements[eli].el));
+                const d2 = cga.add(npp, cga.dual(elements[eli].el));
+
+                const isSame = Math.min(cga.norm2(d1), cga.norm2(d2)) < 1e-5;
+
+                if (cga.isLine(npp) && !isSame) {
+                    elements[eli].el = cga.undual(npp);
+                }
+            }}
+            mode="rotate"
+        >
+            <T.Mesh>
+                <T.CylinderGeometry args={[0.015, 0.015, 8, 32]} />
+                <T.MeshBasicMaterial
+                    toneMapped={false}
+                    side={THREE.DoubleSide}
+                    opacity={active ? 0.6 : 0.1}
+                    transparent={true}
+                    clippingPlanes={planes}
+                    premultipliedAlpha={true}
+                    color={active ? color : "gray"}
+                />
+            </T.Mesh>
+        </TransformControls>
     {:else if cga.isPointPair(el)}
         {@const [a, b] = cga.pointPairCoords(el)}
 

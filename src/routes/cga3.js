@@ -699,6 +699,9 @@ export function dot(a, b) {
 
   return result;
 }
+export function isZero(a, eps = 1e-5) {
+  return a.every((x) => Math.abs(x) < eps);
+}
 
 export function isGrade(a, grade, eps = 1e-5) {
   if (a.every((x) => Math.abs(x) < eps)) return false;
