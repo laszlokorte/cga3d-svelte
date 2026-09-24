@@ -471,6 +471,32 @@
             combine: "wedge",
             finalDual: true,
         },
+        {
+            name: "Translation",
+            elements: [
+                {
+                    color: "tomato",
+                    active: true,
+                    el: [
+                        0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0.9721087789297673, 0,
+                        0.26584305919655216, 0.15166929321987932, 0, 0, 0, 0,
+                        0.9721087789297673, 0, 0.26584305919655216,
+                        0.15166929321987932, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "limegreen",
+                    active: true,
+                    el: [
+                        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, -0.37870814306058953,
+                        0, 0, -0.8090080184587471, 0, 0, 0, 0,
+                        -0.37870814306058953, 0, 0, -0.8090080184587471, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+            ],
+            combine: "product",
+        },
     ];
 
     function loadExample(i) {
@@ -2852,6 +2878,176 @@
                                                 name="sign"
                                                 value="-1"
                                                 checked={p.sign < 0}
+                                            />
+                                        </label>
+                                    </form>
+                                {:else if cga.isScaling(el)}
+                                    {@const p = cga.scalingParameter(el)}
+                                    <strong>Scaling</strong>
+                                    <form
+                                        oninput={(evt) => {
+                                            const fd = Object.fromEntries(
+                                                new FormData(evt.currentTarget),
+                                            );
+                                            const np = cga.scaling(
+                                                fd.x,
+                                                fd.y,
+                                                fd.z,
+                                                fd.s,
+                                            );
+                                            if (cga.isScaling(np))
+                                                elements[eli].el = np;
+                                        }}
+                                    >
+                                        <label class="form-row">
+                                            Scale:
+                                            <input
+                                                type="range"
+                                                name="s"
+                                                value={p.scale}
+                                                min="0.1"
+                                                max="10"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label class="form-row">
+                                            X:
+                                            <input
+                                                type="range"
+                                                name="x"
+                                                value={p.pivot[0]}
+                                                min="-2"
+                                                max="2"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label class="form-row">
+                                            Y:
+                                            <input
+                                                type="range"
+                                                name="y"
+                                                value={p.pivot[1]}
+                                                min="-2"
+                                                max="2"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label class="form-row">
+                                            Z:
+                                            <input
+                                                type="range"
+                                                name="z"
+                                                value={p.pivot[2]}
+                                                min="-2"
+                                                max="2"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                    </form>
+                                {:else if cga.isScaling(cga.dual(el))}
+                                    <strong>Scaling (Dual)</strong>
+                                {:else if cga.isTranslation(el)}
+                                    {@const p = cga.translationParams(el)}
+                                    <strong>Translation</strong>
+                                    <form
+                                        oninput={(evt) => {
+                                            const fd = Object.fromEntries(
+                                                new FormData(evt.currentTarget),
+                                            );
+                                            const np = cga.translation(
+                                                fd.x,
+                                                fd.y,
+                                                fd.z,
+                                            );
+                                            if (cga.isTranslation(np))
+                                                elements[eli].el = np;
+                                        }}
+                                    >
+                                        <label class="form-row">
+                                            X:
+                                            <input
+                                                type="range"
+                                                name="x"
+                                                value={p.x}
+                                                min="-2"
+                                                max="2"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label class="form-row">
+                                            Y:
+                                            <input
+                                                type="range"
+                                                name="y"
+                                                value={p.y}
+                                                min="-2"
+                                                max="2"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label class="form-row">
+                                            Z:
+                                            <input
+                                                type="range"
+                                                name="z"
+                                                value={p.z}
+                                                min="-2"
+                                                max="2"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                    </form>
+                                {:else if cga.isTranslation(cga.dual(el))}
+                                    {@const p = cga.translationParams(
+                                        cga.dual(el),
+                                    )}
+                                    <strong>Translation (Dual)</strong>
+                                    <form
+                                        oninput={(evt) => {
+                                            const fd = Object.fromEntries(
+                                                new FormData(evt.currentTarget),
+                                            );
+                                            const np = cga.translation(
+                                                fd.x,
+                                                fd.y,
+                                                fd.z,
+                                            );
+                                            if (cga.isTranslation(np))
+                                                elements[eli].el =
+                                                    cga.undual(np);
+                                        }}
+                                    >
+                                        <label class="form-row">
+                                            X:
+                                            <input
+                                                type="range"
+                                                name="x"
+                                                value={p.x}
+                                                min="-2"
+                                                max="2"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label class="form-row">
+                                            Y:
+                                            <input
+                                                type="range"
+                                                name="y"
+                                                value={p.y}
+                                                min="-2"
+                                                max="2"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label class="form-row">
+                                            Z:
+                                            <input
+                                                type="range"
+                                                name="z"
+                                                value={p.z}
+                                                min="-2"
+                                                max="2"
+                                                step="0.01"
                                             />
                                         </label>
                                     </form>

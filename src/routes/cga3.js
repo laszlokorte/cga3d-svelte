@@ -422,11 +422,73 @@ export function sphereParameters(s) {
 
   const radius2 = x * x + y * y + z * z - 2 * k;
 
+  const radius = Math.sign(radius2) * Math.sqrt(Math.abs(radius2));
+  const r = Math.abs(radius) < 1e-5 ? 0 : radius;
   return {
     center: [x, y, z],
-    radius: Math.sign(radius2) * Math.sqrt(Math.abs(radius2)),
+    radius: r,
     sign: -Math.sign(w),
   };
+}
+
+export function isScaling(a, eps = 1e-5) {
+  const t = a[24]; // epm
+
+  if (Math.abs(t) < eps) return false;
+
+  // eip == eim
+  return (
+    Math.abs(a[9] - a[17]) < eps &&
+    Math.abs(a[10] - a[18]) < eps &&
+    Math.abs(a[12] - a[20]) < eps
+  );
+}
+export function scalingParameter(a) {
+  const c = a[0];
+  const t = a[24];
+
+  const scale = 1 / Math.pow(c - t, 2);
+
+  const pivot = [a[9] / -t, a[10] / -t, a[12] / -t];
+
+  return { scale, pivot };
+}
+export function isTranslation(m, eps = 1e-8) {
+  if (Math.abs(m[0]) < eps) return false;
+
+  const allowed = new Set([9, 10, 12, 17, 18, 20]);
+
+  for (let i = 1; i < 32; i++) {
+    if (!allowed.has(i) && Math.abs(m[i]) > eps) return false;
+  }
+
+  // ep/em components must occur as e_i p + e_i m,
+  // i.e. with equal coefficients
+  return (
+    Math.abs(m[9] - m[17]) <= eps &&
+    Math.abs(m[10] - m[18]) <= eps &&
+    Math.abs(m[12] - m[20]) <= eps
+  );
+}
+export function translationParams(m) {
+  const s = m[0];
+
+  return {
+    x: (-2 * m[9]) / s,
+    y: (-2 * m[10]) / s,
+    z: (-2 * m[12]) / s,
+  };
+}
+export function translation(x, y, z) {
+  return normalize(
+    gp(
+      pointReflection(x / 4, y / 4, z / 4),
+      pointReflection(x / -4, y / -4, z / -4),
+    ),
+  );
+}
+export function scaling(x, y, z, s) {
+  return normalize(gp(sphere(x, y, z, 1), sphere(x, y, z, s)));
 }
 
 export function isSpherical(s, eps = 1e-5) {
