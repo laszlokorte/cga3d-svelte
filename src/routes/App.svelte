@@ -89,15 +89,25 @@
         ),
     );
 
+    function maybeDual(yesno, mv) {
+        if (yesno) {
+            return cga.dual(mv);
+        } else {
+            return mv;
+        }
+    }
     let combination = $state("product");
+    let finalDual = $state(false);
     const combinedMotor = $derived(
-        cga.normalize(
-            {
-                product: productMotor,
-                sum: summedMotor,
-                wedge: wedgedMotor,
-                wedgeDual: cga.dual(wedgedMotor),
-            }[combination],
+        maybeDual(
+            finalDual,
+            cga.normalize(
+                {
+                    product: productMotor,
+                    sum: summedMotor,
+                    wedge: wedgedMotor,
+                }[combination],
+            ),
         ),
     );
 
@@ -421,7 +431,45 @@
                     ],
                 },
             ],
-            combine: "wedgeDual",
+            combine: "wedge",
+            finalDual: true,
+        },
+        {
+            name: "Line by 2 points",
+
+            showVectorField: true,
+            elements: [
+                {
+                    color: "tomato",
+                    active: true,
+                    el: [
+                        0, -0.5732510703875558, 0.39191452157346807, 0,
+                        0.6680947288534064, 0, 0, 0, 0.03571782567882742, 0, 0,
+                        0, 0, 0, 0, 0, -0.9642821743211726, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "limegreen",
+                    active: true,
+                    el: [
+                        0, 0.5974854568139863, -0.1888260324525981, 0,
+                        -0.4535951435635474, 0, 0, 0, 0.2008036520497809, 0, 0,
+                        0, 0, 0, 0, 0, -0.799196347950219, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "royalblue",
+                    active: true,
+                    el: [
+                        0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+            ],
+            combine: "wedge",
+            finalDual: true,
         },
     ];
 
@@ -446,6 +494,7 @@
         }
         combination = ex.combine ?? "product";
         showVectorField = ex.showVectorField;
+        finalDual = ex.finalDual || false;
 
         showObject = ex.showObject !== false;
     }
@@ -465,8 +514,7 @@
                     {showVectorField}
                     showIntersections={showIntersections &&
                         combination != "sum"}
-                    showObject={showObject &&
-                        Math.sign(cga.spinorNorm(combinedMotor)) != 0}
+                    {showObject}
                     bind:elements
                     showMotor={elements.filter((e) => e.active).length > 1 &&
                         combination == "sum"}
@@ -1117,7 +1165,7 @@
                     )})</legend
                 >
                 <div class="button-row">
-                    {#each ["product", "sum", "wedge", "wedgeDual"] as comb}
+                    {#each ["product", "sum", "wedge"] as comb}
                         <label
                             ><input
                                 type="radio"
@@ -1127,6 +1175,10 @@
                             {comb}</label
                         >
                     {/each}
+                    <label>
+                        <input type="checkbox" bind:checked={finalDual} />
+                        Dual
+                    </label>
                     <button
                         title="Apply, combine into single transformation"
                         disabled={elements.length < 2}
@@ -1547,17 +1599,29 @@
                         </fieldset>
                     </div>
                     <div class="element-head">
-                        <label class="form-row">
+                        <label class="form-row" style:flex-grow="1">
                             <input
                                 type="color"
                                 bind:value={elements[eli].color}
                             />
                             <input
+                                style:flex-grow="1"
                                 disabled={dragging !== null}
                                 readonly={dragging !== null}
                                 style:width="8em"
                                 type="text"
-                                bind:value={elements[eli].color}
+                                oninput={(evt) => {
+                                    if (
+                                        CSS.supports(
+                                            "color",
+                                            evt.currentTarget.value,
+                                        )
+                                    ) {
+                                        elements[eli].color =
+                                            evt.currentTarget.value;
+                                    }
+                                }}
+                                value={elements[eli].color}
                             />
                         </label>
                     </div>
@@ -1633,8 +1697,14 @@
                                     <strong
                                         >Sphere at Infinity (Directing)</strong
                                     >
-                                {:else if cga.isSphere(el)}
-                                    <strong>Sphere (Reflecting)</strong>
+                                {:else if cga.isSpherical(el)}
+                                    {#if cga.isSphere(el)}
+                                        <strong>Sphere (Reflecting)</strong>
+                                    {:else if cga.isAntipodal(el)}
+                                        <strong>Antipodal (Reflecting)</strong>
+                                    {:else}
+                                        <strong> Spherical? </strong>
+                                    {/if}
                                     {@const sphCoords =
                                         cga.sphereParameters(el)}
                                     <form
@@ -1712,8 +1782,14 @@
                                             />
                                         </label>
                                     </form>
-                                {:else if cga.isSphere(cga.dual(el))}
-                                    <strong>Sphere (Directing)</strong>
+                                {:else if cga.isSpherical(cga.dual(el))}
+                                    {#if cga.isSphere(cga.dual(el))}
+                                        <strong>Sphere (Directing)</strong>
+                                    {:else if cga.isAntipodal(cga.dual(el))}
+                                        <strong>Antipodal (Directing)</strong>
+                                    {:else}
+                                        <strong> Spherical? </strong>
+                                    {/if}
                                     {@const sphCoords = cga.sphereParameters(
                                         cga.dual(el),
                                     )}
@@ -2924,15 +3000,35 @@
                                         </label>
                                         <output>
                                             {formatter.format(
-                                                elements[eli].el[
+                                                (elements[eli].el[
                                                     cga.basisIndex.ep
-                                                ] -
+                                                ] +
                                                     elements[eli].el[
                                                         cga.basisIndex.em
-                                                    ],
+                                                    ]) /
+                                                    2,
                                             )}
                                         </output>
-                                        <button disabled>&cross;</button>
+                                        <button
+                                            onclick={(evt) => {
+                                                evt.preventDefault();
+
+                                                const slider = evt.currentTarget
+                                                    .closest(
+                                                        ".slider-with-value",
+                                                    )
+                                                    .querySelector(
+                                                        "input[type=range",
+                                                    );
+
+                                                slider.value = 0;
+                                                slider.dispatchEvent(
+                                                    new Event("input", {
+                                                        bubbles: true,
+                                                    }),
+                                                );
+                                            }}>&cross;</button
+                                        >
                                     </span>
                                     <span class="slider-with-value">
                                         <label style:white-space="nowrap"
@@ -2992,7 +3088,26 @@
                                                     ],
                                             )}
                                         </output>
-                                        <button disabled>&cross;</button>
+                                        <button
+                                            onclick={(evt) => {
+                                                evt.preventDefault();
+
+                                                const slider = evt.currentTarget
+                                                    .closest(
+                                                        ".slider-with-value",
+                                                    )
+                                                    .querySelector(
+                                                        "input[type=range",
+                                                    );
+
+                                                slider.value = 0;
+                                                slider.dispatchEvent(
+                                                    new Event("input", {
+                                                        bubbles: true,
+                                                    }),
+                                                );
+                                            }}>&cross;</button
+                                        >
                                     </span>
                                 </fieldset>
                                 <fieldset>
@@ -3165,7 +3280,26 @@
                                                     2,
                                             )}
                                         </output>
-                                        <button disabled>&cross;</button>
+                                        <button
+                                            onclick={(evt) => {
+                                                evt.preventDefault();
+
+                                                const slider = evt.currentTarget
+                                                    .closest(
+                                                        ".slider-with-value",
+                                                    )
+                                                    .querySelector(
+                                                        "input[type=range",
+                                                    );
+
+                                                slider.value = 0;
+                                                slider.dispatchEvent(
+                                                    new Event("input", {
+                                                        bubbles: true,
+                                                    }),
+                                                );
+                                            }}>&cross;</button
+                                        >
                                     </span>
                                     <span class="slider-with-value">
                                         <label>
@@ -3228,7 +3362,26 @@
                                                     ],
                                             )}
                                         </output>
-                                        <button disabled>&cross;</button>
+                                        <button
+                                            onclick={(evt) => {
+                                                evt.preventDefault();
+
+                                                const slider = evt.currentTarget
+                                                    .closest(
+                                                        ".slider-with-value",
+                                                    )
+                                                    .querySelector(
+                                                        "input[type=range",
+                                                    );
+
+                                                slider.value = 0;
+                                                slider.dispatchEvent(
+                                                    new Event("input", {
+                                                        bubbles: true,
+                                                    }),
+                                                );
+                                            }}>&cross;</button
+                                        >
                                     </span>
                                 </fieldset>
                                 <fieldset>

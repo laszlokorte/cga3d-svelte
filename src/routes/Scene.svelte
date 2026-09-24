@@ -13,6 +13,7 @@
     import * as cga from "./cga3";
     import { generateGP } from "./cga_glsl";
     import { resolve } from "$app/paths";
+    import { CapsuleGeometry } from "./capsule";
 
     const { renderer, canvas } = useThrelte();
 
@@ -162,6 +163,32 @@
             cubeD_, // distance
         ),
     ];
+    const planesOuter = [
+        new THREE.Plane(
+            new THREE.Vector3(1, 0, 0), // normal
+            1.5 * cubeW_, // distance
+        ),
+        new THREE.Plane(
+            new THREE.Vector3(-1, 0, 0), // normal
+            1.5 * cubeW_, // distance
+        ),
+        new THREE.Plane(
+            new THREE.Vector3(0, 1, 0), // normal
+            1.5 * cubeH_, // distance
+        ),
+        new THREE.Plane(
+            new THREE.Vector3(0, -1, 0), // normal
+            1.5 * cubeH_, // distance
+        ),
+        new THREE.Plane(
+            new THREE.Vector3(0, 0, 1), // normal
+            1.5 * cubeD_, // distance
+        ),
+        new THREE.Plane(
+            new THREE.Vector3(0, 0, -1), // normal
+            1.5 * cubeD_, // distance
+        ),
+    ];
 
     useTask(() => {
         if (group) {
@@ -208,10 +235,14 @@
         new THREE.Vector3(-cubeW, -cubeH, cubeD),
         new THREE.Vector3(-cubeW, -cubeH, -cubeD),
     ];
-    const vfcount = 10 * 10;
 
-    const vfgeometry = new THREE.CylinderGeometry(0.005, 0.01, 2, 8, 32);
-    const vfgeometry2 = new THREE.CylinderGeometry(0.005, 0.01, 8, 8, 256);
+    const nx = 8;
+    const nz = 8;
+
+    const vfcount = nx * nz;
+
+    const vfgeometry = CapsuleGeometry(0.01, 2, 8, 32);
+    const vfgeometry2 = CapsuleGeometry(0.01, 8, 8, 4 * 32);
     const vfmaterial = new THREE.ShaderMaterial({
         uniforms: {
             uTime: { value: 0 },
@@ -232,6 +263,18 @@
             varying float skip;
 
             ${generateGP()}
+            float outsideLength(vec3 v, vec3 bounds) {
+
+                vec3 t = mix(
+                    bounds / abs(v),
+                    vec3(1e30),
+                    lessThan(abs(v), vec3(1e-6))
+                );
+
+                float exitT = min(t.x, min(t.y, t.z));
+
+                return max(0.0, 1.0 - exitT) * length(v);
+            }
 
             void main() {
                 MV motor;
@@ -276,6 +319,10 @@
                 vec4 mvPosition =
                     modelViewMatrix * worldPos;
 
+
+                float outsideFade = 1.0 - smoothstep(0.0, 0.4, outsideLength(worldPos.xyz, vec3(2.0, 1.0, 2.0)));
+                skip *= outsideFade ;
+
                 #include <clipping_planes_vertex>
 
                 gl_Position =
@@ -300,10 +347,6 @@
     const vfmesh2 = new THREE.InstancedMesh(vfgeometry2, vfmaterial, vfcount);
 
     const positions = new Float32Array(vfcount * 4);
-
-    const nx = 10;
-    const nz = 10;
-
     for (let i = 0; i < vfcount; i++) {
         const ix = i % nx;
         const iz = Math.floor(i / nx);
@@ -318,7 +361,7 @@
         positions[i * 4 + 0] = x;
         positions[i * 4 + 1] = y;
         positions[i * 4 + 2] = z;
-        positions[i * 4 + 3] = (i % 8) / 9;
+        positions[i * 4 + 3] = ((i * (x + y + z)) % vfcount) / vfcount;
     }
 
     vfgeometry.setAttribute(
@@ -330,16 +373,16 @@
         new THREE.InstancedBufferAttribute(positions, 4),
     );
 
-    vfmesh.renderOrder = 99999;
-    vfmesh2.renderOrder = 99999;
+    vfmesh.renderOrder = 9999999;
+    vfmesh2.renderOrder = 9999999;
     vfmesh.instanceMatrix.needsUpdate = true;
     vfmesh2.instanceMatrix.needsUpdate = true;
 
-    vfmaterial.side = THREE.DoubleSide;
-    vfmaterial.clippingPlanes = planes;
+    vfmaterial.side = THREE.FrontSide;
+    vfmaterial.clippingPlanes = planesOuter;
     vfmaterial.clipping = true;
     vfmaterial.depthTest = true;
-    vfmaterial.depthWrite = true;
+    vfmaterial.depthWrite = false;
     vfmaterial.clipping = true;
     vfmaterial.transparent = true;
     vfmaterial.toneMapped = false;
@@ -610,8 +653,8 @@
                             toneMapped={false}
                             depthTest={false}
                             depthWrite={false}
-                            map={textureChecker}
                             transparent={true}
+                            map={textureChecker}
                             opacity={active ? 0.6 : 0.1}
                             color={active ? color : "gray"}
                         />
@@ -622,6 +665,7 @@
                             toneMapped={false}
                             depthTest={false}
                             depthWrite={false}
+                            transparent={true}
                             map={textureChecker}
                             opacity={active ? 0.6 : 0.1}
                             color={active ? color : "gray"}
@@ -646,6 +690,7 @@
                             depthTest={false}
                             depthWrite={false}
                             map={textureChecker}
+                            transparent={true}
                             opacity={active ? 0.6 : 0.1}
                             color={active ? color : "gray"}
                         />
@@ -657,6 +702,7 @@
                             depthTest={false}
                             depthWrite={false}
                             transparent={true}
+                            map={textureChecker}
                             opacity={active ? 0.6 : 0.1}
                             color={active ? color : "gray"}
                         />
@@ -724,7 +770,7 @@
 <T.DirectionalLight position={[3, 10, 5]} intensity={2} />
 
 {#each [...elements, ...(showMotor && motor ? [{ el: motor, color: motorColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: motorColor, active: true, passive: true }]), ...(showIntersections && wedged ? [{ el: wedged, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
-    {#if cga.isSphere(el)}
+    {#if cga.isSpherical(el)}
         {@const sphCoords = cga.sphereParameters(el)}
 
         {#if active && !passive}
@@ -848,7 +894,7 @@
                 {/each}
             {/each}
         </T.Group>
-    {:else if cga.isSphere(cga.dual(el))}
+    {:else if cga.isSpherical(cga.dual(el))}
         {@const sphCoords = cga.sphereParameters(cga.dual(el))}
 
         {#if active && !passive}

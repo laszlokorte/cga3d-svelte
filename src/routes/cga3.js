@@ -429,10 +429,16 @@ export function sphereParameters(s) {
   };
 }
 
-export function isSphere(s, eps = 1e-5) {
+export function isSpherical(s, eps = 1e-5) {
   const w = s[16] - s[8];
 
   return Math.abs(w) > eps;
+}
+export function isSphere(s, eps = 1e-5) {
+  return isSpherical(s, eps) && sphereParameters(s).radius >= 0;
+}
+export function isAntipodal(s, eps = 1e-5) {
+  return isSpherical(s, eps) && sphereParameters(s).radius < 0;
 }
 function isProportional(a, b, eps = 1e-10) {
   let scale = null;
