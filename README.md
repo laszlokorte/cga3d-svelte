@@ -4,6 +4,16 @@ This might end up as an educational experiment of reverse engineering the [tool 
 
 ![Preview Screenshot](./preview.png)
 
+## Screenshots
+
+![Screenshot of points-line example](example-points-line.png)
+![Screenshot of circle example](example-circle.png)
+![Screenshot of loxodrome example](example-loxodrome.png)
+![Screenshot of pairs-circle example](example-pairs-circle.png)
+![Screenshot of screw example](example-screw.png)
+![Screenshot of roto-scale example](example-roto-scale.png)
+![Screenshot of point-pair example](example-point-pair.png)
+
 ## Developing
 
 Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
