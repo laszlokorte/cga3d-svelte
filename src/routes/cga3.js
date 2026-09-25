@@ -228,12 +228,19 @@ export function zeroSphere(x, y, z, sign = 1) {
   );
 }
 export function point(x, y, z) {
-  return add(add(add(e123, scale(x, e23)), scale(y, e31)), scale(z, e12));
+  return normalize(
+    add(add(add(e123, scale(x, e23)), scale(y, e31)), scale(z, e12)),
+  );
 }
 export function pointReflection(x, y, z, sign = 1) {
-  return scale(
-    sign,
-    wedge(wedge(plane([1, 0, 0], x), plane([0, 1, 0], y)), plane([0, 0, 1], z)),
+  return normalize(
+    scale(
+      sign,
+      wedge(
+        wedge(plane([1, 0, 0], x), plane([0, 1, 0], y)),
+        plane([0, 0, 1], z),
+      ),
+    ),
   );
 }
 
@@ -242,11 +249,13 @@ export function pointPair(a, b) {
   return normalize(wedge(a, b));
 }
 export function sphere(x, y, z, radius, sign = 1) {
-  return scale(
-    sign,
-    sub(
-      scale(0.5 * Math.sign(radius) * radius * radius, einf),
-      zeroSphere(x, y, z, 1),
+  return normalize(
+    scale(
+      sign,
+      sub(
+        scale(0.5 * Math.sign(radius) * radius * radius, einf),
+        zeroSphere(x, y, z, 1),
+      ),
     ),
   );
 }
@@ -270,9 +279,11 @@ export function plane(normal, distance) {
   const ny = y / len;
   const nz = z / len;
 
-  return add(
-    add(add(scale(nx, e1), scale(ny, e2)), scale(nz, e3)),
-    scale(distance, einf),
+  return normalize(
+    add(
+      add(add(scale(nx, e1), scale(ny, e2)), scale(nz, e3)),
+      scale(distance, einf),
+    ),
   );
 }
 
@@ -288,7 +299,7 @@ export function circle(center, radius, normal) {
 
   const distance = n[0] * x + n[1] * y + n[2] * z;
 
-  return gp(sphere(x, y, z, radius), plane(n, distance));
+  return normalize(gp(sphere(x, y, z, radius), plane(n, distance)));
 }
 
 // ------------------------------------------------------------
