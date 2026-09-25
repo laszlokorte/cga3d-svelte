@@ -21,6 +21,7 @@
 
     let accordeons = $state({
         export: false,
+        result: true,
         expression: false,
         interpreation: true,
         planelike: false,
@@ -58,9 +59,11 @@
     });
     let dragging = $state(null);
     let over = $state(null);
+    let wedgeColor = $state("magenta");
     let elements = $state([]);
     let showVectorField = $state(false);
     let showIntersections = $state(true);
+    let showGizmos = $state(true);
     let showObject = $state(true);
     const productMotor = $derived(
         cga.normalize(
@@ -541,6 +544,8 @@
         <svelte:boundary>
             <Canvas dpr={Math.max(window ? window.devicePixelRatio : 1, 2)}>
                 <Scene
+                    {wedgeColor}
+                    {showGizmos}
                     {showVectorField}
                     showIntersections={showIntersections &&
                         combination != "sum"}
@@ -570,6 +575,28 @@
         Loading
     </div>
     <div bind:this={viewport} class="viewport"></div>
+    <div class="viewbar">
+        <fieldset class="fieldset-mini">
+            <legend>View</legend>
+            <div class="button-row">
+                <label
+                    ><input type="checkbox" bind:checked={showVectorField} /> Vector
+                    Field</label
+                >
+
+                <label
+                    ><input type="checkbox" bind:checked={showIntersections} /> Wedge/Intersect</label
+                >
+                <label
+                    ><input type="checkbox" bind:checked={showObject} />
+                    Example Object</label
+                >
+                <label
+                    ><input type="checkbox" bind:checked={showGizmos} /> Gizmos</label
+                >
+            </div>
+        </fieldset>
+    </div>
     <div class="toolbar">
         <fieldset class="fieldset-mini">
             <legend>Identity</legend>
@@ -1105,6 +1132,10 @@
                 <a
                     href="https://www.youtube.com/watch?v=q3as9SGmDdw"
                     target="_blank">Hamish Todd's Funhouse Mirror</a
+                >; 3D Model by
+                <a
+                    href="https://www.cgtrader.com/free-3d-models/character/clothing/nike-air-force-shoes-in-studio"
+                    target="_blank">tasnimfth72</a
                 >
             </p>
             <p style:font-size="smaller">
@@ -1122,12 +1153,6 @@
                         >More Educational Tools</span
                     >
                 </a>
-            </p>
-            <p>
-                3D Model by <a
-                    href="https://www.cgtrader.com/free-3d-models/character/clothing/nike-air-force-shoes-in-studio"
-                    target="_blank">tasnimfth72</a
-                >
             </p>
         </header>
 
@@ -1147,127 +1172,51 @@
                 </fieldset>
             </div>
 
-            <fieldset class="fieldset-mini">
-                <legend>Show</legend>
-                <div class="button-row">
+            <div
+                style="display: flex; gap: 0.5ex; justify-content: stretch; flex-grow: 1"
+            >
+                <fieldset class="fieldset-mini">
+                    <legend>All Elements ({elements.length})</legend>
                     <div class="button-row">
-                        <label
-                            ><input
-                                type="checkbox"
-                                bind:checked={showVectorField}
-                            /> Vector Field</label
+                        <button
+                            disabled={elements.length == 0}
+                            onclick={(evt) => {
+                                while (elements.length) {
+                                    freeColors.unshift(elements.pop().color);
+                                }
+                            }}>Delete</button
                         >
-                        <label
-                            ><input
-                                type="checkbox"
-                                bind:checked={showIntersections}
-                            /> Wedge/Intersect</label
-                        >
-                        <label
-                            class={{
-                                disableHint:
-                                    Math.sign(cga.spinorNorm(combinedMotor)) ==
-                                    0,
+                        <button
+                            disabled={elements.length == 0}
+                            onclick={(evt) => {
+                                elements = elements.map((e) => {
+                                    return { ...e, el: cga.dual(e.el) };
+                                });
                             }}
-                            ><input type="checkbox" bind:checked={showObject} />
-                            Example Object</label
+                            title="Dual all"
+                        >
+                            Dualize
+                        </button>
+                        <button
+                            title="Negate all"
+                            disabled={elements.length == 0}
+                            onclick={(evt) => {
+                                elements = elements.map((e) => {
+                                    return { ...e, el: cga.scale(-1, e.el) };
+                                });
+                            }}
+                            >Negate
+                        </button>
+                        <button
+                            title="Reverse order"
+                            disabled={elements.length < 2}
+                            onclick={(evt) => {
+                                elements = elements.toReversed();
+                            }}>Reverse order</button
                         >
                     </div>
-                </div>
-            </fieldset>
-
-            <details bind:open={accordeons.export}>
-                <summary>Export</summary>
-                <textarea class="serialized" readonly
-                    >{JSON.stringify(
-                        { elements, combine: combination },
-                        (key, value) =>
-                            value instanceof Float64Array
-                                ? Array.from(value)
-                                : value,
-                    )}</textarea
-                >
-            </details>
-            <fieldset class="fieldset-mini">
-                <legend
-                    >Combine (SN: {Math.sign(
-                        cga.spinorNorm(combinedMotor),
-                    )})</legend
-                >
-                <div class="button-row">
-                    {#each ["product", "sum", "wedge"] as comb}
-                        <label
-                            ><input
-                                type="radio"
-                                value={comb}
-                                bind:group={combination}
-                            />
-                            {comb}</label
-                        >
-                    {/each}
-                    <label>
-                        <input type="checkbox" bind:checked={finalDual} />
-                        Dual
-                    </label>
-                    <button
-                        title="Apply, combine into single transformation"
-                        disabled={elements.length < 2}
-                        onclick={(evt) => {
-                            const cmb = combinedMotor;
-                            while (elements.length) {
-                                freeColors.unshift(elements.pop().color);
-                            }
-                            elements.push({
-                                active: true,
-                                color: freeColors.shift(),
-                                el: cmb,
-                            });
-                            combination = "product";
-                        }}>Apply</button
-                    >
-                </div>
-            </fieldset>
-            <fieldset class="fieldset-mini">
-                <legend>All</legend>
-                <div class="button-row">
-                    <button
-                        disabled={elements.length == 0}
-                        onclick={(evt) => {
-                            while (elements.length) {
-                                freeColors.unshift(elements.pop().color);
-                            }
-                        }}>Delete all</button
-                    >
-                    <button
-                        disabled={elements.length == 0}
-                        onclick={(evt) => {
-                            elements = elements.map((e) => {
-                                return { ...e, el: cga.dual(e.el) };
-                            });
-                        }}
-                        title="Dual all"
-                    >
-                        ★
-                    </button>
-                    <button
-                        title="Negate all"
-                        disabled={elements.length == 0}
-                        onclick={(evt) => {
-                            elements = elements.map((e) => {
-                                return { ...e, el: cga.scale(-1, e.el) };
-                            });
-                        }}
-                        >-
-                    </button>
-                    <button
-                        title="Reverse order"
-                        disabled={elements.length < 2}
-                        onclick={(evt) => {
-                            elements = elements.toReversed();
-                        }}>⇋</button
-                    >
-                </div>
-            </fieldset>
+                </fieldset>
+            </div>
         </div>
         <div class="block-list">
             {#each elements as { el, color }, eli}
@@ -3818,18 +3767,99 @@
                 </div>
             {/each}
         </div>
+        <fieldset class="fieldset-mini">
+            <legend>Compose Operation </legend>
+            <div class="button-row">
+                {#each ["product", "sum", "wedge"] as comb}
+                    <label
+                        ><input
+                            type="radio"
+                            value={comb}
+                            bind:group={combination}
+                        />
+                        {comb}</label
+                    >
+                {/each}
+                <label>
+                    <input type="checkbox" bind:checked={finalDual} />
+                    Dualize
+                </label>
+
+                <input
+                    disabled={elements.length < 2}
+                    class={{ disableHint: elements.length < 2 }}
+                    type="color"
+                    bind:value={wedgeColor}
+                />
+                <button
+                    title="Apply, combine into single transformation"
+                    disabled={elements.length < 2}
+                    onclick={(evt) => {
+                        const cmb = combinedMotor;
+                        while (elements.length) {
+                            freeColors.unshift(elements.pop().color);
+                        }
+                        elements.push({
+                            active: true,
+                            color: freeColors.shift(),
+                            el: cmb,
+                        });
+                        combination = "product";
+                    }}>Apply</button
+                >
+            </div>
+        </fieldset>
+        <details bind:open={accordeons.result}>
+            <summary
+                >result (Spinor Norm: {Math.sign(
+                    cga.spinorNorm(combinedMotor),
+                )}),
+                <span
+                    >Grades:
+                    <code>
+                        {[0, 1, 2, 3, 4, 5]
+                            .filter((g) => cga.hasGrade(combinedMotor, g))
+                            .join(", ") || "/"}
+                    </code>
+                </span>
+            </summary>
+            <textarea class="serialized" readonly style:user-select="all"
+                >{cga.toString(combinedMotor)}</textarea
+            >
+        </details>
+        <details bind:open={accordeons.export}>
+            <summary>Export</summary>
+            <textarea class="serialized" readonly
+                >{JSON.stringify(
+                    { elements, combine: combination },
+                    (key, value) =>
+                        value instanceof Float64Array
+                            ? Array.from(value)
+                            : value,
+                )}</textarea
+            >
+        </details>
     </div>
 </div>
 
 <style>
     .app {
         display: grid;
-        grid-template-columns: 0 [menu-start] 2fr [menu-end viewport-start toolbar-start] 2fr 2fr [viewport-end toolbar-end] 0;
-        grid-template-rows: 0 [menu-start viewport-start] 1fr 1fr 1fr [toolbar-start viewport-end] auto [menu-end toolbar-end] 0;
+        grid-template-columns: 0 [menu-start] 2fr [menu-end viewport-start toolbar-start viewbar-start] 2fr [viewbar-end] 2fr [viewport-end toolbar-end] 0;
+        grid-template-rows: 0 [menu-start viewport-start viewbar-start] auto [viewbar-end] 1fr 1fr [toolbar-start viewport-end] auto [menu-end toolbar-end] 0;
         width: 100%;
         height: 100%;
         box-sizing: border-box;
         gap: 1em;
+    }
+    .viewbar {
+        grid-area: viewbar;
+        z-index: 100;
+        justify-self: start;
+        color: #fff;
+        background-color: #0008;
+        font-size: 0.8em;
+        padding: 2px;
     }
     .toolbar {
         grid-area: toolbar;
@@ -3839,7 +3869,7 @@
 
         color: #fff;
         font-size: 0.7rem;
-        padding: 1ex;
+        padding: 2px;
         background-color: #0008;
         overflow: auto;
     }
@@ -3853,8 +3883,10 @@
         overflow: hidden;
         box-sizing: border-box;
         display: grid;
-        grid-template-rows: auto auto;
-        grid-auto-rows: 1fr;
+        grid-template-rows: auto auto 1fr;
+        grid-auto-rows: auto;
+        gap: 0.5ex;
+        padding: 0.5ex;
         font-size: smaller;
     }
     header {
@@ -3926,6 +3958,10 @@
         margin: 0;
         border: none;
     }
+    ::-moz-color-swatch {
+        border: none;
+        padding: 0;
+    }
     input {
         font-family: monospace, monospace;
     }
@@ -3967,6 +4003,7 @@
     .button-row {
         display: flex;
         flex-wrap: wrap;
+        align-items: center;
         gap: 1ex;
         padding: 1ex;
     }
@@ -4014,6 +4051,7 @@
     }
     .fieldset-mini {
         padding: 0;
+        flex-grow: 1;
     }
     .fieldset-sub legend {
         margin: auto;
@@ -4177,6 +4215,7 @@
         display: none;
     }
     .disableHint {
+        opacity: 0.5;
     }
     .globalDrag input {
         pointer-events: none;

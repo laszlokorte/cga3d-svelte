@@ -119,11 +119,11 @@
         showVectorField = false,
         motor = cga.scalar(0),
         wedged,
-        wedgeColor = "gray",
         showMotor = false,
-        motorColor = "rebeccapurple",
+        wedgeColor = "rebeccapurple",
         showIntersections,
         showObject,
+        showGizmos = true,
     } = $props();
 
     let objPos = $state([1, 0, 0]);
@@ -445,10 +445,9 @@
 
 {#if showObject && a && b}
     <TransformControls
-        visible={showObject}
         scale={5}
         position={objPos}
-        size={0.4}
+        size={showGizmos ? 0.4 : 0}
         onobjectChange={(evt) => {
             const object = evt.target.object;
             if (object) {
@@ -528,7 +527,7 @@
         <Gizmo placement="top-right" />
     </OrbitControls>
     <T.Group bind:ref={group}>
-        {#each [...elements, ...(showMotor && motor ? [{ el: motor, color: motorColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: motorColor, active: true, passive: true }]), ...(showIntersections && wedged ? [{ el: wedged, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
+        {#each [...elements, ...(showMotor && motor ? [{ el: motor, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }]), ...(showIntersections && wedged ? [{ el: wedged, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
             {#if cga.isSphereAtInfinity(el)}
                 <T.Mesh renderOrder={-5} scale={1}>
                     <T.SphereGeometry args={[1, 16, 8]} />
@@ -808,14 +807,14 @@
 
 <T.DirectionalLight position={[3, 10, 5]} intensity={2} />
 
-{#each [...elements, ...(showMotor && motor ? [{ el: motor, color: motorColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: motorColor, active: true, passive: true }]), ...(showIntersections && wedged ? [{ el: wedged, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
+{#each [...elements, ...(showMotor && motor ? [{ el: motor, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }]), ...(showIntersections && wedged ? [{ el: wedged, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
     {#if cga.isSpherical(el)}
         {@const sphCoords = cga.sphereParameters(el)}
 
-        {#if active && !passive}
+        {#if active && !passive && showGizmos}
             <TransformControls
-                enabled={active}
-                size={active ? 0.6 : 0}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.6 : 0}
                 maxX={2}
                 maxY={2}
                 maxZ={2}
@@ -936,10 +935,10 @@
     {:else if cga.isSpherical(cga.dual(el))}
         {@const sphCoords = cga.sphereParameters(cga.dual(el))}
 
-        {#if active && !passive}
+        {#if active && !passive && showGizmos}
             <TransformControls
-                enabled={active}
-                size={active ? 0.6 : 0}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.6 : 0}
                 maxX={2}
                 maxY={2}
                 maxZ={2}
@@ -1069,13 +1068,14 @@
             ).normalize(),
         )}
 
-        {#if active && !passive}
+        {#if active && !passive && showGizmos}
             <TransformControls
                 quaternion={rot.toArray()}
                 position={new THREE.Vector3(0, 0, plnParams?.distance)
                     .applyQuaternion(rot)
                     .toArray()}
-                size={active ? 0.8 : 0}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.6 : 0}
                 clippingPlanes={planes}
                 space="local"
                 showX={false}
@@ -1188,13 +1188,14 @@
             ).normalize(),
         )}
 
-        {#if active && !passive}
+        {#if active && !passive && showGizmos}
             <TransformControls
                 quaternion={rot.toArray()}
                 position={new THREE.Vector3(0, 0, plnParams?.distance)
                     .applyQuaternion(rot)
                     .toArray()}
-                size={active ? 0.8 : 0}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.6 : 0}
                 clippingPlanes={planes}
                 space="local"
                 showX={false}
@@ -1306,11 +1307,12 @@
                 cirParams?.normal[2],
             ).normalize(),
         )}
-        {#if active && !passive}
+
+        {#if active && !passive && showGizmos}
             <TransformControls
-                enabled={active}
                 position={cirParams?.center}
-                size={0.4}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.6 : 0}
                 onobjectChange={(evt) => {
                     const object = evt.target.object;
                     if (object) {
@@ -1366,11 +1368,12 @@
                 cirParams?.normal[2],
             ).normalize(),
         )}
-        {#if active && !passive}
+
+        {#if active && !passive && showGizmos}
             <TransformControls
-                enabled={active}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.6 : 0}
                 position={cirParams?.center}
-                size={0.4}
                 onobjectChange={(evt) => {
                     const object = evt.target.object;
                     if (object) {
@@ -1429,30 +1432,32 @@
             ).normalize(),
         )}
 
-        <TransformControls
-            quaternion={rot.toArray()}
-            enabled={active && !passive}
-            size={active && !passive ? 0.4 : 0}
-            space="local"
-            showY={false}
-            position={lineParams?.point.map(
-                (c, i) => c + lineParams.direction[i] * 0.5,
-            )}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
-                const p = object.position
-                    .clone()
-                    .sub(new THREE.Vector3(...lineParams.direction));
-                const npp = cga.line(p.toArray(), lineParams?.direction);
+        {#if active && !passive && showGizmos}
+            <TransformControls
+                quaternion={rot.toArray()}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.4 : 0}
+                space="local"
+                showY={false}
+                position={lineParams?.point.map(
+                    (c, i) => c + lineParams.direction[i] * 0.5,
+                )}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    const p = object.position
+                        .clone()
+                        .sub(new THREE.Vector3(...lineParams.direction));
+                    const npp = cga.line(p.toArray(), lineParams?.direction);
 
-                if (cga.isLine(npp)) elements[eli].el = npp;
-            }}
-            mode="translate"
-        />
+                    if (cga.isLine(npp)) elements[eli].el = npp;
+                }}
+                mode="translate"
+            />
+        {/if}
         <TransformControls
             quaternion={rot.toArray()}
-            enabled={active && !passive}
-            size={active && !passive ? 0.4 : 0}
+            enabled={active && !passive && showGizmos}
+            size={active && !passive && showGizmos ? 0.4 : 0}
             space="local"
             position={lineParams?.point}
             onmouseUp={(evt) => {
@@ -1499,30 +1504,33 @@
                 lineParams?.direction[2],
             ).normalize(),
         )}
-        <TransformControls
-            quaternion={rot.toArray()}
-            enabled={active && !passive}
-            size={active && !passive ? 0.4 : 0}
-            space="local"
-            showY={false}
-            position={lineParams?.point.map(
-                (c, i) => c + lineParams.direction[i] * 0.5,
-            )}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
-                const p = object.position
-                    .clone()
-                    .sub(new THREE.Vector3(...lineParams.direction));
-                const npp = cga.line(p.toArray(), lineParams?.direction);
 
-                if (cga.isLine(npp)) elements[eli].el = cga.undual(npp);
-            }}
-            mode="translate"
-        />
+        {#if active && !passive && showGizmos}
+            <TransformControls
+                quaternion={rot.toArray()}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.4 : 0}
+                space="local"
+                showY={false}
+                position={lineParams?.point.map(
+                    (c, i) => c + lineParams.direction[i] * 0.5,
+                )}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    const p = object.position
+                        .clone()
+                        .sub(new THREE.Vector3(...lineParams.direction));
+                    const npp = cga.line(p.toArray(), lineParams?.direction);
+
+                    if (cga.isLine(npp)) elements[eli].el = cga.undual(npp);
+                }}
+                mode="translate"
+            />
+        {/if}
         <TransformControls
             quaternion={rot.toArray()}
-            enabled={active && !passive}
-            size={active && !passive ? 0.4 : 0}
+            enabled={active && !passive && showGizmos}
+            size={active && !passive && showGizmos ? 0.4 : 0}
             space="local"
             position={lineParams?.point}
             onmouseUp={(evt) => {
@@ -1562,11 +1570,11 @@
     {:else if cga.isPointPair(el)}
         {@const [a, b] = cga.pointPairCoords(el)}
 
-        {#if active && !passive}
+        {#if active && !passive && showGizmos}
             <TransformControls
-                enabled={active}
                 position={[a.x, a.y, a.z]}
-                size={0.4}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.4 : 0}
                 onobjectChange={(evt) => {
                     const object = evt.target.object;
                     if (object) {
@@ -1617,12 +1625,12 @@
                 color={active ? color : "gray"}
             />
         </T.Mesh>
-        {#if active && !passive}
+
+        {#if active && !passive && showGizmos}
             <TransformControls
-                visible={active}
-                enabled={active}
                 position={[b.x, b.y, b.z]}
-                size={0.4}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.4 : 0}
                 onobjectChange={(evt) => {
                     const object = evt.target.object;
                     if (object) {
@@ -1675,11 +1683,12 @@
         </T.Mesh>
     {:else if cga.isPointPair(cga.dual(el))}
         {@const [a, b] = cga.pointPairCoords(cga.dual(el))}
-        {#if active && !passive}
+
+        {#if active && !passive && showGizmos}
             <TransformControls
-                enabled={active}
                 position={[a.x, a.y, a.z]}
-                size={0.4}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.4 : 0}
                 onobjectChange={(evt) => {
                     const object = evt.target.object;
                     if (object) {
@@ -1731,12 +1740,12 @@
                 color={active ? color : "gray"}
             />
         </T.Mesh>
-        {#if active && !passive}
+
+        {#if active && !passive && showGizmos}
             <TransformControls
-                visible={active}
-                enabled={active}
                 position={[b.x, b.y, b.z]}
-                size={0.4}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.4 : 0}
                 onobjectChange={(evt) => {
                     const object = evt.target.object;
                     if (object) {
@@ -1790,11 +1799,12 @@
         </T.Mesh>
     {:else if cga.isEuclideanPoint(el)}
         {@const p = cga.pointParameters(el)}
-        {#if active && !passive}
+
+        {#if active && !passive && showGizmos}
             <TransformControls
-                enabled={active}
                 position={[p.x, p.y, p.z]}
-                size={0.4}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.4 : 0}
                 onobjectChange={(evt) => {
                     const object = evt.target.object;
                     if (object) {
@@ -1844,11 +1854,12 @@
         </T.Mesh>
     {:else if cga.isEuclideanPoint(cga.dual(el))}
         {@const p = cga.pointParameters(cga.dual(el))}
-        {#if active && !passive}
+
+        {#if active && !passive && showGizmos}
             <TransformControls
-                enabled={active}
                 position={[p.x, p.y, p.z]}
-                size={0.4}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.4 : 0}
                 onobjectChange={(evt) => {
                     const object = evt.target.object;
                     if (object) {
@@ -1879,32 +1890,33 @@
                 }}
                 mode="translate"
             />
-
-            <T.Mesh
-                position={[p.x, p.y, p.z]}
-                renderOrder={passive ? 999999 : 20000 + eli * 100 + 4 * 12 + 1}
-                rotation={[0, 0, 0]}
-            >
-                <T.SphereGeometry args={[0.08, 32, 16]} />
-                <T.MeshBasicMaterial
-                    map={textureChecker}
-                    toneMapped={false}
-                    side={THREE.DoubleSide}
-                    opacity={active ? 0.6 : 0.1}
-                    transparent={true}
-                    premultipliedAlpha={true}
-                    clippingPlanes={planes}
-                    color={active ? color : "gray"}
-                />
-            </T.Mesh>
         {/if}
+
+        <T.Mesh
+            position={[p.x, p.y, p.z]}
+            renderOrder={passive ? 999999 : 20000 + eli * 100 + 4 * 12 + 1}
+            rotation={[0, 0, 0]}
+        >
+            <T.SphereGeometry args={[0.08, 32, 16]} />
+            <T.MeshBasicMaterial
+                map={textureChecker}
+                toneMapped={false}
+                side={THREE.DoubleSide}
+                opacity={active ? 0.6 : 0.1}
+                transparent={true}
+                premultipliedAlpha={true}
+                clippingPlanes={planes}
+                color={active ? color : "gray"}
+            />
+        </T.Mesh>
     {:else if cga.isScaling(el)}
         {@const p = cga.scalingParameter(el)}
-        {#if active && !passive}
+
+        {#if active && !passive && showGizmos}
             <TransformControls
-                enabled={active}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.4 : 0}
                 position={p.pivot}
-                size={0.4}
                 onobjectChange={(evt) => {
                     const object = evt.target.object;
                     const np = cga.scaling(
@@ -1919,32 +1931,75 @@
                 mode="translate"
             />
         {/if}
+        <T.Mesh
+            position={p.pivot}
+            renderOrder={passive ? 999999 : 20000 + eli * 100 + 4 * 12 + 1}
+            rotation={[0, 0, 0]}
+        >
+            <T.SphereGeometry args={[0.04, 32, 16]} />
+            <T.MeshBasicMaterial
+                map={textureChecker}
+                toneMapped={false}
+                side={THREE.DoubleSide}
+                opacity={active ? 0.6 : 0.1}
+                transparent={true}
+                premultipliedAlpha={true}
+                clippingPlanes={planes}
+                color={active ? color : "gray"}
+            />
+        </T.Mesh>
     {:else if cga.isScaling(cga.dual(el))}
         {@const p = cga.scalingParameter(cga.dual(el))}
-        <TransformControls
-            enabled={active}
+
+        {#if active && !passive && showGizmos}
+            <TransformControls
+                position={p.pivot}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.4 : 0}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    const np = cga.scaling(
+                        object.position.x,
+                        object.position.y,
+                        object.position.z,
+                        p.scale,
+                        p.sign,
+                    );
+                    if (cga.isScaling(np)) elements[eli].el = cga.undual(np);
+                }}
+                mode="translate"
+            />
+        {/if}
+        <T.Mesh
             position={p.pivot}
-            size={0.4}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
-                const np = cga.scaling(
-                    object.position.x,
-                    object.position.y,
-                    object.position.z,
-                    p.scale,
-                    p.sign,
-                );
-                if (cga.isScaling(np)) elements[eli].el = cga.undual(np);
-            }}
-            mode="translate"
-        />
+            renderOrder={passive ? 999999 : 20000 + eli * 100 + 4 * 12 + 1}
+            rotation={[0, 0, 0]}
+        >
+            <T.SphereGeometry args={[0.04, 32, 16]} />
+            <T.MeshBasicMaterial
+                map={textureChecker}
+                toneMapped={false}
+                side={THREE.DoubleSide}
+                opacity={active ? 0.6 : 0.1}
+                transparent={true}
+                premultipliedAlpha={true}
+                clippingPlanes={planes}
+                color={active ? color : "gray"}
+            />
+        </T.Mesh>
     {:else if cga.isTranslation(el)}
         {@const p = cga.translationParams(el)}
-        {#if active && !passive}
+        {@const length = Math.hypot(p.x, p.y, p.z)}
+        {@const quaternion = new THREE.Quaternion().setFromUnitVectors(
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(p.x, p.y, p.z).normalize(),
+        )}
+
+        {#if active && !passive && showGizmos}
             <TransformControls
-                enabled={active}
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.4 : 0}
                 position={[p.x, p.y, p.z]}
-                size={0.4}
                 onobjectChange={(evt) => {
                     const object = evt.target.object;
                     const np = cga.translation(
@@ -1958,23 +2013,78 @@
                 mode="translate"
             />
         {/if}
+        <T.Group quaternion={quaternion.toArray()}>
+            <!-- shaft -->
+            <T.Mesh
+                position={[0, length / 2 - 0.1 * p.sign, 0]}
+                scale={[1, p.sign * length, 1]}
+            >
+                <T.CylinderGeometry args={[0.01, 0.01, 1, 8]} />
+                <T.MeshBasicMaterial {color} />
+            </T.Mesh>
+
+            <!-- arrowhead -->
+            <T.Mesh
+                scale={[1, p.sign, 1]}
+                position={[
+                    0,
+                    (0.5 + 0.5 * p.sign) * length - (0.1 * p.sign) / 2,
+                    0,
+                ]}
+            >
+                <T.ConeGeometry args={[0.03, 0.1, 8]} />
+                <T.MeshBasicMaterial {color} />
+            </T.Mesh>
+        </T.Group>
     {:else if cga.isTranslation(cga.dual(el))}
         {@const p = cga.translationParams(cga.dual(el))}
-        <TransformControls
-            enabled={active}
-            position={[p.x, p.y, p.z]}
-            size={0.4}
-            onobjectChange={(evt) => {
-                const object = evt.target.object;
-                const np = cga.translation(
-                    object.position.x,
-                    object.position.y,
-                    object.position.z,
-                    p.sign,
-                );
-                if (cga.isTranslation(np)) elements[eli].el = cga.undual(np);
-            }}
-            mode="translate"
-        />
+        {@const length = Math.hypot(p.x, p.y, p.z)}
+        {@const quaternion = new THREE.Quaternion().setFromUnitVectors(
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(p.x, p.y, p.z).normalize(),
+        )}
+
+        {#if active && !passive && showGizmos}
+            <TransformControls
+                enabled={active && !passive && showGizmos}
+                size={active && !passive && showGizmos ? 0.4 : 0}
+                position={[p.x, p.y, p.z]}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    const np = cga.translation(
+                        object.position.x,
+                        object.position.y,
+                        object.position.z,
+                        p.sign,
+                    );
+                    if (cga.isTranslation(np))
+                        elements[eli].el = cga.undual(np);
+                }}
+                mode="translate"
+            />
+        {/if}
+        <T.Group quaternion={quaternion.toArray()}>
+            <!-- shaft -->
+            <T.Mesh
+                position={[0, length / 2 - 0.1 * p.sign, 0]}
+                scale={[1, p.sign * length, 1]}
+            >
+                <T.CylinderGeometry args={[0.01, 0.01, 1, 8]} />
+                <T.MeshBasicMaterial {color} />
+            </T.Mesh>
+
+            <!-- arrowhead -->
+            <T.Mesh
+                scale={[1, p.sign, 1]}
+                position={[
+                    0,
+                    (0.5 + 0.5 * p.sign) * length - (0.1 * p.sign) / 2,
+                    0,
+                ]}
+            >
+                <T.ConeGeometry args={[0.03, 0.1, 8]} />
+                <T.MeshBasicMaterial {color} />
+            </T.Mesh>
+        </T.Group>
     {/if}
 {/each}

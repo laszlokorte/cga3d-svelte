@@ -460,7 +460,7 @@ export function scalingParameter(a) {
 export function scaling(x, y, z, s, sign = 1) {
   const r = Math.sign(s || 1) * Math.sqrt(Math.abs(s));
 
-  return scale(sign, gp(sphere(x, y, z, r), sphere(x, y, z, 1)));
+  return normalize(scale(sign, gp(sphere(x, y, z, r), sphere(x, y, z, 1))));
 }
 export function isTranslation(m, eps = 1e-8) {
   if (Math.abs(m[0]) < eps) return false;
@@ -477,7 +477,7 @@ export function isTranslation(m, eps = 1e-8) {
     Math.abs(m[9] - m[17]) <= eps &&
     Math.abs(m[10] - m[18]) <= eps &&
     Math.abs(m[12] - m[20]) <= eps &&
-    Math.hypot(m[9], m[10], m[12]) / m[0] > eps
+    Math.hypot(m[9], m[10], m[12]) / Math.abs(m[0]) > eps
   );
 }
 export function translationParams(m) {
