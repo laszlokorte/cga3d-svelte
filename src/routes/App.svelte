@@ -3,6 +3,7 @@
     import Scene from "./Scene.svelte";
     import { onMount } from "svelte";
     import * as cga from "./cga3";
+    import { decodeState, encodeState } from "./imex";
     let viewport = $state();
     let scene = $state();
     let freeColors = $state([
@@ -13,6 +14,10 @@
         "teal",
         "limegreen",
     ]);
+    const baseUrl = window.location.origin + window.location.pathname;
+
+    const decodedState = decodeState(window.location.hash);
+
     const formatter = new Intl.NumberFormat("en-US", {
         maximumFractionDigits: 3,
         minimumFractionDigits: 3,
@@ -21,6 +26,7 @@
 
     let accordeons = $state({
         export: false,
+        share: true,
         result: true,
         expression: false,
         interpreation: true,
@@ -60,8 +66,8 @@
     let dragging = $state(null);
     let over = $state(null);
     let wedgeColor = $state("magenta");
-    let elements = $state([]);
-    let showVectorField = $state(false);
+    let elements = $state(decodedState?.elements ?? []);
+    let showVectorField = $state(decodedState?.showVectorField ?? false);
     let showIntersections = $state(true);
     let showGizmos = $state(true);
     let showObject = $state(true);
@@ -99,8 +105,8 @@
             return mv;
         }
     }
-    let combination = $state("product");
-    let finalDual = $state(false);
+    let combination = $state(decodedState?.combination ?? "product");
+    let finalDual = $state(decodedState?.finalDual ?? false);
     const combinedMotor = $derived(
         maybeDual(
             finalDual,
@@ -322,7 +328,7 @@
                     ],
                 },
             ],
-            combine: "sum",
+            combination: "sum",
         },
         {
             name: "Double Rotation",
@@ -346,13 +352,13 @@
                     ],
                 },
             ],
-            combine: "sum",
+            combination: "sum",
         },
         {
             name: "Double Circle",
             showVectorField: true,
             showObject: false,
-            combine: "sum",
+            combination: "sum",
             elements: [
                 {
                     color: "limegreen",
@@ -379,7 +385,7 @@
 
             showObject: false,
             showVectorField: true,
-            combine: "sum",
+            combination: "sum",
             elements: [
                 {
                     color: "tomato",
@@ -436,7 +442,7 @@
                     ],
                 },
             ],
-            combine: "wedge",
+            combination: "wedge",
             finalDual: true,
         },
         {
@@ -473,7 +479,7 @@
                     ],
                 },
             ],
-            combine: "wedge",
+            combination: "wedge",
             finalDual: true,
         },
         {
@@ -502,9 +508,18 @@
                     ],
                 },
             ],
-            combine: "product",
+            combination: "product",
         },
     ];
+    const encodedState = $derived(
+        encodeState({
+            elements,
+            combination,
+            finalDual,
+            showVectorField,
+        }),
+    );
+    const shareUrl = $derived(baseUrl + "#" + encodedState);
 
     function loadExample(i) {
         const ex = examples[i];
@@ -525,7 +540,7 @@
                 color: freeColors.shift() || ex.elements[e].color,
             });
         }
-        combination = ex.combine ?? "product";
+        combination = ex.combination ?? "product";
         showVectorField = ex.showVectorField;
         finalDual = ex.finalDual || false;
 
@@ -1126,7 +1141,7 @@
     </div>
     <div class="menu">
         <header>
-            <h1>3D Conformal Transformations (WIP)</h1>
+            <h1>3D Conformal Transformations</h1>
             <p style:font-size="smaller">
                 based on and inspired by
                 <a
@@ -3827,11 +3842,38 @@
                 >{cga.toString(combinedMotor)}</textarea
             >
         </details>
+        <details bind:open={accordeons.share}>
+            <summary>Share</summary>
+            <div style="display: flex; flex-direction: column; gap: 0.5ex">
+                <div style="display: flex; gap: 2px">
+                    <input
+                        readonly
+                        style="padding: 1ex; flex-grow: 1, user-select: all; width: 100%; box-sizing: border-box;"
+                        value={shareUrl}
+                    />
+                    <button
+                        class="copybutton"
+                        onclick={(evt) => {
+                            const t = evt.currentTarget;
+                            navigator.clipboard.writeText(
+                                t.previousElementSibling.value,
+                            );
+                            console.log(t.previousElementSibling.value);
+                            t.classList.add("copied");
+                            setTimeout(() => {
+                                t.classList.remove("copied");
+                            }, 500);
+                        }}>📋️</button
+                    >
+                </div>
+            </div>
+        </details>
         <details bind:open={accordeons.export}>
             <summary>Export</summary>
+
             <textarea class="serialized" readonly
                 >{JSON.stringify(
-                    { elements, combine: combination },
+                    { elements, combination, showVectorField },
                     (key, value) =>
                         value instanceof Float64Array
                             ? Array.from(value)
@@ -4074,7 +4116,6 @@
     }
     .serialized {
         opacity: 1;
-        outline: none;
         background-color: #fff;
         border: 1px solid #333;
         width: 100%;
@@ -4219,5 +4260,21 @@
     }
     .globalDrag input {
         pointer-events: none;
+    }
+    :global(.copied) {
+        animation: 0.5s 0s ease-out copyflash;
+    }
+    .copybutton {
+        outline: 3px solid #0000;
+    }
+    @keyframes copyflash {
+        from {
+            outline-color: limegreen;
+            background-color: limegreen;
+        }
+        to {
+            outline-color: transparent;
+            background-color: #333;
+        }
     }
 </style>
