@@ -13,7 +13,7 @@
     import * as cga from "./cga3";
     import { generateGP } from "./cga_glsl";
     import { resolve } from "$app/paths";
-    import { CapsuleGeometry } from "./capsule";
+    import { ArrowGeometry } from "./arrow";
 
     const { renderer, canvas } = useThrelte();
 
@@ -241,8 +241,8 @@
 
     const vfcount = nx * nz;
 
-    const vfgeometry = CapsuleGeometry(0.01, 2, 8, 32);
-    const vfgeometry2 = CapsuleGeometry(0.01, 8, 8, 4 * 32);
+    const vfgeometry = ArrowGeometry(0.01, 2, 8, 32);
+    const vfgeometry2 = ArrowGeometry(0.01, 4, 8, 2 * 32);
     const vfmaterial = new THREE.ShaderMaterial({
         uniforms: {
             uTime: { value: 0 },
@@ -260,11 +260,13 @@
             uniform float uTime;
             uniform float uSpeed;
 
+            attribute float aTipOffset;
+
             varying float skip;
 
             ${generateGP()}
-            float outsideLength(vec3 v, vec3 bounds) {
 
+            float outsideLength(vec3 v, vec3 bounds) {
                 vec3 t = mix(
                     bounds / abs(v),
                     vec3(1e30),
@@ -276,57 +278,93 @@
                 return max(0.0, 1.0 - exitT) * length(v);
             }
 
+            vec3 mvVector(MV a) {
+                return vec3(
+                    a.c[0],
+                    a.c[1],
+                    a.c[2]
+                );
+            }
+
             void main() {
                 MV motor;
 
-                for (int i = 0; i < 32; i++)
+                for (int i = 0; i < 32; i++) {
                     motor.c[i] = uMotor[i];
+                }
 
-                float interp =
-                    (position.y + 1.0) +
-                    mod(uTime * uSpeed + aPosition.w * 4.0, 4.0);
+                float interp = (position.y  * 0.5 - 0.5) + mod( uTime * uSpeed + aPosition.w * 4.0, 4.0 );
 
-                MV partialMotor =
-                    motorExp(scale(3.141 / 4.0 * interp, motor));
+                float angle = 3.14159265359 / 2.0 * interp;
 
-                // Center of this cylinder slice
-                MV centerP = point(aPosition.xyz);
-                vec3 center =
-                    pointCoords(sandwich(centerP, partialMotor));
+                float h = 0.0001;
 
-                // Two points defining the local X/Z axes of the disk.
-                MV xP = point(aPosition.xyz + vec3(1.0, 0.0, 0.0));
-                MV zP = point(aPosition.xyz + vec3(0.0, 0.0, 1.0));
+                MV M0 = motorExp( scale(angle, motor) );
+                MV M1 = motorExp( scale(angle + h, motor) );
+                MV P = point(aPosition.xyz);
+                MV X0 = sandwich(P, M0);
+                MV X1 = sandwich(P, M1);
 
-                // Transform those axes and remove the translation.
-                vec3 x =
-                    pointCoords(sandwich(xP, partialMotor)) - center;
+                vec3 center = pointCoords(X0);
 
-                vec3 z =
-                    pointCoords(sandwich(zP, partialMotor)) - center;
+                vec3 tangent = normalize( pointCoords(X1) - center );
+                MV Q = point( aPosition.xyz + vec3(0.001, 0.0, 0.0) );
+                MV Q0 = sandwich(Q, M0);
 
-                // Reconstruct the cylinder vertex in the transformed frame.
+                vec3 radial = pointCoords(Q0) - center;
+                radial -= tangent * dot(radial, tangent);
+
+                float radialLength = length(radial);
+
+                if (radialLength < 1e-6) {
+                    Q = point( aPosition.xyz + vec3(0.0, 0.001, 0.0) );
+                    Q0 = sandwich(Q, M0);
+
+                    radial = pointCoords(Q0) - center;
+                    radial -= tangent * dot(radial, tangent);
+                    radialLength = length(radial);
+                }
+
+                vec3 x;
+
+                if (radialLength > 1e-6) {
+                    x = radial / radialLength;
+                } else {
+                    x = vec3(1.0, 0.0, 0.0);
+                }
+
+                vec3 z = normalize( cross(tangent, x) );
+
+                x = normalize( cross(z, tangent) );
+
                 vec3 coords =
-                    center +
-                    position.x * normalize(x) +
-                    position.z * normalize(z);
+                    center
+                    + aTipOffset * normalize(tangent)
+                    + position.x * x
+                    + position.z * z;
 
                 skip = 1.0;
 
-                vec4 worldPos =
-                    modelMatrix * vec4(coords, 1.0);
+                vec4 worldPos = modelMatrix * vec4(coords, 1.0);
 
-                vec4 mvPosition =
-                    modelViewMatrix * worldPos;
+                vec4 mvPosition = modelViewMatrix * worldPos;
 
+                float outsideFade =
+                    1.0 -
+                    smoothstep(
+                        0.0,
+                        0.4,
+                        outsideLength(
+                            worldPos.xyz,
+                            vec3(2.0, 1.0, 2.0)
+                        )
+                    );
 
-                float outsideFade = 1.0 - smoothstep(0.0, 0.4, outsideLength(worldPos.xyz, vec3(2.0, 1.0, 2.0)));
-                skip *= outsideFade ;
+                skip *= outsideFade;
 
                 #include <clipping_planes_vertex>
 
-                gl_Position =
-                    projectionMatrix * mvPosition;
+                gl_Position = projectionMatrix * mvPosition;
             }
         `,
 
@@ -381,7 +419,7 @@
     vfmaterial.side = THREE.FrontSide;
     vfmaterial.clippingPlanes = planesOuter;
     vfmaterial.clipping = true;
-    vfmaterial.depthTest = true;
+    vfmaterial.depthTest = false;
     vfmaterial.depthWrite = false;
     vfmaterial.clipping = true;
     vfmaterial.transparent = true;
@@ -463,10 +501,11 @@
 />
 <T scale={5} position={objPos} visible={showObject} is={b} />
 
-{#if showVectorField}
-    <T is={vfmesh} />
+{#if showVectorField && !cga.isGrade(motor, 0) && !cga.isGrade(motor, 5)}
     {#if Math.abs(Math.sign(cga.spinorNorm(motor))) != 1}
         <T is={vfmesh2} />
+    {:else}
+        <T is={vfmesh} />
     {/if}
 {/if}
 
@@ -1840,23 +1879,102 @@
                 }}
                 mode="translate"
             />
+
+            <T.Mesh
+                position={[p.x, p.y, p.z]}
+                renderOrder={passive ? 999999 : 20000 + eli * 100 + 4 * 12 + 1}
+                rotation={[0, 0, 0]}
+            >
+                <T.SphereGeometry args={[0.08, 32, 16]} />
+                <T.MeshBasicMaterial
+                    map={textureChecker}
+                    toneMapped={false}
+                    side={THREE.DoubleSide}
+                    opacity={active ? 0.6 : 0.1}
+                    transparent={true}
+                    premultipliedAlpha={true}
+                    clippingPlanes={planes}
+                    color={active ? color : "gray"}
+                />
+            </T.Mesh>
         {/if}
-        <T.Mesh
-            position={[p.x, p.y, p.z]}
-            renderOrder={passive ? 999999 : 20000 + eli * 100 + 4 * 12 + 1}
-            rotation={[0, 0, 0]}
-        >
-            <T.SphereGeometry args={[0.08, 32, 16]} />
-            <T.MeshBasicMaterial
-                map={textureChecker}
-                toneMapped={false}
-                side={THREE.DoubleSide}
-                opacity={active ? 0.6 : 0.1}
-                transparent={true}
-                premultipliedAlpha={true}
-                clippingPlanes={planes}
-                color={active ? color : "gray"}
+    {:else if cga.isScaling(el)}
+        {@const p = cga.scalingParameter(el)}
+        {#if active && !passive}
+            <TransformControls
+                enabled={active}
+                position={p.pivot}
+                size={0.4}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    const np = cga.scaling(
+                        object.position.x,
+                        object.position.y,
+                        object.position.z,
+                        p.scale,
+                        p.sign,
+                    );
+                    if (cga.isScaling(np)) elements[eli].el = np;
+                }}
+                mode="translate"
             />
-        </T.Mesh>
+        {/if}
+    {:else if cga.isScaling(cga.dual(el))}
+        {@const p = cga.scalingParameter(cga.dual(el))}
+        <TransformControls
+            enabled={active}
+            position={p.pivot}
+            size={0.4}
+            onobjectChange={(evt) => {
+                const object = evt.target.object;
+                const np = cga.scaling(
+                    object.position.x,
+                    object.position.y,
+                    object.position.z,
+                    p.scale,
+                    p.sign,
+                );
+                if (cga.isScaling(np)) elements[eli].el = cga.undual(np);
+            }}
+            mode="translate"
+        />
+    {:else if cga.isTranslation(el)}
+        {@const p = cga.translationParams(el)}
+        {#if active && !passive}
+            <TransformControls
+                enabled={active}
+                position={[p.x, p.y, p.z]}
+                size={0.4}
+                onobjectChange={(evt) => {
+                    const object = evt.target.object;
+                    const np = cga.translation(
+                        object.position.x,
+                        object.position.y,
+                        object.position.z,
+                        p.sign,
+                    );
+                    if (cga.isTranslation(np)) elements[eli].el = np;
+                }}
+                mode="translate"
+            />
+        {/if}
+    {:else if cga.isTranslation(cga.dual(el))}
+        {@const p = cga.translationParams(cga.dual(el))}
+        <TransformControls
+            enabled={active}
+            position={[p.x, p.y, p.z]}
+            size={0.4}
+            onobjectChange={(evt) => {
+                const object = evt.target.object;
+                const np = cga.translation(
+                    object.position.x,
+                    object.position.y,
+                    object.position.z,
+                    p.sign,
+                );
+                if (cga.isTranslation(np)) elements[eli].el = cga.undual(np);
+            }}
+            mode="translate"
+        />
     {/if}
 {/each}

@@ -79,6 +79,7 @@ export const e2 = basis(1);
 export const e3 = basis(2);
 export const ep = basis(3);
 export const em = basis(4);
+export const epm = wedge(ep, em);
 
 export const e12 = wedge(e1, e2);
 export const e13 = wedge(e1, e3);
@@ -87,6 +88,8 @@ export const e21 = wedge(e2, e1);
 export const e31 = wedge(e3, e1);
 export const e32 = wedge(e3, e2);
 export const e123 = wedge(wedge(e1, e2), e3);
+export const e123p = wedge(wedge(e1, e2), wedge(e3, ep));
+export const e123m = wedge(wedge(e1, e2), wedge(e3, em));
 
 export const e0 = sub(scale(0.5, em), scale(0.5, ep));
 export const einf = add(em, ep);
@@ -447,11 +450,17 @@ export function scalingParameter(a) {
   const c = a[0];
   const t = a[24];
 
-  const scale = 1 / Math.pow(c - t, 2);
+  const scale = (c - t) / (c + t);
 
-  const pivot = [a[9] / -t, a[10] / -t, a[12] / -t];
+  const pivot = [-a[9] / t, -a[10] / t, -a[12] / t];
 
-  return { scale, pivot };
+  return { scale, pivot, sign: a[0] };
+}
+
+export function scaling(x, y, z, s, sign = 1) {
+  const r = Math.sign(s || 1) * Math.sqrt(Math.abs(s));
+
+  return scale(sign, gp(sphere(x, y, z, r), sphere(x, y, z, 1)));
 }
 export function isTranslation(m, eps = 1e-8) {
   if (Math.abs(m[0]) < eps) return false;
@@ -467,7 +476,8 @@ export function isTranslation(m, eps = 1e-8) {
   return (
     Math.abs(m[9] - m[17]) <= eps &&
     Math.abs(m[10] - m[18]) <= eps &&
-    Math.abs(m[12] - m[20]) <= eps
+    Math.abs(m[12] - m[20]) <= eps &&
+    Math.hypot(m[9], m[10], m[12]) / m[0] > eps
   );
 }
 export function translationParams(m) {
@@ -477,18 +487,19 @@ export function translationParams(m) {
     x: (-2 * m[9]) / s,
     y: (-2 * m[10]) / s,
     z: (-2 * m[12]) / s,
+    sign: Math.sign(s),
   };
 }
-export function translation(x, y, z) {
+export function translation(x, y, z, sign = 1) {
   return normalize(
-    gp(
-      pointReflection(x / 4, y / 4, z / 4),
-      pointReflection(x / -4, y / -4, z / -4),
+    scale(
+      -Math.sign(sign),
+      gp(
+        pointReflection(x / 4, y / 4, z / 4),
+        pointReflection(x / -4, y / -4, z / -4),
+      ),
     ),
   );
-}
-export function scaling(x, y, z, s) {
-  return normalize(gp(sphere(x, y, z, 1), sphere(x, y, z, s)));
 }
 
 export function isSpherical(s, eps = 1e-5) {
@@ -550,7 +561,7 @@ export function spinorNorm(a, eps = 1e-5) {
 
   return n[0];
 }
-export function isEuclideanPoint(a, eps = 1e-6) {
+export function isEuclideanPoint(a, eps = 1e-5) {
   if (!isGrade(a, 3, eps)) return false;
 
   const scale = Math.max(1, Math.hypot(...a));

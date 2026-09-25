@@ -119,6 +119,15 @@ export function generateGP() {
 
         return r;
     }
+    MV sub(MV a, MV b) {
+            MV r;
+
+            for (int i = 0; i < 32; i++)
+                r.c[i] = a.c[i] - b.c[i];
+
+            return r;
+        }
+
 
     MV scale(float s, MV a) {
         MV r;
@@ -326,6 +335,15 @@ export function generateGP() {
 
     MV sandwich(MV x, MV motor) {
         return gp(gp(motor, x), reverse(motor));
+    }
+
+    MV inv(MV a) {
+        MV r = reverse(a);
+        MV n = gp(a, r);
+
+        float s = n.c[0];
+
+        return scale(1.0 / s, r);
     }
   `;
 

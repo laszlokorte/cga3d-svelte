@@ -154,19 +154,20 @@
             showVectorField: true,
             elements: [
                 {
-                    color: "royalblue",
+                    color: "tomato",
                     active: true,
                     el: [
-                        0, 0, 0, 0, 0, 0, 0, 0, -0.7888, 0, 0, 0, 0, 0, 0, 0,
-                        0.2112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     ],
                 },
                 {
                     color: "limegreen",
                     active: true,
                     el: [
-                        0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, -1.3450000000000002, 0, 0, 0, 0,
+                        0, 0, 0, -0.3450000000000001, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0,
                     ],
                 },
             ],
@@ -198,19 +199,19 @@
             showVectorField: true,
             elements: [
                 {
-                    color: "limegreen",
+                    color: "tomato",
                     active: true,
                     el: [
-                        0, -2, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, -2, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, -2, 0, 0, 0, 0, 0, 0, -0.375, 0, 0, 0, 0, 0, 0, 0,
+                        -1.375, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     ],
                 },
                 {
-                    color: "royalblue",
+                    color: "limegreen",
                     active: true,
                     el: [
-                        0, -2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, -2, 0, 0, 0, 0, 0, 0, 0.375, 0, 0, 0, 0, 0, 0, 0,
+                        1.375, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     ],
                 },
             ],
@@ -220,16 +221,7 @@
             showVectorField: true,
             elements: [
                 {
-                    color: "limegreen",
-                    active: true,
-                    el: [
-                        0, 0, 0, 0, 0, 0, 0, 0, -1.9449999999999998, 0, 0, 0, 0,
-                        0, 0, 0, -0.9449999999999998, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0,
-                    ],
-                },
-                {
-                    color: "royalblue",
+                    color: "tomato",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -237,7 +229,15 @@
                     ],
                 },
                 {
-                    color: "teal",
+                    color: "limegreen",
+                    active: true,
+                    el: [
+                        0, 0, 0, 0, 0, 0, 0, 0, -0.73805, 0, 0, 0, 0, 0, 0, 0,
+                        0.26195, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    ],
+                },
+                {
+                    color: "royalblue",
                     active: true,
                     el: [
                         0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -245,12 +245,12 @@
                     ],
                 },
                 {
-                    color: "tomato",
+                    color: "gold",
                     active: true,
                     el: [
-                        0, 0.9134016707474314, 0, 0, 0.4070594402243987, 0, 0,
+                        0, 0.8626979700976577, 0, 0, 0.50571949971242, 0, 0, 0,
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0,
                     ],
                 },
             ],
@@ -260,10 +260,10 @@
             showVectorField: true,
             elements: [
                 {
-                    color: "royalblue",
+                    color: "tomato",
                     active: true,
                     el: [
-                        0, 0, 1, 0, 0, 0, 0, 0, 0.14, 0, 0, 0, 0, 0, 0, 0, 0.14,
+                        0, 0, 1, 0, 0, 0, 0, 0, 0.28, 0, 0, 0, 0, 0, 0, 0, 0.28,
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     ],
                 },
@@ -271,12 +271,14 @@
                     color: "limegreen",
                     active: true,
                     el: [
-                        0, 0, 1, 0, 0, 0, 0, 0, -0.23, 0, 0, 0, 0, 0, 0, 0,
-                        -0.23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 1, 0, 1.9955449921803594e-16, 0, 0, 0,
+                        -0.17385962058228763, 0, 0, 0, 0, 0, 0, 0,
+                        -0.17385962058228763, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0,
                     ],
                 },
                 {
-                    color: "teal",
+                    color: "royalblue",
                     active: true,
                     el: [
                         0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -284,10 +286,10 @@
                     ],
                 },
                 {
-                    color: "tomato",
+                    color: "gold",
                     active: true,
                     el: [
-                        0, 0.9338567516961642, 0, 0, 0.35764726660704166, 0, 0,
+                        0, 0.8645071866841927, 0, 0, 0.5026204573745306, 0, 0,
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0,
                     ],
@@ -473,6 +475,8 @@
         },
         {
             name: "Translation",
+
+            showVectorField: true,
             elements: [
                 {
                     color: "tomato",
@@ -1749,6 +1753,22 @@
                                         }}
                                     >
                                         <label class="form-row">
+                                            Radius:
+                                            <input
+                                                type="range"
+                                                name="radius"
+                                                value={sphCoords.radius}
+                                                min="-4"
+                                                max="4"
+                                                step="0.01"
+                                            />
+                                            <output>
+                                                {formatter.format(
+                                                    sphCoords.radius,
+                                                )}
+                                            </output>
+                                        </label>
+                                        <label class="form-row">
                                             X:
                                             <input
                                                 type="range"
@@ -1782,17 +1802,6 @@
                                             />
                                         </label>
 
-                                        <label class="form-row">
-                                            Radius:
-                                            <input
-                                                type="range"
-                                                name="radius"
-                                                value={sphCoords.radius}
-                                                min="-4"
-                                                max="4"
-                                                step="0.01"
-                                            />
-                                        </label>
                                         <input
                                             type="hidden"
                                             name="sign"
@@ -1837,6 +1846,17 @@
                                         }}
                                     >
                                         <label class="form-row">
+                                            Radius:
+                                            <input
+                                                type="range"
+                                                name="radius"
+                                                value={sphCoords.radius}
+                                                min="-4"
+                                                max="4"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label class="form-row">
                                             X:
                                             <input
                                                 type="range"
@@ -1870,17 +1890,6 @@
                                             />
                                         </label>
 
-                                        <label class="form-row">
-                                            Radius:
-                                            <input
-                                                type="range"
-                                                name="radius"
-                                                value={sphCoords.radius}
-                                                min="-4"
-                                                max="4"
-                                                step="0.01"
-                                            />
-                                        </label>
                                         <input
                                             type="hidden"
                                             name="sign"
@@ -2894,8 +2903,16 @@
                                                 fd.y,
                                                 fd.z,
                                                 fd.s,
+                                                fd.sign,
                                             );
-                                            if (cga.isScaling(np))
+
+                                            if (
+                                                cga.isScaling(np) &&
+                                                !cga.isEuclideanPoint(np) &&
+                                                !cga.isEuclideanPoint(
+                                                    cga.dual(np),
+                                                )
+                                            )
                                                 elements[eli].el = np;
                                         }}
                                     >
@@ -2905,10 +2922,13 @@
                                                 type="range"
                                                 name="s"
                                                 value={p.scale}
-                                                min="0.1"
-                                                max="10"
+                                                min="-2"
+                                                max="2"
                                                 step="0.01"
                                             />
+                                            <output>
+                                                {formatter.format(p.scale)}
+                                            </output>
                                         </label>
                                         <label class="form-row">
                                             X:
@@ -2943,9 +2963,112 @@
                                                 step="0.01"
                                             />
                                         </label>
+                                        <input
+                                            type="hidden"
+                                            name="sign"
+                                            value="1"
+                                        />
+                                        <label class="form-row">
+                                            negative:
+                                            <input
+                                                type="checkbox"
+                                                name="sign"
+                                                value="-1"
+                                                checked={p.sign < 0}
+                                            />
+                                        </label>
                                     </form>
                                 {:else if cga.isScaling(cga.dual(el))}
+                                    {@const p = cga.scalingParameter(
+                                        cga.dual(el),
+                                    )}
+
                                     <strong>Scaling (Dual)</strong>
+                                    <form
+                                        oninput={(evt) => {
+                                            const fd = Object.fromEntries(
+                                                new FormData(evt.currentTarget),
+                                            );
+                                            const np = cga.scaling(
+                                                fd.x,
+                                                fd.y,
+                                                fd.z,
+                                                fd.s,
+                                                fd.sign,
+                                            );
+                                            if (
+                                                cga.isScaling(np) &&
+                                                !cga.isEuclideanPoint(np) &&
+                                                !cga.isEuclideanPoint(
+                                                    cga.dual(np),
+                                                )
+                                            )
+                                                elements[eli].el =
+                                                    cga.undual(np);
+                                        }}
+                                    >
+                                        <label class="form-row">
+                                            Scale:
+                                            <input
+                                                type="range"
+                                                name="s"
+                                                value={p.scale}
+                                                min="-2"
+                                                max="2"
+                                                step="0.01"
+                                            />
+                                            <output>
+                                                {formatter.format(p.scale)}
+                                            </output>
+                                        </label>
+                                        <label class="form-row">
+                                            X:
+                                            <input
+                                                type="range"
+                                                name="x"
+                                                value={p.pivot[0]}
+                                                min="-2"
+                                                max="2"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label class="form-row">
+                                            Y:
+                                            <input
+                                                type="range"
+                                                name="y"
+                                                value={p.pivot[1]}
+                                                min="-2"
+                                                max="2"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label class="form-row">
+                                            Z:
+                                            <input
+                                                type="range"
+                                                name="z"
+                                                value={p.pivot[2]}
+                                                min="-2"
+                                                max="2"
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <input
+                                            type="hidden"
+                                            name="sign"
+                                            value="1"
+                                        />
+                                        <label class="form-row">
+                                            negative:
+                                            <input
+                                                type="checkbox"
+                                                name="sign"
+                                                value="-1"
+                                                checked={p.sign < 0}
+                                            />
+                                        </label>
+                                    </form>
                                 {:else if cga.isTranslation(el)}
                                     {@const p = cga.translationParams(el)}
                                     <strong>Translation</strong>
@@ -2958,6 +3081,7 @@
                                                 fd.x,
                                                 fd.y,
                                                 fd.z,
+                                                fd.sign,
                                             );
                                             if (cga.isTranslation(np))
                                                 elements[eli].el = np;
@@ -2996,6 +3120,20 @@
                                                 step="0.01"
                                             />
                                         </label>
+                                        <input
+                                            type="hidden"
+                                            name="sign"
+                                            value="1"
+                                        />
+                                        <label class="form-row">
+                                            negative:
+                                            <input
+                                                type="checkbox"
+                                                name="sign"
+                                                value="-1"
+                                                checked={p.sign < 0}
+                                            />
+                                        </label>
                                     </form>
                                 {:else if cga.isTranslation(cga.dual(el))}
                                     {@const p = cga.translationParams(
@@ -3011,6 +3149,7 @@
                                                 fd.x,
                                                 fd.y,
                                                 fd.z,
+                                                fd.sign,
                                             );
                                             if (cga.isTranslation(np))
                                                 elements[eli].el =
@@ -3048,6 +3187,20 @@
                                                 min="-2"
                                                 max="2"
                                                 step="0.01"
+                                            />
+                                        </label>
+                                        <input
+                                            type="hidden"
+                                            name="sign"
+                                            value="1"
+                                        />
+                                        <label class="form-row">
+                                            negative:
+                                            <input
+                                                type="checkbox"
+                                                name="sign"
+                                                value="-1"
+                                                checked={p.sign < 0}
                                             />
                                         </label>
                                     </form>
