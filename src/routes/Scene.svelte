@@ -120,11 +120,14 @@
         motor = cga.scalar(0),
         wedged,
         showMotor = false,
+        vectorColor = "gold",
         wedgeColor = "rebeccapurple",
         showIntersections,
         showObject,
         showGizmos = true,
     } = $props();
+
+    const vecCol = $derived(new THREE.Color(vectorColor));
 
     let objPos = $state([1, 0, 0]);
     renderer.localClippingEnabled = true;
@@ -245,6 +248,7 @@
     const vfgeometry2 = ArrowGeometry(0.01, 4, 8, 2 * 32);
     const vfmaterial = new THREE.ShaderMaterial({
         uniforms: {
+            uColor: { value: [1.0, 0.8, 0.1, 1.0] },
             uTime: { value: 0 },
             uSpeed: { value: 0.3 },
             uMotor: { value: cga.scalar(0) },
@@ -371,12 +375,13 @@
         fragmentShader: /* glsl */ `
                #include <clipping_planes_pars_fragment>
                uniform float uOpacity;
+               uniform vec3 uColor;
                varying float skip;
 
                void main() {
                    #include <clipping_planes_fragment>
 
-                   gl_FragColor = vec4(1.0,0.8,0.1,1.0* uOpacity * skip) ;
+                   gl_FragColor = vec4(uColor.rgb, uOpacity * skip) ;
                }
            `,
     });
@@ -493,6 +498,7 @@
             });
 
             vfmaterial.uniforms.uMotor.value = motor;
+            vfmaterial.uniforms.uColor.value = vecCol.toArray();
             vfmaterial.uniforms.uTime.value = elapsedTime;
         }
         animate();

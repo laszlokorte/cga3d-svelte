@@ -66,6 +66,7 @@
     let dragging = $state(null);
     let over = $state(null);
     let wedgeColor = $state("magenta");
+    let vectorColor = $state("gold");
     let elements = $state(decodedState?.elements ?? []);
     let showVectorField = $state(decodedState?.showVectorField ?? false);
     let showIntersections = $state(true);
@@ -560,6 +561,7 @@
             <Canvas dpr={Math.max(window ? window.devicePixelRatio : 1, 2)}>
                 <Scene
                     {wedgeColor}
+                    {vectorColor}
                     {showGizmos}
                     {showVectorField}
                     showIntersections={showIntersections &&
@@ -599,9 +601,13 @@
                     Field</label
                 >
 
+                <input type="color" bind:value={vectorColor} />
+
                 <label
                     ><input type="checkbox" bind:checked={showIntersections} /> Wedge/Intersect</label
                 >
+
+                <input type="color" bind:value={wedgeColor} />
                 <label
                     ><input type="checkbox" bind:checked={showObject} />
                     Example Object</label
@@ -3725,33 +3731,6 @@
                 </div>
             {:else}
                 <div class="empty-box">
-                    <strong>No transformations added yet.</strong>
-
-                    <p>You have not defined any transformations yet.</p>
-                    <p>
-                        Add some element (eg. a reflection plane) to observe how
-                        the 3d object on the right gets transformed.
-                    </p>
-                    <p>
-                        The simplest transformations are plane and sphere
-                        reflections. More complex transformations can be
-                        composed by chaining simpler ones.
-                    </p>
-                    <p>
-                        Any possible transformation can be encoded as a tuple of <code
-                        >
-                            32</code
-                        >
-                        (ie. 2<sup>5</sup>) elements.
-                    </p>
-                    <p>
-                        <a href="https://bivector.net/tools.html?p=4&q=1&r=0"
-                            >Conformal Geometric Algebra</a
-                        > defines the rules for how these tuples are to be combined
-                        via addition and multiplication to achieve the desired geometric
-                        transformation.
-                    </p>
-
                     <fieldset class="fieldset-sub">
                         <legend>Add your first transformation</legend>
                         <div class="button-row centered">
@@ -3779,6 +3758,32 @@
                             >
                         </div>
                     </fieldset>
+                    <strong>No transformations added yet.</strong>
+
+                    <p>You have not defined any transformations yet.</p>
+                    <p>
+                        Add some element (eg. a reflection plane) to observe how
+                        the 3d object on the right gets transformed.
+                    </p>
+                    <p>
+                        The simplest transformations are plane and sphere
+                        reflections. More complex transformations can be
+                        composed by chaining simpler ones.
+                    </p>
+                    <p>
+                        Any possible transformation can be encoded as a tuple of <code
+                        >
+                            32</code
+                        >
+                        (ie. 2<sup>5</sup>) elements.
+                    </p>
+                    <p>
+                        <a href="https://bivector.net/tools.html?p=4&q=1&r=0"
+                            >Conformal Geometric Algebra</a
+                        > defines the rules for how these tuples are to be combined
+                        via addition and multiplication to achieve the desired geometric
+                        transformation.
+                    </p>
                 </div>
             {/each}
         </div>
@@ -3800,12 +3805,6 @@
                     Dualize
                 </label>
 
-                <input
-                    disabled={elements.length < 2}
-                    class={{ disableHint: elements.length < 2 }}
-                    type="color"
-                    bind:value={wedgeColor}
-                />
                 <button
                     title="Apply, combine into single transformation"
                     disabled={elements.length < 2}
@@ -3838,8 +3837,11 @@
                     </code>
                 </span>
             </summary>
-            <textarea class="serialized" readonly style:user-select="all"
-                >{cga.toString(combinedMotor)}</textarea
+            <textarea
+                onfocus={(e) => e.currentTarget.select()}
+                class="serialized"
+                readonly
+                style:user-select="all">{cga.toString(combinedMotor)}</textarea
             >
         </details>
         <details bind:open={accordeons.share}>
@@ -3848,7 +3850,8 @@
                 <div style="display: flex; gap: 2px">
                     <input
                         readonly
-                        style="padding: 1ex; flex-grow: 1, user-select: all; width: 100%; box-sizing: border-box;"
+                        onfocus={(e) => e.currentTarget.select()}
+                        style="padding: 1ex; flex-grow: 1; user-select: all; width: 100%; box-sizing: border-box;"
                         value={shareUrl}
                     />
                     <button
@@ -3871,7 +3874,10 @@
         <details bind:open={accordeons.export}>
             <summary>Export</summary>
 
-            <textarea class="serialized" readonly
+            <textarea
+                class="serialized"
+                readonly
+                onfocus={(e) => e.currentTarget.select()}
                 >{JSON.stringify(
                     { elements, combination, showVectorField },
                     (key, value) =>

@@ -862,6 +862,27 @@ const formatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 5,
   useGrouping: false,
 });
+
+export function selectGrade(a, grade) {
+  const result = new Array(32).fill(0);
+
+  for (let i = 0; i < 32; i++) {
+    let bits = i;
+    let count = 0;
+
+    while (bits) {
+      count += bits & 1;
+      bits >>= 1;
+    }
+
+    if (count === grade) {
+      result[i] = a[i];
+    }
+  }
+
+  return result;
+}
+
 export function toString(a, eps = 1e-5) {
   const names = [
     "1", // 00000
