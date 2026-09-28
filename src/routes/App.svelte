@@ -58,6 +58,8 @@
         const observer = new ResizeObserver(updateCamera);
         observer.observe(viewport);
 
+        updateCamera();
+
         return () => {
             updateCamera();
             observer.disconnect();
@@ -3893,8 +3895,10 @@
 <style>
     .app {
         display: grid;
-        grid-template-columns: 0 [menu-start] 2fr [menu-end viewport-start toolbar-start viewbar-start] 2fr [viewbar-end] 2fr [viewport-end toolbar-end] 0;
-        grid-template-rows: 0 [menu-start viewport-start viewbar-start] auto [viewbar-end] 1fr 1fr [toolbar-start viewport-end] auto [menu-end toolbar-end] 0;
+        grid-template-columns:
+            0 [menu-start] minmax(30em, 2fr)
+            [menu-end viewport-start toolbar-start viewbar-start] 4fr [viewbar-end] 5em [viewport-end toolbar-end] 0;
+        grid-template-rows: 0 [menu-start viewport-start viewbar-start] auto [viewbar-end] 1fr 1fr [toolbar-start viewport-end] auto 5em [menu-end toolbar-end] 0;
         width: 100%;
         height: 100%;
         box-sizing: border-box;
@@ -4282,5 +4286,9 @@
             outline-color: transparent;
             background-color: #333;
         }
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+        border: 0;
     }
 </style>

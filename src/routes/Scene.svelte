@@ -245,7 +245,7 @@
     const vfcount = nx * nz;
 
     const vfgeometry = ArrowGeometry(0.01, 2, 8, 32);
-    const vfgeometry2 = ArrowGeometry(0.01, 4, 8, 2 * 32);
+    const vfgeometry2 = ArrowGeometry(0.01, 4, 8, 4 * 32);
     const vfmaterial = new THREE.ShaderMaterial({
         uniforms: {
             uColor: { value: [1.0, 0.8, 0.1, 1.0] },
@@ -253,6 +253,7 @@
             uSpeed: { value: 0.3 },
             uMotor: { value: cga.scalar(0) },
             uOpacity: { value: 0.5 },
+            uTotalHeight: { value: 2 },
         },
 
         vertexShader: /* glsl */ `
@@ -263,6 +264,7 @@
             uniform float uMotor[32];
             uniform float uTime;
             uniform float uSpeed;
+            uniform float uTotalHeight;
 
             attribute float aTipOffset;
 
@@ -297,7 +299,8 @@
                     motor.c[i] = uMotor[i];
                 }
 
-                float interp = (position.y  * 0.5 - 0.5) + mod( uTime * uSpeed + aPosition.w * 4.0, 4.0 );
+                float timeOff = mod( uTime * uSpeed + aPosition.w * 4.0, 4.0 );
+                float interp = (position.y  * 0.5 - 0.5) + timeOff;
 
                 float angle = 3.14159265359 / 2.0 * interp;
 
@@ -364,7 +367,7 @@
                         )
                     );
 
-                skip *= outsideFade;
+                skip *= outsideFade * pow((uTotalHeight / 2.0 + position.y) / uTotalHeight, 0.5);
 
                 #include <clipping_planes_vertex>
 
@@ -385,9 +388,6 @@
                }
            `,
     });
-
-    const vfmesh = new THREE.InstancedMesh(vfgeometry, vfmaterial, vfcount);
-    const vfmesh2 = new THREE.InstancedMesh(vfgeometry2, vfmaterial, vfcount);
 
     const positions = new Float32Array(vfcount * 4);
     for (let i = 0; i < vfcount; i++) {
@@ -416,11 +416,6 @@
         new THREE.InstancedBufferAttribute(positions, 4),
     );
 
-    vfmesh.renderOrder = 9999999;
-    vfmesh2.renderOrder = 9999999;
-    vfmesh.instanceMatrix.needsUpdate = true;
-    vfmesh2.instanceMatrix.needsUpdate = true;
-
     vfmaterial.side = THREE.FrontSide;
     vfmaterial.clippingPlanes = planesOuter;
     vfmaterial.clipping = true;
@@ -429,6 +424,17 @@
     vfmaterial.clipping = true;
     vfmaterial.transparent = true;
     vfmaterial.toneMapped = false;
+
+    const vfmaterial2 = vfmaterial.clone();
+
+    vfmaterial2.uniforms.uTotalHeight.value = 4;
+    const vfmesh = new THREE.InstancedMesh(vfgeometry, vfmaterial, vfcount);
+    const vfmesh2 = new THREE.InstancedMesh(vfgeometry2, vfmaterial2, vfcount);
+    vfmesh.renderOrder = 9999999;
+    vfmesh2.renderOrder = 9999999;
+    vfmesh.instanceMatrix.needsUpdate = true;
+    vfmesh2.instanceMatrix.needsUpdate = true;
+
     const checkerCanvas = document.createElement("canvas");
     checkerCanvas.width = checkerCanvas.height = 128;
 
@@ -500,6 +506,9 @@
             vfmaterial.uniforms.uMotor.value = motor;
             vfmaterial.uniforms.uColor.value = vecCol.toArray();
             vfmaterial.uniforms.uTime.value = elapsedTime;
+            vfmaterial2.uniforms.uMotor.value = motor;
+            vfmaterial2.uniforms.uColor.value = vecCol.toArray();
+            vfmaterial2.uniforms.uTime.value = elapsedTime;
         }
         animate();
     }}
