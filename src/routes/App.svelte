@@ -73,6 +73,7 @@
     let showVectorField = $state(decodedState?.showVectorField ?? false);
     let showIntersections = $state(true);
     let showGizmos = $state(true);
+    let showTransforms = $state(true);
     let showObject = $state(true);
     const productMotor = $derived(
         cga.normalize(
@@ -548,13 +549,14 @@
         finalDual = ex.finalDual || false;
 
         showObject = ex.showObject !== false;
+        showTransforms = ex.showTransforms !== false;
     }
 </script>
 
 <svelte:body />
 
 <svelte:head>
-    <title>3d CGA</title>
+    <title>3D CGA</title>
 </svelte:head>
 
 <div class={{ globalDrag: dragging !== null, app: true }}>
@@ -565,6 +567,7 @@
                     {wedgeColor}
                     {vectorColor}
                     {showGizmos}
+                    {showTransforms}
                     {showVectorField}
                     showIntersections={showIntersections &&
                         combination != "sum"}
@@ -598,24 +601,36 @@
         <fieldset class="fieldset-mini">
             <legend>View</legend>
             <div class="button-row">
-                <label
-                    ><input type="checkbox" bind:checked={showVectorField} /> Vector
-                    Field</label
-                >
+                <div class="combo-input">
+                    <label
+                        ><input
+                            type="checkbox"
+                            bind:checked={showVectorField}
+                        /> Vector Field</label
+                    >
 
-                <input type="color" bind:value={vectorColor} />
+                    <input type="color" bind:value={vectorColor} />
+                </div>
 
-                <label
-                    ><input type="checkbox" bind:checked={showIntersections} /> Wedge/Intersect</label
-                >
+                <div class="combo-input">
+                    <label
+                        ><input
+                            type="checkbox"
+                            bind:checked={showIntersections}
+                        /> Wedge/Intersect</label
+                    >
 
-                <input type="color" bind:value={wedgeColor} />
+                    <input type="color" bind:value={wedgeColor} />
+                </div>
                 <label
                     ><input type="checkbox" bind:checked={showObject} />
                     Example Object</label
                 >
                 <label
                     ><input type="checkbox" bind:checked={showGizmos} /> Gizmos</label
+                >
+                <label
+                    ><input type="checkbox" bind:checked={showTransforms} /> Transforms</label
                 >
             </div>
         </fieldset>
@@ -1725,7 +1740,7 @@
                                         }}
                                     >
                                         <label class="form-row">
-                                            Radius:
+                                            <span>Radius:</span>
                                             <input
                                                 type="range"
                                                 name="radius"
@@ -1741,7 +1756,7 @@
                                             </output>
                                         </label>
                                         <label class="form-row">
-                                            X:
+                                            <span>X:</span>
                                             <input
                                                 type="range"
                                                 name="x"
@@ -1750,9 +1765,14 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+                                            <output>
+                                                {formatter.format(
+                                                    sphCoords.center[0],
+                                                )}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Y:
+                                            <span>Y:</span>
                                             <input
                                                 type="range"
                                                 name="y"
@@ -1761,9 +1781,14 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+                                            <output>
+                                                {formatter.format(
+                                                    sphCoords.center[1],
+                                                )}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Z:
+                                            <span> Z:</span>
                                             <input
                                                 type="range"
                                                 name="z"
@@ -1772,6 +1797,12 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(
+                                                    sphCoords.center[2],
+                                                )}
+                                            </output>
                                         </label>
 
                                         <input
@@ -1780,7 +1811,7 @@
                                             value="1"
                                         />
                                         <label class="form-row">
-                                            negative:
+                                            <span> negative:</span>
                                             <input
                                                 type="checkbox"
                                                 name="sign"
@@ -1818,7 +1849,7 @@
                                         }}
                                     >
                                         <label class="form-row">
-                                            Radius:
+                                            <span> Radius:</span>
                                             <input
                                                 type="range"
                                                 name="radius"
@@ -1827,9 +1858,15 @@
                                                 max="4"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(
+                                                    sphCoords.radius,
+                                                )}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            X:
+                                            <span> X:</span>
                                             <input
                                                 type="range"
                                                 name="x"
@@ -1838,9 +1875,15 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(
+                                                    sphCoords.center[0],
+                                                )}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Y:
+                                            <span> Y:</span>
                                             <input
                                                 type="range"
                                                 name="y"
@@ -1849,9 +1892,15 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(
+                                                    sphCoords.center[1],
+                                                )}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Z:
+                                            <span> Z:</span>
                                             <input
                                                 type="range"
                                                 name="z"
@@ -1860,6 +1909,12 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(
+                                                    sphCoords.center[2],
+                                                )}
+                                            </output>
                                         </label>
 
                                         <input
@@ -1868,7 +1923,7 @@
                                             value="1"
                                         />
                                         <label class="form-row">
-                                            negative:
+                                            <span> negative:</span>
                                             <input
                                                 type="checkbox"
                                                 name="sign"
@@ -1893,7 +1948,7 @@
                                         }}
                                     >
                                         <label class="form-row">
-                                            X:
+                                            <span> X:</span>
                                             <input
                                                 type="range"
                                                 name="x"
@@ -1902,9 +1957,15 @@
                                                 max="1"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(
+                                                    plnParams.normal[0],
+                                                )}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Y:
+                                            <span> Y:</span>
                                             <input
                                                 type="range"
                                                 name="y"
@@ -1913,9 +1974,15 @@
                                                 max="1"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(
+                                                    plnParams.normal[1],
+                                                )}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Z:
+                                            <span> Z:</span>
                                             <input
                                                 type="range"
                                                 name="z"
@@ -1924,10 +1991,16 @@
                                                 max="1"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(
+                                                    plnParams.normal[2],
+                                                )}
+                                            </output>
                                         </label>
 
                                         <label class="form-row">
-                                            Distance:
+                                            <span> Distance:</span>
                                             <input
                                                 type="range"
                                                 name="distance"
@@ -1936,6 +2009,12 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(
+                                                    plnParams.distance,
+                                                )}
+                                            </output>
                                         </label>
                                     </form>
                                 {:else if cga.isPlane(cga.dual(el))}
@@ -1962,7 +2041,7 @@
                                         }}
                                     >
                                         <label class="form-row">
-                                            X:
+                                            <span> X:</span>
                                             <input
                                                 type="range"
                                                 name="x"
@@ -1971,9 +2050,15 @@
                                                 max="1"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(
+                                                    plnParams.normal[0],
+                                                )}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Y:
+                                            <span> Y:</span>
                                             <input
                                                 type="range"
                                                 name="y"
@@ -1982,9 +2067,15 @@
                                                 max="1"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(
+                                                    plnParams.normal[1],
+                                                )}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Z:
+                                            <span> Z:</span>
                                             <input
                                                 type="range"
                                                 name="z"
@@ -1993,10 +2084,16 @@
                                                 max="1"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(
+                                                    plnParams.normal[2],
+                                                )}
+                                            </output>
                                         </label>
 
                                         <label class="form-row">
-                                            Distance:
+                                            <span> Distance:</span>
                                             <input
                                                 type="range"
                                                 name="distance"
@@ -2005,13 +2102,19 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(
+                                                    plnParams.distance,
+                                                )}
+                                            </output>
                                         </label>
                                     </form>
                                 {:else if cga.isPointPair(el)}
                                     <strong>Point Pair</strong>
                                     {@const [a, b] = cga.pointPairCoords(el)}
                                     <div
-                                        style="display: grid; grid-template-columns: 1fr 1fr"
+                                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 1em"
                                     >
                                         <form
                                             oninput={(evt) => {
@@ -2038,7 +2141,7 @@
                                             }}
                                         >
                                             <label class="form-row">
-                                                X:
+                                                <span> X:</span>
                                                 <input
                                                     type="range"
                                                     name="x"
@@ -2047,9 +2150,12 @@
                                                     max="1"
                                                     step="0.01"
                                                 />
+                                                <output>
+                                                    {formatter.format(a.x)}
+                                                </output>
                                             </label>
                                             <label class="form-row">
-                                                Y:
+                                                <span> Y:</span>
                                                 <input
                                                     type="range"
                                                     name="y"
@@ -2058,9 +2164,12 @@
                                                     max="1"
                                                     step="0.01"
                                                 />
+                                                <output>
+                                                    {formatter.format(a.y)}
+                                                </output>
                                             </label>
                                             <label class="form-row">
-                                                Z:
+                                                <span> Z:</span>
                                                 <input
                                                     type="range"
                                                     name="z"
@@ -2069,6 +2178,9 @@
                                                     max="1"
                                                     step="0.01"
                                                 />
+                                                <output>
+                                                    {formatter.format(a.z)}
+                                                </output>
                                             </label>
                                         </form>
                                         <form
@@ -2096,7 +2208,7 @@
                                             }}
                                         >
                                             <label class="form-row">
-                                                X:
+                                                <span> X:</span>
                                                 <input
                                                     type="range"
                                                     name="x"
@@ -2105,9 +2217,12 @@
                                                     max="1"
                                                     step="0.01"
                                                 />
+                                                <output>
+                                                    {formatter.format(b.x)}
+                                                </output>
                                             </label>
                                             <label class="form-row">
-                                                Y:
+                                                <span> Y:</span>
                                                 <input
                                                     type="range"
                                                     name="y"
@@ -2116,9 +2231,12 @@
                                                     max="1"
                                                     step="0.01"
                                                 />
+                                                <output>
+                                                    {formatter.format(b.y)}
+                                                </output>
                                             </label>
                                             <label class="form-row">
-                                                Z:
+                                                <span> Z:</span>
                                                 <input
                                                     type="range"
                                                     name="z"
@@ -2127,6 +2245,9 @@
                                                     max="1"
                                                     step="0.01"
                                                 />
+                                                <output>
+                                                    {formatter.format(b.z)}
+                                                </output>
                                             </label>
                                         </form>
                                     </div>
@@ -2136,7 +2257,7 @@
                                         cga.dual(el),
                                     )}
                                     <div
-                                        style="display: grid; grid-template-columns: 1fr 1fr"
+                                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 1em"
                                     >
                                         <form
                                             oninput={(evt) => {
@@ -2164,7 +2285,7 @@
                                             }}
                                         >
                                             <label class="form-row">
-                                                X:
+                                                <span> X:</span>
                                                 <input
                                                     type="range"
                                                     name="x"
@@ -2173,9 +2294,12 @@
                                                     max="1"
                                                     step="0.01"
                                                 />
+                                                <output>
+                                                    {formatter.format(a.x)}
+                                                </output>
                                             </label>
                                             <label class="form-row">
-                                                Y:
+                                                <span> Y:</span>
                                                 <input
                                                     type="range"
                                                     name="y"
@@ -2184,9 +2308,12 @@
                                                     max="1"
                                                     step="0.01"
                                                 />
+                                                <output>
+                                                    {formatter.format(a.y)}
+                                                </output>
                                             </label>
                                             <label class="form-row">
-                                                Z:
+                                                <span> Z:</span>
                                                 <input
                                                     type="range"
                                                     name="z"
@@ -2195,6 +2322,9 @@
                                                     max="1"
                                                     step="0.01"
                                                 />
+                                                <output>
+                                                    {formatter.format(a.z)}
+                                                </output>
                                             </label>
                                         </form>
                                         <form
@@ -2223,7 +2353,7 @@
                                             }}
                                         >
                                             <label class="form-row">
-                                                X:
+                                                <span> X:</span>
                                                 <input
                                                     type="range"
                                                     name="x"
@@ -2232,9 +2362,12 @@
                                                     max="1"
                                                     step="0.01"
                                                 />
+                                                <output>
+                                                    {formatter.format(b.x)}
+                                                </output>
                                             </label>
                                             <label class="form-row">
-                                                Y:
+                                                <span> Y:</span>
                                                 <input
                                                     type="range"
                                                     name="y"
@@ -2243,9 +2376,12 @@
                                                     max="1"
                                                     step="0.01"
                                                 />
+                                                <output>
+                                                    {formatter.format(b.y)}
+                                                </output>
                                             </label>
                                             <label class="form-row">
-                                                Z:
+                                                <span> Z:</span>
                                                 <input
                                                     type="range"
                                                     name="z"
@@ -2254,6 +2390,9 @@
                                                     max="1"
                                                     step="0.01"
                                                 />
+                                                <output>
+                                                    {formatter.format(b.z)}
+                                                </output>
                                             </label>
                                         </form>
                                     </div>
@@ -2311,10 +2450,15 @@
                                                     max="1"
                                                     step="0.001"
                                                 />
+                                                <output>
+                                                    {formatter.format(
+                                                        cirParams.radius,
+                                                    )}
+                                                </output>
                                             </label>
                                             <div>
                                                 <label class="form-row">
-                                                    X:
+                                                    <span> X:</span>
                                                     <input
                                                         type="range"
                                                         name="x"
@@ -2324,9 +2468,14 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            cirParams.center[0],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    Y:
+                                                    <span> Y:</span>
                                                     <input
                                                         type="range"
                                                         name="y"
@@ -2336,9 +2485,14 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            cirParams.center[1],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    Z:
+                                                    <span> Z:</span>
                                                     <input
                                                         type="range"
                                                         name="z"
@@ -2348,11 +2502,16 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            cirParams.center[2],
+                                                        )}
+                                                    </output>
                                                 </label>
                                             </div>
                                             <div>
                                                 <label class="form-row">
-                                                    NX:
+                                                    <span> NX:</span>
                                                     <input
                                                         type="range"
                                                         name="nx"
@@ -2362,9 +2521,14 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            cirParams.normal[0],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    NY:
+                                                    <span> NY:</span>
                                                     <input
                                                         type="range"
                                                         name="ny"
@@ -2374,9 +2538,14 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            cirParams.normal[1],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    NZ:
+                                                    <span> NZ:</span>
                                                     <input
                                                         type="range"
                                                         name="nz"
@@ -2386,6 +2555,11 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            cirParams.normal[2],
+                                                        )}
+                                                    </output>
                                                 </label>
                                             </div>
                                         </div>
@@ -2445,10 +2619,15 @@
                                                     max="1"
                                                     step="0.001"
                                                 />
+                                                <output>
+                                                    {formatter.format(
+                                                        cirParams.radius,
+                                                    )}
+                                                </output>
                                             </label>
                                             <div>
                                                 <label class="form-row">
-                                                    X:
+                                                    <span> X:</span>
                                                     <input
                                                         type="range"
                                                         name="x"
@@ -2458,9 +2637,14 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            cirParams.center[0],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    Y:
+                                                    <span> Y:</span>
                                                     <input
                                                         type="range"
                                                         name="y"
@@ -2470,9 +2654,14 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            cirParams.center[1],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    Z:
+                                                    <span> Z:</span>
                                                     <input
                                                         type="range"
                                                         name="z"
@@ -2482,11 +2671,16 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            cirParams.center[2],
+                                                        )}
+                                                    </output>
                                                 </label>
                                             </div>
                                             <div>
                                                 <label class="form-row">
-                                                    NX:
+                                                    <span> NX:</span>
                                                     <input
                                                         type="range"
                                                         name="nx"
@@ -2498,7 +2692,7 @@
                                                     />
                                                 </label>
                                                 <label class="form-row">
-                                                    NY:
+                                                    <span> NY:</span>
                                                     <input
                                                         type="range"
                                                         name="ny"
@@ -2508,9 +2702,14 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            cirParams.normal[1],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    NZ:
+                                                    <span> NZ:</span>
                                                     <input
                                                         type="range"
                                                         name="nz"
@@ -2520,6 +2719,11 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            cirParams.normal[2],
+                                                        )}
+                                                    </output>
                                                 </label>
                                             </div>
                                         </div>
@@ -2547,7 +2751,7 @@
                                             <div>
                                                 Point
                                                 <label class="form-row">
-                                                    X:
+                                                    <span> X:</span>
                                                     <input
                                                         type="range"
                                                         name="px"
@@ -2557,9 +2761,14 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            lineParams.point[0],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    Y:
+                                                    <span> Y:</span>
                                                     <input
                                                         type="range"
                                                         name="py"
@@ -2569,9 +2778,14 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            lineParams.point[1],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    Z:
+                                                    <span> Z:</span>
                                                     <input
                                                         type="range"
                                                         name="pz"
@@ -2581,12 +2795,17 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            lineParams.point[2],
+                                                        )}
+                                                    </output>
                                                 </label>
                                             </div>
                                             <div>
                                                 Direction
                                                 <label class="form-row">
-                                                    X:
+                                                    <span> X:</span>
                                                     <input
                                                         type="range"
                                                         name="dx"
@@ -2596,9 +2815,15 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            lineParams
+                                                                .direction[0],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    Y:
+                                                    <span> Y:</span>
                                                     <input
                                                         type="range"
                                                         name="dy"
@@ -2608,9 +2833,15 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            lineParams
+                                                                .direction[1],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    Z:
+                                                    <span> Z:</span>
                                                     <input
                                                         type="range"
                                                         name="dz"
@@ -2620,6 +2851,12 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            lineParams
+                                                                .direction[2],
+                                                        )}
+                                                    </output>
                                                 </label>
                                             </div>
                                         </div>
@@ -2650,7 +2887,7 @@
                                             <div>
                                                 Point
                                                 <label class="form-row">
-                                                    X:
+                                                    <span> X:</span>
                                                     <input
                                                         type="range"
                                                         name="px"
@@ -2660,9 +2897,14 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            lineParams.point[0],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    Y:
+                                                    <span> Y:</span>
                                                     <input
                                                         type="range"
                                                         name="py"
@@ -2672,9 +2914,14 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            lineParams.point[1],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    Z:
+                                                    <span> Z:</span>
                                                     <input
                                                         type="range"
                                                         name="pz"
@@ -2684,12 +2931,17 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            lineParams.point[2],
+                                                        )}
+                                                    </output>
                                                 </label>
                                             </div>
                                             <div>
                                                 Direction
                                                 <label class="form-row">
-                                                    X:
+                                                    <span> X:</span>
                                                     <input
                                                         type="range"
                                                         name="dx"
@@ -2699,9 +2951,15 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            lineParams
+                                                                .direction[0],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    Y:
+                                                    <span> Y:</span>
                                                     <input
                                                         type="range"
                                                         name="dy"
@@ -2711,9 +2969,15 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            lineParams
+                                                                .direction[1],
+                                                        )}
+                                                    </output>
                                                 </label>
                                                 <label class="form-row">
-                                                    Z:
+                                                    <span> Z:</span>
                                                     <input
                                                         type="range"
                                                         name="dz"
@@ -2723,6 +2987,12 @@
                                                         max="1"
                                                         step="0.01"
                                                     />
+                                                    <output>
+                                                        {formatter.format(
+                                                            lineParams
+                                                                .direction[2],
+                                                        )}
+                                                    </output>
                                                 </label>
                                             </div>
                                         </div>
@@ -2746,7 +3016,7 @@
                                         }}
                                     >
                                         <label class="form-row">
-                                            X:
+                                            <span> X:</span>
                                             <input
                                                 type="range"
                                                 name="x"
@@ -2755,9 +3025,13 @@
                                                 max="1"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.x)}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Y:
+                                            <span> Y:</span>
                                             <input
                                                 type="range"
                                                 name="y"
@@ -2766,9 +3040,13 @@
                                                 max="1"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.y)}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Z:
+                                            <span> Z:</span>
                                             <input
                                                 type="range"
                                                 name="z"
@@ -2777,6 +3055,10 @@
                                                 max="1"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.z)}
+                                            </output>
                                         </label>
                                         <input
                                             type="hidden"
@@ -2784,7 +3066,7 @@
                                             value="1"
                                         />
                                         <label class="form-row">
-                                            negative:
+                                            <span> negative:</span>
                                             <input
                                                 type="checkbox"
                                                 name="sign"
@@ -2815,7 +3097,7 @@
                                         }}
                                     >
                                         <label class="form-row">
-                                            X:
+                                            <span> X:</span>
                                             <input
                                                 type="range"
                                                 name="x"
@@ -2824,9 +3106,13 @@
                                                 max="1"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.x)}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Y:
+                                            <span> Y:</span>
                                             <input
                                                 type="range"
                                                 name="y"
@@ -2835,9 +3121,13 @@
                                                 max="1"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.y)}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Z:
+                                            <span> Z:</span>
                                             <input
                                                 type="range"
                                                 name="z"
@@ -2846,6 +3136,10 @@
                                                 max="1"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.z)}
+                                            </output>
                                         </label>
                                         <input
                                             type="hidden"
@@ -2853,7 +3147,7 @@
                                             value="1"
                                         />
                                         <label class="form-row">
-                                            negative:
+                                            <span> negative:</span>
                                             <input
                                                 type="checkbox"
                                                 name="sign"
@@ -2889,7 +3183,7 @@
                                         }}
                                     >
                                         <label class="form-row">
-                                            Scale:
+                                            <span> Scale:</span>
                                             <input
                                                 type="range"
                                                 name="s"
@@ -2903,7 +3197,7 @@
                                             </output>
                                         </label>
                                         <label class="form-row">
-                                            X:
+                                            <span> X:</span>
                                             <input
                                                 type="range"
                                                 name="x"
@@ -2912,9 +3206,13 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.pivot[0])}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Y:
+                                            <span> Y:</span>
                                             <input
                                                 type="range"
                                                 name="y"
@@ -2923,9 +3221,13 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.pivot[1])}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Z:
+                                            <span> Z:</span>
                                             <input
                                                 type="range"
                                                 name="z"
@@ -2934,6 +3236,10 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.pivot[2])}
+                                            </output>
                                         </label>
                                         <input
                                             type="hidden"
@@ -2941,7 +3247,7 @@
                                             value="1"
                                         />
                                         <label class="form-row">
-                                            negative:
+                                            <span> negative:</span>
                                             <input
                                                 type="checkbox"
                                                 name="sign"
@@ -2980,7 +3286,7 @@
                                         }}
                                     >
                                         <label class="form-row">
-                                            Scale:
+                                            <span> Scale:</span>
                                             <input
                                                 type="range"
                                                 name="s"
@@ -2990,11 +3296,13 @@
                                                 step="0.01"
                                             />
                                             <output>
-                                                {formatter.format(p.scale)}
+                                                {formatter.format(
+                                                    p.scalep.scale,
+                                                )}
                                             </output>
                                         </label>
                                         <label class="form-row">
-                                            X:
+                                            <span> X:</span>
                                             <input
                                                 type="range"
                                                 name="x"
@@ -3003,9 +3311,13 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.pivot[0])}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Y:
+                                            <span> Y:</span>
                                             <input
                                                 type="range"
                                                 name="y"
@@ -3014,9 +3326,13 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.pivot[1])}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Z:
+                                            <span> Z:</span>
                                             <input
                                                 type="range"
                                                 name="z"
@@ -3025,6 +3341,10 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.pivot[2])}
+                                            </output>
                                         </label>
                                         <input
                                             type="hidden"
@@ -3032,7 +3352,7 @@
                                             value="1"
                                         />
                                         <label class="form-row">
-                                            negative:
+                                            <span> negative:</span>
                                             <input
                                                 type="checkbox"
                                                 name="sign"
@@ -3060,7 +3380,7 @@
                                         }}
                                     >
                                         <label class="form-row">
-                                            X:
+                                            <span> X:</span>
                                             <input
                                                 type="range"
                                                 name="x"
@@ -3069,9 +3389,13 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.x)}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Y:
+                                            <span> Y:</span>
                                             <input
                                                 type="range"
                                                 name="y"
@@ -3080,9 +3404,13 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.y)}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Z:
+                                            <span> Z:</span>
                                             <input
                                                 type="range"
                                                 name="z"
@@ -3091,6 +3419,10 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.z)}
+                                            </output>
                                         </label>
                                         <input
                                             type="hidden"
@@ -3098,7 +3430,7 @@
                                             value="1"
                                         />
                                         <label class="form-row">
-                                            negative:
+                                            <span> negative:</span>
                                             <input
                                                 type="checkbox"
                                                 name="sign"
@@ -3129,7 +3461,7 @@
                                         }}
                                     >
                                         <label class="form-row">
-                                            X:
+                                            <span> X:</span>
                                             <input
                                                 type="range"
                                                 name="x"
@@ -3138,9 +3470,13 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.x)}
+                                            </output>
                                         </label>
                                         <label class="form-row">
-                                            Y:
+                                            <span> Y:</span>
                                             <input
                                                 type="range"
                                                 name="y"
@@ -3149,6 +3485,10 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.y)}
+                                            </output>
                                         </label>
                                         <label class="form-row">
                                             Z:
@@ -3160,6 +3500,10 @@
                                                 max="2"
                                                 step="0.01"
                                             />
+
+                                            <output>
+                                                {formatter.format(p.z)}
+                                            </output>
                                         </label>
                                         <input
                                             type="hidden"
@@ -3167,7 +3511,7 @@
                                             value="1"
                                         />
                                         <label class="form-row">
-                                            negative:
+                                            <span> negative:</span>
                                             <input
                                                 type="checkbox"
                                                 name="sign"
@@ -3236,7 +3580,7 @@
                         >
                             <summary>Plane-like components</summary>
                             <div
-                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1em"
                             >
                                 <fieldset>
                                     <legend>Grade 1</legend>
@@ -3258,7 +3602,7 @@
                         >
                             <summary>Sphere-like components</summary>
                             <div
-                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1em"
                             >
                                 <fieldset>
                                     <legend>Grade 1</legend>
@@ -3443,7 +3787,7 @@
                         >
                             <summary>Line-like components</summary>
                             <div
-                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1em"
                             >
                                 <fieldset>
                                     <legend>Grade 2</legend>
@@ -3465,7 +3809,7 @@
                         >
                             <summary>Circle-like components</summary>
                             <div
-                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1em"
                             >
                                 <fieldset>
                                     <legend>Grade 2</legend>
@@ -3487,7 +3831,7 @@
                         >
                             <summary>Point-like components</summary>
                             <div
-                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1em"
                             >
                                 <fieldset>
                                     <legend>Grade 3</legend>
@@ -3505,7 +3849,7 @@
                         >
                             <summary>Point Pair-like components</summary>
                             <div
-                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1em"
                             >
                                 <fieldset>
                                     <legend>Grade 2</legend>
@@ -3528,7 +3872,7 @@
                         >
                             <summary>Antipodality-like components</summary>
                             <div
-                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1em"
                             >
                                 <fieldset>
                                     <legend>Grade 4</legend>
@@ -3717,7 +4061,7 @@
                         >
                             <summary>Identity-like components</summary>
                             <div
-                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1ex"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1em"
                             >
                                 <fieldset>
                                     <legend>Grade 0</legend>
@@ -4060,6 +4404,19 @@
         padding: 1ex;
     }
 
+    .combo-input {
+        background-color: #333a;
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+    }
+    .combo-input label,
+    .combo-input input {
+        flex-grow: 1;
+        height: 2em;
+        box-sizing: border-box;
+    }
+
     button {
         border: none;
         background-color: #222;
@@ -4290,5 +4647,13 @@
     input[type="color"]::-webkit-color-swatch-wrapper {
         padding: 0;
         border: 0;
+    }
+    .form-row output {
+        order: 1;
+        width: 6em;
+        text-align: right;
+    }
+    .form-row span {
+        order: -2;
     }
 </style>

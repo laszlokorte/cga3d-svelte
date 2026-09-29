@@ -125,6 +125,7 @@
         showIntersections,
         showObject,
         showGizmos = true,
+        showTransforms = true,
     } = $props();
 
     const vecCol = $derived(new THREE.Color(vectorColor));
@@ -244,7 +245,7 @@
 
     const vfcount = nx * nz;
 
-    const vfgeometry = ArrowGeometry(0.01, 2, 8, 32);
+    const vfgeometry = ArrowGeometry(0.01, 2, 8, 2 * 32);
     const vfgeometry2 = ArrowGeometry(0.01, 4, 8, 4 * 32);
     const vfmaterial = new THREE.ShaderMaterial({
         uniforms: {
@@ -542,7 +543,7 @@
         <Gizmo placement="top-right" />
     </OrbitControls>
     <T.Group bind:ref={group}>
-        {#each [...elements, ...(showMotor && motor ? [{ el: motor, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }]), ...(showIntersections && wedged ? [{ el: wedged, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
+        {#each [...(showTransforms ? elements : []), ...(showMotor && motor ? [{ el: motor, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }]), ...(showIntersections && wedged ? [{ el: wedged, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
             {#if cga.isSphereAtInfinity(el)}
                 <T.Mesh renderOrder={-5} scale={1}>
                     <T.SphereGeometry args={[1, 16, 8]} />
@@ -822,7 +823,7 @@
 
 <T.DirectionalLight position={[3, 10, 5]} intensity={2} />
 
-{#each [...elements, ...(showMotor && motor ? [{ el: motor, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }]), ...(showIntersections && wedged ? [{ el: wedged, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
+{#each [...(showTransforms ? elements : []), ...(showMotor && motor ? [{ el: motor, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }]), ...(showIntersections && wedged ? [{ el: wedged, color: wedgeColor, active: true, passive: true }] : [{ el: cga.scalar(1), color: wedgeColor, active: true, passive: true }])] as { el, color, active, passive }, eli (eli)}
     {#if cga.isSpherical(el)}
         {@const sphCoords = cga.sphereParameters(el)}
 
@@ -1934,6 +1935,21 @@
                 position={p.pivot}
                 onobjectChange={(evt) => {
                     const object = evt.target.object;
+                    object.position.x = THREE.MathUtils.clamp(
+                        object.position.x,
+                        -2,
+                        2,
+                    );
+                    object.position.y = THREE.MathUtils.clamp(
+                        object.position.y,
+                        -1,
+                        1,
+                    );
+                    object.position.z = THREE.MathUtils.clamp(
+                        object.position.z,
+                        -2,
+                        2,
+                    );
                     const np = cga.scaling(
                         object.position.x,
                         object.position.y,
@@ -1973,6 +1989,21 @@
                 size={active && !passive && showGizmos ? 0.4 : 0}
                 onobjectChange={(evt) => {
                     const object = evt.target.object;
+                    object.position.x = THREE.MathUtils.clamp(
+                        object.position.x,
+                        -2,
+                        2,
+                    );
+                    object.position.y = THREE.MathUtils.clamp(
+                        object.position.y,
+                        -1,
+                        1,
+                    );
+                    object.position.z = THREE.MathUtils.clamp(
+                        object.position.z,
+                        -2,
+                        2,
+                    );
                     const np = cga.scaling(
                         object.position.x,
                         object.position.y,
@@ -2017,6 +2048,21 @@
                 position={[p.x, p.y, p.z]}
                 onobjectChange={(evt) => {
                     const object = evt.target.object;
+                    object.position.x = THREE.MathUtils.clamp(
+                        object.position.x,
+                        -2,
+                        2,
+                    );
+                    object.position.y = THREE.MathUtils.clamp(
+                        object.position.y,
+                        -1,
+                        1,
+                    );
+                    object.position.z = THREE.MathUtils.clamp(
+                        object.position.z,
+                        -2,
+                        2,
+                    );
                     const np = cga.translation(
                         object.position.x,
                         object.position.y,
@@ -2066,6 +2112,21 @@
                 position={[p.x, p.y, p.z]}
                 onobjectChange={(evt) => {
                     const object = evt.target.object;
+                    object.position.x = THREE.MathUtils.clamp(
+                        object.position.x,
+                        -2,
+                        2,
+                    );
+                    object.position.y = THREE.MathUtils.clamp(
+                        object.position.y,
+                        -1,
+                        1,
+                    );
+                    object.position.z = THREE.MathUtils.clamp(
+                        object.position.z,
+                        -2,
+                        2,
+                    );
                     const np = cga.translation(
                         object.position.x,
                         object.position.y,
