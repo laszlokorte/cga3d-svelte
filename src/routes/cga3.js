@@ -600,10 +600,11 @@ export function isPointPair(a, eps = 1e-5) {
   if (!isGrade(a, 2, eps)) return false;
   if (isEuclideanPoint(a, eps)) return false;
   if (isEuclideanPoint(dual(a), eps)) return false;
+  if (!isZero(wedge(a, a), eps)) return false;
 
   const points = pointPairCoords(a, eps);
 
-  if (!points || points.length == 3) return false;
+  if (!points || points.length != 2) return false;
 
   return (
     Math.hypot(
