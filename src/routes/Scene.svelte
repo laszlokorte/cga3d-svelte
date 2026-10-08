@@ -14,6 +14,7 @@
     import { generateGP } from "./cga_glsl";
     import { resolve } from "$app/paths";
     import { ArrowGeometry } from "./arrow";
+    import { onMount } from "svelte";
 
     const { renderer, canvas } = useThrelte();
 
@@ -126,6 +127,7 @@
         showObject,
         showGizmos = true,
         showTransforms = true,
+        viewportRect,
     } = $props();
 
     const vecCol = $derived(new THREE.Color(vectorColor));
@@ -199,20 +201,6 @@
             group.quaternion.copy(camera.quaternion).invert();
         }
     });
-
-    export function updateViewport(c) {
-        const rect = canvas.getBoundingClientRect();
-        camera.setViewOffset(
-            rect.width,
-            rect.height,
-            (rect.left - c.left) / 2,
-            (rect.bottom - c.bottom) / 2,
-            rect.width,
-            rect.height,
-        );
-
-        camera.updateProjectionMatrix();
-    }
 
     const points = [
         new THREE.Vector3(-cubeW, cubeH, -cubeD),
@@ -529,7 +517,19 @@
     makeDefault
     position={[5, 5, 5]}
     oncreate={(ref) => {
+        const rect = canvas.getBoundingClientRect();
         ref.lookAt(0, 0, 0);
+
+        if (viewportRect) {
+            ref.setViewOffset(
+                rect.width,
+                rect.height,
+                (rect.left - viewportRect.left) / 2,
+                (rect.bottom - viewportRect.bottom) / 2,
+                rect.width,
+                rect.height,
+            );
+        }
     }}
 >
     <OrbitControls

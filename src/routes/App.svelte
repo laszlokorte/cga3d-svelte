@@ -40,18 +40,15 @@
         antipodallike: false,
     });
 
-    $effect(() => {
-        if (scene) {
-            const rect = viewport.getBoundingClientRect();
-            scene.updateViewport(rect);
-        }
-    });
-
+    let viewportRect = $state();
     function updateCamera() {
-        if (scene) {
-            const rect = viewport.getBoundingClientRect();
-            scene.updateViewport(rect);
-        }
+        const rect = viewport.getBoundingClientRect();
+        viewportRect = {
+            left: rect.left,
+            top: rect.top,
+            bottom: rect.bottom,
+            right: rect.right,
+        };
     }
 
     onMount(() => {
@@ -65,6 +62,7 @@
             observer.disconnect();
         };
     });
+
     let dragging = $state(null);
     let over = $state(null);
     let wedgeColor = $state("magenta");
@@ -521,20 +519,21 @@
                     color: "royalblue",
                     active: true,
                     el: [
-                        0, 0, 0, 0, 0, 0.8164965809277261, 0, 0, 0,
-                        1.3969803816514844e-18, 0, 0, 0.4082482904638631, 0, 0,
-                        0, 0, 1.3969803816514844e-18, 0, 0, -0.4082482904638631,
-                        0, 0, 0, -1.3969803816514844e-18, 0, 0, 0, 0, 0, 0, 0,
+                        -1.9259299443872363e-34, 0, 0, 0, 0, 0.492365963917331,
+                        0, 0, 0, 8.424108664409951e-19, 0, 0,
+                        0.8616404368553293, 0, 0, 0, 0, 8.424108664409951e-19,
+                        0, 0, -0.12309149097933275, 0, 0, 0,
+                        -1.6848217328819904e-18, 0, 0, 0, 0, 0, 0, 0,
                     ],
                     weight: 1,
                 },
                 {
-                    color: "tomato",
+                    color: "limegreen",
                     active: true,
                     el: [
-                        0, 0, 0, 0, 0, -0.6147353031233183, 0, 0, 0, 0, 0, 0,
-                        0.763808614130723, 0, 0, 0, 0, 0, 0, 0,
-                        -0.19671529699946183, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, -0.492365963917331, 0, 0, 0, 0, 0, 0,
+                        0.8616404368553293, 0, 0, 0, 0, 0, 0, 0,
+                        -0.12309149097933275, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     ],
                 },
             ],
@@ -591,6 +590,7 @@
         <svelte:boundary>
             <Canvas dpr={Math.max(window ? window.devicePixelRatio : 1, 2)}>
                 <Scene
+                    {viewportRect}
                     {wedgeColor}
                     {vectorColor}
                     {showGizmos}
@@ -4234,7 +4234,6 @@
                             navigator.clipboard.writeText(
                                 t.previousElementSibling.value,
                             );
-                            console.log(t.previousElementSibling.value);
                             t.classList.add("copied");
                             setTimeout(() => {
                                 t.classList.remove("copied");

@@ -12,7 +12,8 @@ export function ArrowGeometry(
   const tipOffsets = [];
   const indices = [];
 
-  const shaftStart = -length / 2;
+  const shaftLength = length - radius;
+  const shaftStart = -length / 2 + radius;
   const shaftEnd = length / 2;
 
   const tailSegments = Math.max(2, Math.floor(heightSegments * 0.2));
@@ -45,7 +46,7 @@ export function ArrowGeometry(
     const t = i / shaftSegments;
 
     rings.push({
-      y: shaftStart + t * length,
+      y: shaftStart + t * shaftLength,
       r: radius,
       nr: 1,
       ny: 0,
