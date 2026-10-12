@@ -10,6 +10,7 @@ export function ArrowGeometry(
   const positions = [];
   const normals = [];
   const tipOffsets = [];
+  const motorOffsets = [];
   const indices = [];
 
   const shaftLength = length - radius;
@@ -38,6 +39,7 @@ export function ArrowGeometry(
       nr: Math.cos(angle),
       ny: Math.sin(angle),
       tipOffset: 0,
+      motorOffset: i,
     });
   }
 
@@ -51,6 +53,7 @@ export function ArrowGeometry(
       nr: 1,
       ny: 0,
       tipOffset: 0,
+      motorOffset: tailSegments + i,
     });
   }
 
@@ -83,6 +86,7 @@ export function ArrowGeometry(
 
       // Physical distance from the start of the tip.
       tipOffset: shoulderLength * t,
+      motorOffset: heightSegments - 1,
     });
   }
 
@@ -106,8 +110,8 @@ export function ArrowGeometry(
       r,
       nr: dydt / n,
       ny: -drdt / n,
-
       tipOffset: shoulderLength + coneLength * t,
+      motorOffset: heightSegments - 1,
     });
   }
 
@@ -125,6 +129,7 @@ export function ArrowGeometry(
       normals.push(ring.nr * c, ring.ny, ring.nr * s);
 
       tipOffsets.push(ring.tipOffset);
+      motorOffsets.push(ring.motorOffset);
     }
   }
 
@@ -150,6 +155,8 @@ export function ArrowGeometry(
 
   tipOffsets.push(0);
 
+  motorOffsets.push(heightSegments);
+
   for (let j = 0; j < radialSegments; j++) {
     indices.push(tailCenter, j + 1, j);
   }
@@ -162,6 +169,7 @@ export function ArrowGeometry(
   normals.push(0, 1, 0);
 
   tipOffsets.push(tipLength);
+  motorOffsets.push(shaftSegments + 1);
 
   const lastRing = (rings.length - 1) * stride;
 
@@ -181,6 +189,10 @@ export function ArrowGeometry(
   geometry.setAttribute(
     "aTipOffset",
     new THREE.Float32BufferAttribute(tipOffsets, 1),
+  );
+  geometry.setAttribute(
+    "aMotorOffset",
+    new THREE.Int32BufferAttribute(motorOffsets, 1),
   );
 
   geometry.setIndex(indices);

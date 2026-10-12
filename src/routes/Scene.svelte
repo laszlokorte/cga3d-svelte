@@ -233,14 +233,35 @@
 
     const vfcount = nx * nz;
 
-    const vfgeometry = ArrowGeometry(0.01, 2, 8, 2 * 32);
-    const vfgeometry2 = ArrowGeometry(0.01, 4, 8, 4 * 32);
+    const motorTextureData = new Float32Array(32 * 32 * 4 * 2);
+
+    const motorTexture = new THREE.DataTexture(
+        motorTextureData,
+        32 * 32,
+        2,
+        THREE.RGBAFormat,
+        THREE.FloatType,
+    );
+
+    motorTexture.magFilter = THREE.NearestFilter;
+    motorTexture.minFilter = THREE.NearestFilter;
+    motorTexture.generateMipmaps = false;
+    motorTexture.needsUpdate = true;
+
+    // After filling or changing motorTextureData:
+    motorTexture.needsUpdate = true;
+
+    const vfgeometry = ArrowGeometry(0.01, 2, 8, 32 * 4);
+    const vfgeometry2 = ArrowGeometry(0.01, 4, 8, 32 * 4);
     const vfmaterial = new THREE.ShaderMaterial({
         uniforms: {
             uColor: { value: [1.0, 0.8, 0.1, 1.0] },
             uTime: { value: 0 },
             uSpeed: { value: 0.3 },
             uMotor: { value: cga.scalar(0) },
+            uMotors: {
+                value: motorTexture,
+            },
             uOpacity: { value: 0.5 },
             uTotalHeight: { value: 2 },
         },
@@ -251,11 +272,13 @@
             attribute vec4 aPosition;
 
             uniform float uMotor[32];
+            uniform sampler2D uMotors;
             uniform float uTime;
             uniform float uSpeed;
             uniform float uTotalHeight;
 
             attribute float aTipOffset;
+            attribute int aMotorOffset;
 
             varying float skip;
 
@@ -281,6 +304,25 @@
                 );
             }
 
+            void getMotor(int motorIndex, out MV mv) {
+                int baseIndex = motorIndex * 8;
+
+                for (int i = 0; i < 8; i++) {
+                    int index = baseIndex + i;
+
+                    vec4 v = texelFetch(
+                        uMotors,
+                        ivec2(index % 1024, index / 1024),
+                        0
+                    );
+
+                    mv.c[i * 4 + 0] = v.r;
+                    mv.c[i * 4 + 1] = v.g;
+                    mv.c[i * 4 + 2] = v.b;
+                    mv.c[i * 4 + 3] = v.a;
+                }
+            }
+
             void main() {
                 MV motor;
 
@@ -295,8 +337,10 @@
 
                 float h = 0.0001;
 
-                MV M0 = motorExp( scale(angle, motor) );
-                MV M1 = motorExp( scale(angle + h, motor) );
+                MV M0; // = motorExp( scale(angle, motor) );
+                MV M1; // = motorExp( scale(angle + h, motor) );
+                getMotor(2 * (aMotorOffset), M0);
+                getMotor(2 * (aMotorOffset) + 1, M1);
                 MV P = point(aPosition.xyz);
                 MV X0 = sandwich(P, M0);
                 MV X1 = sandwich(P, M1);
@@ -405,7 +449,7 @@
         new THREE.InstancedBufferAttribute(positions, 4),
     );
 
-    vfmaterial.side = THREE.FrontSide;
+    vfmaterial.side = THREE.DoubleSide;
     vfmaterial.clippingPlanes = planesOuter;
     vfmaterial.clipping = true;
     vfmaterial.depthTest = false;
@@ -491,8 +535,34 @@
                     node.userData.shader.uniforms.uMotor.value = motor;
                 }
             });
-
+            const height = 32 * 4;
+            // motorExp( scale(angle, motor) )
+            for (let i = 0; i < height; i++) {
+                const timeOff = ((elapsedTime * 0.3) % 2) - 1;
+                motorTextureData.set(
+                    cga.motorExp(
+                        cga.scale(
+                            ((i - height / 2) / height + timeOff) * Math.PI,
+                            motor,
+                        ),
+                    ),
+                    i * 2 * 32,
+                );
+                motorTextureData.set(
+                    cga.motorExp(
+                        cga.scale(
+                            ((i - height / 2) / height + timeOff) * Math.PI +
+                                0.1,
+                            motor,
+                        ),
+                    ),
+                    (i * 2 + 1) * 32,
+                );
+            }
+            motorTexture.needsUpdate = true;
             vfmaterial.uniforms.uMotor.value = motor;
+            vfmaterial.uniforms.uMotors.value = motorTexture;
+            vfmaterial2.uniforms.uMotors.value = motorTexture;
             vfmaterial.uniforms.uColor.value = vecCol.toArray();
             vfmaterial.uniforms.uTime.value = elapsedTime;
             vfmaterial2.uniforms.uMotor.value = motor;
@@ -763,13 +833,13 @@
                     </T.Mesh>
                 </T.Group>
             {:else if cga.isPointPair(el)}
-
+                <!-- -->
             {:else if cga.isPointPair(cga.dual(el))}
-
+                <!-- -->
             {:else if cga.isEuclideanPoint(el)}
-
+                <!-- -->
             {:else if cga.isEuclideanPoint(cga.dual(el))}
-
+                <!-- -->
             {/if}
         {/each}
     </T.Group>

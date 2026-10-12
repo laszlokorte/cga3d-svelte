@@ -1063,6 +1063,37 @@ export function motorLog(M, eps = 1e-5) {
 
   return scale(2 ** k, result);
 }
+export function motorExp(B) {
+  const n = norm2(B);
+
+  if (n < 1e-6) {
+    return add(scalar(1.0), B);
+  }
+
+  // Choose s = 2^k such that |B / 2^s| is small.
+  const s = Math.max(1, Math.ceil(Math.log2(n)));
+
+  const invS = Math.pow(2, -s);
+  const X = scale(invS, B);
+
+  // Taylor series
+  let result = scalar(1.0);
+  let term = scalar(1.0);
+
+  for (let k = 1; k <= 12; k++) {
+    term = scale(1.0 / k, gp(term, X));
+    result = add(result, term);
+  }
+
+  // exp(B) = exp(B / 2^s)^(2^s)
+  const squarings = Math.trunc(s);
+
+  for (let i = 0; i < squarings; i++) {
+    result = gp(result, result);
+  }
+
+  return result;
+}
 
 export function rotorLog(M) {
   const s = M[0];
