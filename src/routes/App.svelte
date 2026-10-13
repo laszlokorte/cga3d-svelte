@@ -7,12 +7,12 @@
     let viewport = $state();
     let scene = $state();
     let freeColors = $state([
-        "tomato",
-        "limegreen",
-        "royalblue",
-        "gold",
-        "teal",
-        "limegreen",
+        "#FF6347", // tomato
+        "#32CD32", // limegreen
+        "#4169E1", // royalblue
+        "#FFD700", // gold
+        "#008080", // teal
+        "#32CD32", // yellowgreen
     ]);
     const baseUrl = window.location.origin + window.location.pathname;
 
@@ -40,17 +40,16 @@
         antipodallike: false,
     });
 
-
-    let viewportSize = $state(null)
+    let viewportSize = $state(null);
 
     function updateCamera() {
-            const rect = viewport.getBoundingClientRect();
-            viewportSize  = {
-              left: rect.left,
-              right: rect.right,
-              top: rect.top,
-              bottom: rect.bottom,
-            };
+        const rect = viewport.getBoundingClientRect();
+        viewportSize = {
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            bottom: rect.bottom,
+        };
     }
 
     onMount(() => {
@@ -67,8 +66,8 @@
 
     let dragging = $state(null);
     let over = $state(null);
-    let wedgeColor = $state("magenta");
-    let vectorColor = $state("gold");
+    let wedgeColor = $state("#FF00FF");
+    let vectorColor = $state("#FFD700");
     let elements = $state(decodedState?.elements ?? []);
     let showVectorField = $state(decodedState?.showVectorField ?? false);
     let playVectorField = $state(true);
@@ -131,7 +130,7 @@
             showVectorField: true,
             elements: [
                 {
-                    color: "royalblue",
+                    color: "#4169E1",
                     active: true,
                     el: [
                         0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -139,7 +138,7 @@
                     ],
                 },
                 {
-                    color: "limegreen",
+                    color: "#32CD32",
                     active: true,
                     el: [
                         0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -154,7 +153,7 @@
             elements: [
                 {
                     active: true,
-                    color: "limegreen",
+                    color: "#32CD32",
                     el: [
                         0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -168,7 +167,7 @@
             showVectorField: true,
             elements: [
                 {
-                    color: "tomato",
+                    color: "#FF6347",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -176,7 +175,7 @@
                     ],
                 },
                 {
-                    color: "limegreen",
+                    color: "#32CD32",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, 0, 0, 0, -1.3450000000000002, 0, 0, 0, 0,
@@ -191,7 +190,7 @@
             showVectorField: true,
             elements: [
                 {
-                    color: "royalblue",
+                    color: "#4169E1",
                     active: true,
                     el: [
                         0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -199,7 +198,7 @@
                     ],
                 },
                 {
-                    color: "limegreen",
+                    color: "#32CD32",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -213,7 +212,7 @@
             showVectorField: true,
             elements: [
                 {
-                    color: "tomato",
+                    color: "#FF6347",
                     active: true,
                     el: [
                         0, -2, 0, 0, 0, 0, 0, 0, -0.375, 0, 0, 0, 0, 0, 0, 0,
@@ -221,7 +220,7 @@
                     ],
                 },
                 {
-                    color: "limegreen",
+                    color: "#32CD32",
                     active: true,
                     el: [
                         0, -2, 0, 0, 0, 0, 0, 0, 0.375, 0, 0, 0, 0, 0, 0, 0,
@@ -235,7 +234,7 @@
             showVectorField: true,
             elements: [
                 {
-                    color: "tomato",
+                    color: "#FF6347",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -243,7 +242,7 @@
                     ],
                 },
                 {
-                    color: "limegreen",
+                    color: "#32CD32",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, 0, 0, 0, -0.73805, 0, 0, 0, 0, 0, 0, 0,
@@ -251,7 +250,7 @@
                     ],
                 },
                 {
-                    color: "royalblue",
+                    color: "#4169E1",
                     active: true,
                     el: [
                         0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -259,7 +258,7 @@
                     ],
                 },
                 {
-                    color: "gold",
+                    color: "#FFD700",
                     active: true,
                     el: [
                         0, 0.8626979700976577, 0, 0, 0.50571949971242, 0, 0, 0,
@@ -274,7 +273,7 @@
             showVectorField: true,
             elements: [
                 {
-                    color: "tomato",
+                    color: "#FF6347",
                     active: true,
                     el: [
                         0, 0, 1, 0, 0, 0, 0, 0, 0.28, 0, 0, 0, 0, 0, 0, 0, 0.28,
@@ -282,7 +281,7 @@
                     ],
                 },
                 {
-                    color: "limegreen",
+                    color: "#32CD32",
                     active: true,
                     el: [
                         0, 0, 1, 0, 1.9955449921803594e-16, 0, 0, 0,
@@ -292,7 +291,7 @@
                     ],
                 },
                 {
-                    color: "royalblue",
+                    color: "#4169E1",
                     active: true,
                     el: [
                         0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -300,7 +299,7 @@
                     ],
                 },
                 {
-                    color: "gold",
+                    color: "#FFD700",
                     active: true,
                     el: [
                         0, 0.8645071866841927, 0, 0, 0.5026204573745306, 0, 0,
@@ -317,7 +316,7 @@
             showVectorField: true,
             elements: [
                 {
-                    color: "limegreen",
+                    color: "#32CD32",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -325,7 +324,7 @@
                     ],
                 },
                 {
-                    color: "tomato",
+                    color: "#FF6347",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -342,14 +341,14 @@
             elements: [
                 {
                     active: true,
-                    color: "royalblue",
+                    color: "#4169E1",
                     el: [
                         0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     ],
                 },
                 {
-                    color: "limegreen",
+                    color: "#32CD32",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
@@ -366,7 +365,7 @@
             combination: "sum",
             elements: [
                 {
-                    color: "limegreen",
+                    color: "#32CD32",
                     active: true,
                     el: [
                         0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 0,
@@ -375,7 +374,7 @@
                     weight: 1,
                 },
                 {
-                    color: "tomato",
+                    color: "#FF6347",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
@@ -393,7 +392,7 @@
             combination: "sum",
             elements: [
                 {
-                    color: "tomato",
+                    color: "#FF6347",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.3692855091958195, 0, 0,
@@ -403,7 +402,7 @@
                     weight: 0.3,
                 },
                 {
-                    color: "limegreen",
+                    color: "#32CD32",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7184605000000001,
@@ -420,7 +419,7 @@
             showVectorField: true,
             elements: [
                 {
-                    color: "tomato",
+                    color: "#FF6347",
                     active: true,
                     el: [
                         0, -0.52, 0, 0, -1.15, 0, 0, 0, 0.2964499999999999, 0,
@@ -429,7 +428,7 @@
                     ],
                 },
                 {
-                    color: "limegreen",
+                    color: "#32CD32",
                     active: true,
                     el: [
                         0, -0.34, -0.1, 0, 0.47, 0, 0, 0, -0.32675, 0, 0, 0, 0,
@@ -438,7 +437,7 @@
                     ],
                 },
                 {
-                    color: "royalblue",
+                    color: "#4169E1",
                     active: true,
                     el: [
                         0, -0.56, 0.94, 0, 0, 0, 0, 0, 0.09860000000000002, 0,
@@ -456,7 +455,7 @@
             showVectorField: true,
             elements: [
                 {
-                    color: "tomato",
+                    color: "#FF6347",
                     active: true,
                     el: [
                         0, -0.5732510703875558, 0.39191452157346807, 0,
@@ -466,7 +465,7 @@
                     ],
                 },
                 {
-                    color: "limegreen",
+                    color: "#32CD32",
                     active: true,
                     el: [
                         0, 0.5974854568139863, -0.1888260324525981, 0,
@@ -476,7 +475,7 @@
                     ],
                 },
                 {
-                    color: "royalblue",
+                    color: "#4169E1",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
@@ -493,7 +492,7 @@
             showVectorField: true,
             elements: [
                 {
-                    color: "tomato",
+                    color: "#FF6347",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0.9721087789297673, 0,
@@ -503,7 +502,7 @@
                     ],
                 },
                 {
-                    color: "limegreen",
+                    color: "#32CD32",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, -0.37870814306058953,
@@ -519,7 +518,7 @@
             name: "Circle Sum",
             elements: [
                 {
-                    color: "royalblue",
+                    color: "#4169E1",
                     active: true,
                     el: [
                         -1.9259299443872363e-34, 0, 0, 0, 0, 0.492365963917331,
@@ -531,7 +530,7 @@
                     weight: 1,
                 },
                 {
-                    color: "limegreen",
+                    color: "#32CD32",
                     active: true,
                     el: [
                         0, 0, 0, 0, 0, -0.492365963917331, 0, 0, 0, 0, 0, 0,
@@ -591,7 +590,7 @@
 <div class={{ globalDrag: dragging !== null, app: true }}>
     <div class="screen">
         <svelte:boundary>
-            <Canvas dpr={1}>
+            <Canvas dpr={1.5}>
                 <Scene
                     viewPort={viewportSize}
                     {playVectorField}
@@ -642,11 +641,11 @@
 
                     <input type="color" bind:value={vectorColor} />
                     <label
-                                           ><input
-                                               type="checkbox"
-                                               bind:checked={playVectorField}
-                                           /> Play</label
-                                       >
+                        ><input
+                            type="checkbox"
+                            bind:checked={playVectorField}
+                        /> Play</label
+                    >
                 </div>
 
                 <div class="combo-input">
@@ -4284,38 +4283,45 @@
         box-sizing: border-box;
         gap: 1em;
     }
-    @media(max-width: 60em) {
+    @media (max-width: 60em) {
         .app {
+            user-select: none;
             padding: 1ex;
             gap: 1ex;
-               grid-template-columns:
-                   [menu-start viewport-start toolbar-start viewbar-start] 1fr [viewbar-end menu-end  viewport-end toolbar-end];
-               grid-template-rows: [viewport-start] 1em [viewbar-start viewbar-end] 60vh [menu-start] max-content [menu-end toolbar-start] max-content [viewport-end toolbar-end];
-           }
-           .screen {
-               position: fixed;
-               inset: 0;
-               width: 100%;
-               height: 100%;
-           }
-            .viewport {
-                          position: fixed;
-                          inset: 0;
-                          width: 100%;
-                          height: 60vh;
-                      }
-                      .viewbar {
-                          align-self: end;
-                          justify-self: stretch;
-                          width: 100%;
-                          box-sizing: border-box;
-                      }
-                      .toolbar {
-                          flex-wrap: wrap;
-                      }
-                      .block-list {
-                          max-height: none;
-                      }
+            grid-template-columns: [menu-start viewport-start toolbar-start viewbar-start] 1fr [viewbar-end menu-end viewport-end toolbar-end];
+            grid-template-rows: [viewport-start] 1em [viewbar-start viewbar-end] 75vh [menu-start] max-content [menu-end toolbar-start] max-content [viewport-end toolbar-end];
+            pointer-events: none;
+        }
+        .screen {
+            pointer-events: all;
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .viewport {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 60vh;
+        }
+        .viewbar {
+            pointer-events: all;
+            align-self: end;
+            justify-self: stretch;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .toolbar {
+            flex-wrap: wrap;
+            pointer-events: all;
+        }
+        .block-list {
+            max-height: none;
+        }
+        .menu {
+            pointer-events: all;
+        }
     }
     .viewbar {
         grid-area: viewbar;
@@ -4422,6 +4428,8 @@
         height: 3.5ex;
         margin: 0;
         border: none;
+        -webkit-border-radius: 0;
+        border-radius: 0;
     }
     ::-moz-color-swatch {
         border: none;
@@ -4691,9 +4699,7 @@
     .hidden {
         display: none;
     }
-    .disableHint {
-        opacity: 0.5;
-    }
+
     .globalDrag input {
         pointer-events: none;
     }
