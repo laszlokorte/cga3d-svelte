@@ -40,15 +40,17 @@
         antipodallike: false,
     });
 
-    let viewportRect = $state();
+
+    let viewportSize = $state(null)
+
     function updateCamera() {
-        const rect = viewport.getBoundingClientRect();
-        viewportRect = {
-            left: rect.left,
-            top: rect.top,
-            bottom: rect.bottom,
-            right: rect.right,
-        };
+            const rect = viewport.getBoundingClientRect();
+            viewportSize  = {
+              left: rect.left,
+              right: rect.right,
+              top: rect.top,
+              bottom: rect.bottom,
+            };
     }
 
     onMount(() => {
@@ -69,6 +71,7 @@
     let vectorColor = $state("gold");
     let elements = $state(decodedState?.elements ?? []);
     let showVectorField = $state(decodedState?.showVectorField ?? false);
+    let playVectorField = $state(true);
     let showIntersections = $state(true);
     let showGizmos = $state(true);
     let showTransforms = $state(true);
@@ -588,9 +591,10 @@
 <div class={{ globalDrag: dragging !== null, app: true }}>
     <div class="screen">
         <svelte:boundary>
-            <Canvas dpr={Math.max(window ? window.devicePixelRatio : 1, 2)}>
+            <Canvas dpr={1}>
                 <Scene
-                    {viewportRect}
+                    viewPort={viewportSize}
+                    {playVectorField}
                     {wedgeColor}
                     {vectorColor}
                     {showGizmos}
@@ -637,6 +641,12 @@
                     >
 
                     <input type="color" bind:value={vectorColor} />
+                    <label
+                                           ><input
+                                               type="checkbox"
+                                               bind:checked={playVectorField}
+                                           /> Play</label
+                                       >
                 </div>
 
                 <div class="combo-input">
@@ -4273,6 +4283,39 @@
         height: 100%;
         box-sizing: border-box;
         gap: 1em;
+    }
+    @media(max-width: 60em) {
+        .app {
+            padding: 1ex;
+            gap: 1ex;
+               grid-template-columns:
+                   [menu-start viewport-start toolbar-start viewbar-start] 1fr [viewbar-end menu-end  viewport-end toolbar-end];
+               grid-template-rows: [viewport-start] 1em [viewbar-start viewbar-end] 60vh [menu-start] max-content [menu-end toolbar-start] max-content [viewport-end toolbar-end];
+           }
+           .screen {
+               position: fixed;
+               inset: 0;
+               width: 100%;
+               height: 100%;
+           }
+            .viewport {
+                          position: fixed;
+                          inset: 0;
+                          width: 100%;
+                          height: 60vh;
+                      }
+                      .viewbar {
+                          align-self: end;
+                          justify-self: stretch;
+                          width: 100%;
+                          box-sizing: border-box;
+                      }
+                      .toolbar {
+                          flex-wrap: wrap;
+                      }
+                      .block-list {
+                          max-height: none;
+                      }
     }
     .viewbar {
         grid-area: viewbar;

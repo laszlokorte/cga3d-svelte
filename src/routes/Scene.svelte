@@ -18,6 +18,7 @@
 
     const { renderer, canvas } = useThrelte();
 
+
     const { a, b } = await useGltf(resolve("/nike.glb")).then((m) => {
         const a = m.nodes["root"].clone(true);
         const b = m.nodes["root"].clone(true);
@@ -63,6 +64,7 @@
 
                     // Replace a chunk in the vertex shader
                     shader.vertexShader = shader.vertexShader
+
                         .replace(
                             "#include <begin_vertex>",
                             /* glsl */ `
@@ -76,8 +78,9 @@
                             /* glsl */ `
                             MV motor;
 
-                            for (int i = 0; i < 32; i++)
-                                motor.c[i] = uMotor[i];
+                            ${Array.from({ length: 32 }, (_, i) =>
+                              `motor.c${i + 1} = uMotor[${i}];`
+                            ).join("\n")}
 
                             vec4 worldPos = modelMatrix * vec4(transformed, 1.0);
 
@@ -126,8 +129,9 @@
         showIntersections,
         showObject,
         showGizmos = true,
+        playVectorField = true,
         showTransforms = true,
-        viewportRect,
+        viewPort
     } = $props();
 
     const vecCol = $derived(new THREE.Color(vectorColor));
@@ -143,6 +147,21 @@
     const cubeH_ = 1.03;
     let group = $state();
     let camera = $state();
+    $effect(() => {
+
+              if(viewPort && camera) {
+                      const rect = canvas.getBoundingClientRect();
+                                   camera.setViewOffset(
+                                       rect.width,
+                                       rect.height,
+                                       (rect.left - viewPort.left) / 2,
+                                       (rect.bottom - viewPort.bottom) / 2,
+                                       rect.width,
+                                       rect.height,
+                                   );
+                    }
+            })
+
     const planes = [
         new THREE.Plane(
             new THREE.Vector3(1, 0, 0), // normal
@@ -233,8 +252,8 @@
 
     const vfcount = nx * nz;
 
-    const vfgeometry = ArrowGeometry(0.01, 2, 8, 2 * 32);
-    const vfgeometry2 = ArrowGeometry(0.01, 4, 8, 4 * 32);
+    const vfgeometry = ArrowGeometry(0.01, 2, 5, 2 * 32);
+    const vfgeometry2 = ArrowGeometry(0.01, 4, 5, 4 * 32);
     const vfmaterial = new THREE.ShaderMaterial({
         uniforms: {
             uColor: { value: [1.0, 0.8, 0.1, 1.0] },
@@ -246,6 +265,7 @@
         },
 
         vertexShader: /* glsl */ `
+
             #include <clipping_planes_pars_vertex>
 
             attribute vec4 aPosition;
@@ -275,18 +295,18 @@
 
             vec3 mvVector(MV a) {
                 return vec3(
-                    a.c[0],
-                    a.c[1],
-                    a.c[2]
+                    a.c1,
+                    a.c2,
+                    a.c3
                 );
             }
 
             void main() {
                 MV motor;
 
-                for (int i = 0; i < 32; i++) {
-                    motor.c[i] = uMotor[i];
-                }
+            ${Array.from({ length: 32 }, (_, i) =>
+                                          `motor.c${i + 1} = uMotor[${i}];`
+                                        ).join("\n")}
 
                 float timeOff = mod( uTime * uSpeed + aPosition.w * 4.0, 4.0 );
                 float interp = (position.y  * 0.5 - 0.5) + timeOff;
@@ -408,7 +428,7 @@
     vfmaterial.side = THREE.FrontSide;
     vfmaterial.clippingPlanes = planesOuter;
     vfmaterial.clipping = true;
-    vfmaterial.depthTest = false;
+    vfmaterial.depthTest = true;
     vfmaterial.depthWrite = false;
     vfmaterial.clipping = true;
     vfmaterial.transparent = true;
@@ -494,10 +514,14 @@
 
             vfmaterial.uniforms.uMotor.value = motor;
             vfmaterial.uniforms.uColor.value = vecCol.toArray();
-            vfmaterial.uniforms.uTime.value = elapsedTime;
+
+            if(playVectorField) {
+              vfmaterial.uniforms.uTime.value = elapsedTime;
+              vfmaterial2.uniforms.uTime.value = elapsedTime;
+            }
             vfmaterial2.uniforms.uMotor.value = motor;
             vfmaterial2.uniforms.uColor.value = vecCol.toArray();
-            vfmaterial2.uniforms.uTime.value = elapsedTime;
+
         }
         animate();
     }}
@@ -520,16 +544,19 @@
         const rect = canvas.getBoundingClientRect();
         ref.lookAt(0, 0, 0);
 
-        if (viewportRect) {
-            ref.setViewOffset(
-                rect.width,
-                rect.height,
-                (rect.left - viewportRect.left) / 2,
-                (rect.bottom - viewportRect.bottom) / 2,
-                rect.width,
-                rect.height,
-            );
+        if(viewPort) {
+          const rect = canvas.getBoundingClientRect();
+                        ref.setViewOffset(
+                            rect.width,
+                            rect.height,
+                            (rect.left - viewPort.left) / 2,
+                            (rect.bottom - viewPort.bottom) / 2,
+                            rect.width,
+                            rect.height,
+                        );
         }
+
+
     }}
 >
     <OrbitControls
@@ -763,13 +790,17 @@
                     </T.Mesh>
                 </T.Group>
             {:else if cga.isPointPair(el)}
+            <!-- -->
 
             {:else if cga.isPointPair(cga.dual(el))}
 
+            <!-- -->
             {:else if cga.isEuclideanPoint(el)}
 
+            <!-- -->
             {:else if cga.isEuclideanPoint(cga.dual(el))}
 
+            <!-- -->
             {/if}
         {/each}
     </T.Group>
